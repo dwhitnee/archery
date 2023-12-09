@@ -1,0 +1,33 @@
+body {
+  font-family: arial;
+}
+
+
+[v-cloak] {  display:none; }
+[v-cloak]::before { position: absolute; top: 10em; left: 10em; content: "loading..."; }
+
+.timer {
+  width: 10em;
+  height: 2em;
+  margin: 0 .5em;
+  font-size: 2.5em;
+}
+.timerBackground {
+  width: 20em;
+  height: 4em;
+  border: 2px solid black;
+  font-weight: bold;
+}
+
+.red {
+  background-color: #F00;
+  color: white;
+}
+.green {
+  background-color: #0F0;
+  color: black;
+}
+.yellow {
+  background-color: #FF0;
+  color: black;
+}
