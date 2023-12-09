@@ -140,6 +140,8 @@ let app = new Vue({
       let now = Math.floor(Date.now() / 1000);
       this.timerEndSeconds = now + this.round.endDuration + this.round.endPrepTime;
 
+      this.playPrepHorn();
+
       // every second recalcuate time left, should trigger display
       let self = this;
       this.ticker = setInterval( function() {
@@ -169,16 +171,36 @@ let app = new Vue({
 
     },
 
-    // two beeps
+    //----------------------------------------
+    // Retrieve <audio> tag and play it (make sure any other sounds are stopped first)
+    //----------------------------------------
+    playHorn: function( times ) {
+      let horn = document.getElementById('horn');
+
+      horn.pause();  // stop any previous noise
+      horn.currentTime = 0;
+
+      horn.play();
+
+      let self=this;
+      if (times > 1) {
+        setTimeout( function() {
+          self.playHorn( times-1 );
+        }, 1000 );
+      }
+    },
+
     playPrepHorn: function() {
+      this.playHorn( 2 );
     },
-
-    // one beep
     playShootHorn: function() {
+      this.playHorn( 1 );
     },
-
-    // three beeps
     playEndHorn: function() {
+      this.playHorn( 3 );
+    },
+    playDangerHorn: function() {
+      this.playHorn( 5 );
     },
 
     //----------------------------------------
@@ -190,6 +212,7 @@ let app = new Vue({
       this.timerEndSeconds = 0;
       clearInterval( this.ticker );
 
+      this.playEndHorn();  // FIXME
       // FIXME: move to next state
     },
 
