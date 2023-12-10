@@ -9,12 +9,16 @@
   margin-left: .25em;  /* hack to separate, should be elsewhere */
 }
 
+/* https://www.svgrepo.com/svg/69995/play-button */
 .playIcon {
-  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"    viewBox="0 0 490.718 490.718" xml:space="preserve"> <g> \
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 490.718 490.718"> \
 <path d="M245.359,0.359C109.852,0.359,0,110.049,0,245.358s109.852,245,245.359,245s245.359-109.691,245.359-245 \
         S380.866,0.359,245.359,0.359z M176.828,341.011V140.824l187.489,100.098L176.828,341.011z"/> \
-<g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g> \
-<g></g><g></g><g></g><g></g><g></g><g></g><g></g></g> </svg>');
+</svg>');
+}
+
+.skipIcon {
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="matrix(-1, 0, 0, 1, 0, 0)" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="10"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M6.75 5.25V18.75H8.25L8.25 5.25H6.75ZM9.14792 12L18 17.9014L18 6.09862L9.14792 12ZM16.5 8.9014L16.5 15.0986L11.8521 12L16.5 8.9014Z" fill="#080341"></path> </g></svg>');
 }
 
 
