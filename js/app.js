@@ -35,6 +35,7 @@ let app = new Vue({
     endNumber: 1,
     lineUp: 1,
     timeLeft: 0,
+    rangeIsHot: false,
 
     red: "red",
     green: "green",
@@ -45,7 +46,7 @@ let app = new Vue({
       maxEnds: 10,   // 10 indoor, 12 outdoor
       endDuration: 120,  // 120 indoor 240 outdoor
       endPrepTime: 10,
-      numLines: 1,   // AB/CD or AB
+      numLines: 2,   // AB/CD or AB
       bottomLineUpFirst: true,    // NFAA: bottom line up first, WA: top line
     },
 
@@ -89,6 +90,9 @@ let app = new Vue({
     },
   },
 
+  //----------------------------------------
+  // display format
+  //----------------------------------------
   filters: {
     minSeconds: function( inSeconds ) {
       let seconds = inSeconds % 60;
@@ -103,13 +107,13 @@ let app = new Vue({
   mounted() {
     // handle broken promises.
     window.addEventListener('unhandledrejection', function(event) {
-      debugger;
       alert("Rat farts " + JSON.stringify( event ));
+      debugger;
     });
 
     this.roundType = this.$route.query.round;
 
-    this.computeTimeLeft();
+    this.updateTimer();
 
     this.prefs = Util.loadData("prefs") || this.prefs;
   },
@@ -135,40 +139,59 @@ let app = new Vue({
     startTimer: function() {
       if (this.ticker) return;
 
-      console.log("End begun!");
-
+      console.log("Archers to the line");
       let now = Math.floor(Date.now() / 1000);
       this.timerEndSeconds = now + this.round.endDuration + this.round.endPrepTime;
-
       this.playPrepHorn();
 
       // every second recalcuate time left, should trigger display
-      let self = this;
-      this.ticker = setInterval( function() {
-        self.computeTimeLeft();
-        if (self.timeLeft <= 0) {
-          clearInterval( self.ticker );
-          self.ticker = 0;
-          self.timeLeft = 0;
-        }
-      }, 1000);
+      this.ticker = setInterval(() => { this.updateTimer(); }, 1000);
     },
 
     //----------------------------------------
     // called by ticker so display can be updated
+    // If clock is running, check for state changes
+    // If clock is not running, just show
     //----------------------------------------
-    computeTimeLeft: function() {
-      if (this.timerEndSeconds) {
+    updateTimer: function() {
+
+      if (!this.timerEndSeconds) {
+        // clock is not running
+
+        this.timeLeft = this.round.endPrepTime;
+        this.rangeIsHot = false;
+
+      } else {
+        // clock is running, update state if necessary
         let now = Math.floor(Date.now() / 1000);
         this.timeLeft = this.timerEndSeconds - now;
-        if (this.timeLeft < 0) {
-          this.timeLeft = 0;
+
+        // If during prep time, just show time until you can shoot
+        if (this.timeLeft > this.round.endDuration) {
+          this.timeLeft = this.timeLeft - this.round.endDuration;
+          this.rangeIsHot = false;
+
+        } else {   // it's shooting time
+          if (!this.rangeIsHot) {
+            this.playStartHorn();
+            this.rangeIsHot = true;
+          }
+        }
+
+        if (this.timeLeft <= 0 && this.rangeIsHot) {       // line is done, move on or wait?
+          this.rangeIsHot = false;
+          this.lineIsDone();
+
+          if (this.lineUp < this.round.numLines) {   // move to next line
+            this.lineUp++;
+            this.startTimer();
+          } else {
+            this.endIsDone();
+          }
+
         }
         console.log("time left: " + this.timeLeft);
-      } else {
-        this.timeLeft = this.round.endDuration + this.round.endPrepTime;
       }
-
     },
 
     //----------------------------------------
@@ -182,18 +205,15 @@ let app = new Vue({
 
       horn.play();
 
-      let self=this;
       if (times > 1) {
-        setTimeout( function() {
-          self.playHorn( times-1 );
-        }, 1000 );
+        setTimeout( () => { this.playHorn( times-1 ); }, 1000 );
       }
     },
 
     playPrepHorn: function() {
       this.playHorn( 2 );
     },
-    playShootHorn: function() {
+    playStartHorn: function() {
       this.playHorn( 1 );
     },
     playEndHorn: function() {
@@ -207,18 +227,23 @@ let app = new Vue({
     // advance the clock
     // sound horn, move to next state (end over, or next line up)
     //----------------------------------------
-    skipToNextLine: function() {
+    lineIsDone: function() {
+      console.log("Cease fire");
+      this.rangeIsHot = false;
       this.timeLeft = 0;
       this.timerEndSeconds = 0;
       clearInterval( this.ticker );
+      this.ticker = 0;
+    },
 
-      this.playEndHorn();  // FIXME
-      // FIXME: move to next state
+    endIsDone: function() {
+      this.playEndHorn();
+      this.lineUp = 1;
     },
 
     // Red, then green, then yellow
     timerBackgroundClass: function() {
-      if ((this.timeLeft > this.round.endDuration) || !this.timeLeft) {
+      if (!this.rangeIsHot) {
         return this.red;
       } else if (this.timeLeft < 30 ) {
         return this.yellow;

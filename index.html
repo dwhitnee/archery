@@ -17,7 +17,7 @@
     <div class="timerApp">
       Look at me, I'm Mr Meeseeks!
       <button class="start" @click="startTimer">start</button>
-      <button class="skip" @click="skipToNextLine">skip</button>
+      <button class="skip" @click="lineIsDone">skip</button>
 
       <div class="timerBackground" :class="timerBackgroundClass()">
         <div class="timer">
