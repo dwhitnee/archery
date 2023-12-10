@@ -116,8 +116,9 @@ let app = new Vue({
 
     // TODO:
     // skip forward and backward through end numbers
+    // skip button with spacebar
     // mobile formatting (full screen portrait and landscape)
-    // go button should be a play > button, then play end >| button
+
 
     // set the message to display lcoally, keep it for 2-3 cycles (6 seconds)
     // (otherwise local messages disappear too fast)
