@@ -47,3 +47,6 @@ http://localhost/archeryTimer/
 
 ## Credits
 All code written and directed by David Whitney.
+
+Got a feature request or a bug?  Please add an Issue in github.
+https://github.com/dwhitnee/archeryTimer/issues
