@@ -9,6 +9,15 @@
   margin-left: .25em;  /* hack to separate, should be elsewhere */
 }
 
+.playIcon {
+  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"    viewBox="0 0 490.718 490.718" xml:space="preserve"> <g> \
+<path d="M245.359,0.359C109.852,0.359,0,110.049,0,245.358s109.852,245,245.359,245s245.359-109.691,245.359-245 \
+        S380.866,0.359,245.359,0.359z M176.828,341.011V140.824l187.489,100.098L176.828,341.011z"/> \
+<g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g> \
+<g></g><g></g><g></g><g></g><g></g><g></g><g></g></g> </svg>');
+}
+
+
 .settingsIcon {
   background-image: url('data:image/svg+xml;utf8,<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" \
          viewBox="0 0 54 54" style="enable-background:new 0 0 54 54;" xml:space="preserve"> \

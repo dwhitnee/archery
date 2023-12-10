@@ -17,8 +17,8 @@
 
       <div class="timerBackground" :class="timerBackgroundClass()">
         <div class="controls">
-          <button class="start btn btn-light btn-lg" @click="startTimer">START</button>
-          <button class="skip btn btn-light btn-lg" @click="lineIsDone">SKIP</button>
+          <div class="playButton icon playIcon" title="Play" @click="proceed"></div>
+          <!-- <button class="start btn btn-light btn-lg" @click="proceed">GO</button> -->
         </div>
 
         <div class="settings icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>

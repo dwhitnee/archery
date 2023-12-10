@@ -32,15 +32,23 @@ body {
 }
 
 
+.controls:active {
+  filter: invert(25%) !important;
+}
+.controls:hover {
+  filter: invert(10%);
+}
+
 .controls {
   grid-area: controls;
   margin: auto;
-  font-size: 4vw;
+  margin-right: .75em;
+  font-size: 7vw;
 }
 .info {
   margin: auto;
   grid-area: info;
-  font-size: 8vw;
+  font-size: 7vw;
 }
 .end {
   display: inline;

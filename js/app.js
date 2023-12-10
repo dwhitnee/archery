@@ -28,8 +28,6 @@ let app = new Vue({
   // Game Model (drives the View, update these values only
   //----------------------------------------
   data: {
-    message: "",   // display in the middle
-
     // state machine for where we are in a Round
     endNumber: 1,
     lineUp: 1,
@@ -102,6 +100,8 @@ let app = new Vue({
     this.updateTimer();
 
     this.prefs = Util.loadData("prefs") || this.prefs;
+
+    // this.goFullScreen();  // fails?
   },
 
   // synchronous app setup before event handling starts
@@ -114,9 +114,10 @@ let app = new Vue({
   //----------------------------------------------------------------------
   methods: {
 
-    // TODO: skip forward and backward through end numbers
+    // TODO:
+    // skip forward and backward through end numbers
     // mobile formatting (full screen portrait and landscape)
-
+    // go button should be a play > button, then play end >| button
 
     // set the message to display lcoally, keep it for 2-3 cycles (6 seconds)
     // (otherwise local messages disappear too fast)
@@ -153,11 +154,14 @@ let app = new Vue({
       return str;
     },
 
+    isTimerRunning: function() {
+      return this.ticker;
+    },
 
     startTimer: function() {
       if (this.ticker) return;
 
-      this.toggleFullScreen();
+      this.goFullScreen();
 
       console.log("Archers to the line");
       let now = Math.floor(Date.now() / 1000);
@@ -235,6 +239,15 @@ let app = new Vue({
       this.playHorn( 5 );
     },
 
+    proceed: function() {
+      // either line is done, or we're starting
+      if (!this.isTimerRunning()) {
+        this.startTimer();
+      } else { // skip to end
+        this.lineIsDone();
+      }
+    },
+
     //----------------------------------------
     // advance the clock
     // sound horn, move to next state (end over, or next line up)
@@ -277,76 +290,6 @@ let app = new Vue({
       }
     },
 
-    //----------------------------------------
-    // CSS from deck sprite
-    //----------------------------------------
-    getCardStyle: function( id ) {
-      let face = "";
-      let scale = "scale: ";
-
-      face = "background-position: " + this.getCardFaceStyle( card );
-      scale += this.prefs.cardScale/100.0;
-
-      let entropy =  "transform: rotate(" + (this.random(10)-5) + "deg";
-      return entropy + ";" + face + "; " + scale;
-    },
-
-
-    //----------------------------------------------------------------------
-    // DRAGGING
-    //----------------------------------------------------------------------
-    //----------------------------------------
-    // attach card to drag event
-    //----------------------------------------
-    dragCardStart: function( card, event ) {
-      this.movingCard = card;
-      event.dataTransfer.setData("card", JSON.stringify( card ));
-      event.target.style.marginTop = "";
-
-      // event.target.style.opacity = '0.2';
-      console.log("Dragging the " + card);
-    },
-
-    //----------------------------------------
-    // on mouse over, make card jump only if it's playable
-    //----------------------------------------
-    mouseOverCard: function( card, event ) {
-      if (!this.leadCard) {
-        event.target.style.marginTop = "-.5em";
-        return;
-      }
-      // check if card is playable
-      if (this.followsSuit( card ) ||
-          this.playerIsVoid( this.leadCard, this.game.trumpSuit ))
-      {
-        event.target.style.marginTop = "-.5em";
-      }
-    },
-    mouseLeaveCard: function( event ) {
-      event.target.style.marginTop = "";
-    },
-
-    //----------------------------------------
-    // remove card from old place, swap with target card
-    //----------------------------------------
-    moveCard: function( overCard, event ) {
-      if (this.movingCard === overCard) {
-        return;   // draggin over ourselves
-      }
-      console.log("Swapping " + this.movingCard + " with " + overCard );
-
-      let cards = this.game.players[this.playerId].cardIds;
-      let a = cards.indexOf( this.movingCard.id );
-      let b = cards.indexOf( overCard.id );
-      // ES6 magic swapping
-      [cards[a], cards[b]] = [cards[b], cards[a]];
-
-      this.$forceUpdate();   // need this so getCardStyle updates, why? FIXME
-      // need to make getCardStyle a computed method?  Component?
-    },
-
-
-
     //----------------------------------------------------------------------
     // update stats for person who picked trump suit, and defending team
     // called after every hand is done? Or just at end of game...FIXME
@@ -355,15 +298,6 @@ let app = new Vue({
       let oldRound = Util.loadData("round") || {};
 
       Util.saveData("stats", round );
-    },
-
-
-    savePlayerName( name ) {
-      Util.saveData("name", name );
-
-      let names = Util.loadData("pastPlayerNames") || [];
-      names.push( name );
-      Util.saveData("pastPlayerNames", names);
     },
 
 
@@ -402,7 +336,7 @@ let app = new Vue({
     closeDialogElement( dialog ) {
       document.getElementById("dialogBackdrop").classList.remove("backdropObscured");
 
-      this.dialogIsOpen = false;   // FIXME: Vue is not seeing this; Do we just need to add it to the data() section?
+      this.dialogIsOpen = false;  // FIXME: Vue is not seeing this; Do we just need to add it to the data() section?
       dialog.open = false;
       dialog.style.display="none";
 
@@ -441,12 +375,18 @@ let app = new Vue({
       document.body.addEventListener("keydown", this.closeDialogOnESC );
     },
 
-    toggleFullScreen: function() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
+    //----------------------------------------
+    goFullScreen: function() {
+      try {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        }
+      } catch (e) {
+        console.error( e );
+      }
       // } else if (document.exitFullscreen) {
       //   document.exitFullscreen();
-      }
+
     }
 
   }
