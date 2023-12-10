@@ -31,7 +31,6 @@ let app = new Vue({
     message: "",   // display in the middle
 
     // state machine for where we are in a Round
-    isPracticeEnd: true,
     endNumber: 1,
     lineUp: 1,
     timeLeft: 0,
@@ -63,19 +62,6 @@ let app = new Vue({
   // state for easier rendering
   //----------------------------------------
   computed: {
-    //----------------------------------------
-    // P1, P2, 1, 2, 3...
-    //----------------------------------------
-    roundName: function() {
-      let prefix = this.isPracticeEnd ? "P":"";
-      return prefix + this.endNumber;
-    },
-    //----------------------------------------
-    // "AB" "CD" "EF"?
-    //----------------------------------------
-    lineName: function() {
-      return "AB";
-    },
 
     // for feedback, this gets cached in DOM when <a> tag built
     deviceData() {
@@ -94,7 +80,7 @@ let app = new Vue({
   // display format
   //----------------------------------------
   filters: {
-    minSeconds: function( inSeconds ) {
+    minSecondsFormat: function( inSeconds ) {
       let seconds = inSeconds % 60;
       seconds = seconds < 10 ? "0"+seconds : seconds;
       return Math.floor( inSeconds/60 ) + ":" + seconds;
@@ -128,6 +114,10 @@ let app = new Vue({
   //----------------------------------------------------------------------
   methods: {
 
+    // TODO: skip forward and backward through end numbers
+    // mobile formatting (full screen portrait and landscape)
+
+
     // set the message to display lcoally, keep it for 2-3 cycles (6 seconds)
     // (otherwise local messages disappear too fast)
     setMessage: function( message, pause ) {
@@ -136,13 +126,43 @@ let app = new Vue({
       this.messageCountdown = pause + 1;
     },
 
+    //----------------------------------------
+    // P1, P2, 1, 2, 3...
+    //----------------------------------------
+    endDisplay: function() {
+      let end = this.endNumber;
+      if (end <= this.round.practiceEnds) {
+        return "Practice " + end;
+      } else {
+        return this.endNumber - this.round.practiceEnds;
+      }
+    },
+    //----------------------------------------
+    // "AB" "CD" "EF"?
+    //----------------------------------------
+    lineDisplay: function() {
+      let lineNames = [0, "ab", "cd", "ef"];
+      let str = "";
+      for (let i=1; i <= this.round.numLines; i++) {
+        if (i == this.lineUp) {
+          str += lineNames[i].toUpperCase();
+        } else {
+          str += lineNames[i];
+        }
+      }
+      return str;
+    },
+
+
     startTimer: function() {
       if (this.ticker) return;
 
+      this.toggleFullScreen();
+
       console.log("Archers to the line");
       let now = Math.floor(Date.now() / 1000);
-      this.timerEndSeconds = now + this.round.endDuration + this.round.endPrepTime;
-      this.playPrepHorn();
+      this.timerEndSeconds = now + this.round.endDuration + this.round.endPrepTime + 1;
+      this.playPrepHorn();  // Add 1 second for horn
 
       // every second recalcuate time left, should trigger display
       this.ticker = setInterval(() => { this.updateTimer(); }, 1000);
@@ -181,14 +201,6 @@ let app = new Vue({
         if (this.timeLeft <= 0 && this.rangeIsHot) {       // line is done, move on or wait?
           this.rangeIsHot = false;
           this.lineIsDone();
-
-          if (this.lineUp < this.round.numLines) {   // move to next line
-            this.lineUp++;
-            this.startTimer();
-          } else {
-            this.endIsDone();
-          }
-
         }
         console.log("time left: " + this.timeLeft);
       }
@@ -234,11 +246,24 @@ let app = new Vue({
       this.timerEndSeconds = 0;
       clearInterval( this.ticker );
       this.ticker = 0;
+
+      // start next line if necessary
+      if (this.lineUp < this.round.numLines) {
+        this.lineUp++;
+        this.startTimer();
+      } else {
+        this.endIsDone();
+      }
     },
 
+    //----------------------------------------
+    // End is complete, time to go score and get ready for the next end
+    //----------------------------------------
     endIsDone: function() {
+      console.log("End is done, go score");
       this.playEndHorn();
       this.lineUp = 1;
+      this.endNumber++;
     },
 
     // Red, then green, then yellow
@@ -415,5 +440,14 @@ let app = new Vue({
       backdrop.addEventListener('click', this.closeDialogOnOutsideClick );
       document.body.addEventListener("keydown", this.closeDialogOnESC );
     },
+
+    toggleFullScreen: function() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      // } else if (document.exitFullscreen) {
+      //   document.exitFullscreen();
+      }
+    }
+
   }
 });
