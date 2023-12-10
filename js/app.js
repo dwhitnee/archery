@@ -48,19 +48,23 @@ let app = new Vue({
       bottomLineUpFirst: true,    // NFAA: bottom line up first, WA: top line
     },
 
-    indoorRound: {
-      practiceEnds: 2,
-      maxEnds: 10,
-      endDuration: 120,
-      endPrepTime: 10,
-      numLines: 2,   // AB/CD or AB
-    },
-    outdoorRound: {
-      practiceEnds: 2,
-      maxEnds: 12,
-      endDuration: 240,
-      endPrepTime: 10,
-      numLines: 2,   // AB/CD or AB
+    defaultRounds: {
+      indoorWA: {
+        practiceEnds: 2,
+        maxEnds: 10,
+        endDuration: 120,
+        endPrepTime: 10,
+        numLines: 2,   // AB/CD or AB
+        alternateLines: true
+      },
+      outdoorWA: {
+        practiceEnds: 2,
+        maxEnds: 12,
+        endDuration: 240,
+        endPrepTime: 10,
+        numLines: 2,   // AB/CD or AB
+        alternateLines: true
+      }
     },
 
     showCredits: false,
@@ -153,16 +157,30 @@ let app = new Vue({
     },
     //----------------------------------------
     // "AB" "CD" "EF"?
+    // Alternate AB/CD up first for WA Rounds
     //----------------------------------------
     lineDisplay: function() {
       let lineNames = [0, "ab", "cd", "ef"];
+
+      // switch for even rounds
+      let swapOrder = this.round.alternateLines && !(this.endNumber % 2);
+
       let str = "";
       for (let i=1; i <= this.round.numLines; i++) {
-        if (i == this.lineUp) {
-          str += lineNames[i].toUpperCase();
+        if (swapOrder) {
+          if (i != this.lineUp) {
+            str += lineNames[i].toUpperCase();
+          } else {
+            str += lineNames[i];
+          }
         } else {
-          str += lineNames[i];
+          if (i == this.lineUp) {
+            str += lineNames[i].toUpperCase();
+          } else {
+            str += lineNames[i];
+          }
         }
+
       }
       return str;
     },
@@ -256,8 +274,11 @@ let app = new Vue({
       this.playHorn( 5 );
     },
 
+    //----------------------------------------
+    // Skip to next state - either this line is done (perhaps prematurely),
+    //  or we're starting a new line
+    //----------------------------------------
     proceed: function() {
-      // either line is done, or we're starting
       if (!this.isTimerRunning()) {
         this.startTimer();
       } else { // skip to end
@@ -305,6 +326,14 @@ let app = new Vue({
       } else {
         return this.green;
       }
+    },
+
+    // quick fill for settings.
+    populateIndoorDefaults: function() {
+      this.round = this.defaultRounds.indoorWA;
+    },
+    populateOutdoorDefaults: function() {
+      this.round = this.defaultRounds.outdoorWA;
     },
 
     //----------------------------------------------------------------------
