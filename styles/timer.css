@@ -69,15 +69,6 @@ body {
   display: inline;
   grid-area: line;
 }
-.settings {
-  font-size: 3vw;
-  margin: auto;
-  grid-area: settings;
-}
-#settings button {
-  font-size: 3vw;
-}
-
 .red {
   background-color: #F00;
   color: white;
@@ -89,6 +80,13 @@ body {
 .yellow {
   background-color: #FF8;
   color: black;
+}
+
+
+.settings {
+  font-size: 3vw;
+  margin: auto;
+  grid-area: settings;
 }
 
 .prefGrid {
@@ -104,11 +102,8 @@ body {
 
 .prefPresets button {
   margin: .5em 2em 0 0;
+  font-size: 3vw;
 }
-
-
-
-
 
 .feedback, .credits, .version {
   font-size: small;
