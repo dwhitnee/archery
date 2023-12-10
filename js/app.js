@@ -118,7 +118,23 @@ let app = new Vue({
 
     this.round = Util.loadData("round") || this.round;
 
-    // this.goFullScreen();  // fails?
+
+    // cycle through ends with arrow keys
+    let left = 37, right = 39;
+    this.navigateEnds = (event) => {
+      if (event.keyCode === left) {
+        console.log("left");
+        if (this.endNumber > 1) {
+          this.endNumber--;
+        }
+      }
+      if (event.keyCode === right) {
+        console.log("right");
+        this.endNumber++;
+      }
+    };
+    document.body.addEventListener("keydown", this.navigateEnds );
+    // this.goFullScreen();  // fails? Needs to be an interactive function
   },
 
   // synchronous app setup before event handling starts
