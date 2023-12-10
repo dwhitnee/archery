@@ -34,9 +34,9 @@ body {
   grid-template-columns: 1fr 6fr 1fr;
   grid-template-rows: auto;
   grid-template-areas:
-    ".  .     settings"
-    ".  timer controls"
-    "info  info  info";
+    "message message settings"
+    ".       timer   controls"
+    "info    info    info";
 }
 
 
@@ -61,6 +61,19 @@ body {
   border: none;
 }
 
+
+@keyframes fadeOut {
+  0%   { opacity: 100%; }
+  100% { opacity: 0%; transform: translate( 3em, -0 );  }
+}
+
+.message {
+  animation: fadeOut ease 10s forwards;
+  margin: auto;
+  grid-area: message;
+  font-size: 3vw;
+  font-style: italic;
+}
 .info {
   margin: auto;
   grid-area: info;
@@ -87,7 +100,6 @@ body {
   background-color: #FF8;
   color: black;
 }
-
 
 .settings {
   font-size: 3vw;

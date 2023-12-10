@@ -1,7 +1,7 @@
 /*global fetch, Vue, VueRouter, Util */
 //-----------------------------------------------------------------------
 //  Copyright 2023, David Whitney
-// This file is part of Tournament Archery Timer
+//  This file is part of Tournament Archery Timer
 
 // Archery Timer is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,6 +13,39 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //-----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+//  OVERVIEW
+//----------------------------------------------------------------------
+//  A VueJS 2.1 event-driven webapp to control archery lines in a tournament.
+//
+//  This app is a state machine managing the below events. A timer
+//  ticks every second and updates the app's state until the end is
+//  over.
+//
+//  The screen is RED when it is unsafe to shoot, GREEN when it's OK to shot,
+//  and YELLOW when you are almost out of time.
+//
+//  An archery round consists of a number of ends shot by any number
+//  of archers on a shooting line. Sometimes there are too many archers to fit
+//  so multiple lines are used sequentially.
+//
+//  There is a warning period to start each end so archers can
+//  position themselves on the shooting line. Two horns are sounded to
+//  start this period, one horn is sounded when it's time to start
+//  shooting.  If there are multiple lines of archers, an additional
+//  two horns are sounded to alert the next group of archers to move up
+//  to the line, followed again by a single horn to shoot.
+
+//  When an end is done, three horns are sounded indicating all clear
+//  and the timer stops.  An operator must hit the button or the space
+//  bar to start the next end.  The button can be hit at any time to
+//  prematurely end the current line and move to the next state (next line or end finished).
+
+//  The type of round can be configured (2:00 ends for indoor, 4:00
+//  for outdoor), and these prefs are saved to LocalStorage
+//  ----------------------------------------------------------------------
+
 
 // Vue-router 3
 var router = new VueRouter({
@@ -28,6 +61,7 @@ let app = new Vue({
   // Game Model (drives the View, update these values only
   //----------------------------------------
   data: {
+    message: "",
     // state machine for where we are in a Round
     endNumber: 1,
     lineUp: 1,
@@ -76,7 +110,6 @@ let app = new Vue({
   // state for easier rendering
   //----------------------------------------
   computed: {
-
     // for feedback, this gets cached in DOM when <a> tag built
     deviceData() {
           let CRLF = "%0D%0A";
@@ -118,7 +151,6 @@ let app = new Vue({
 
     this.round = Util.loadData("round") || this.round;
 
-
     // cycle through ends with arrow keys
     let left = 37, right = 39;
     this.navigateEnds = (event) => {
@@ -143,15 +175,9 @@ let app = new Vue({
 
   //----------------------------------------------------------------------
   // event handlers and other things that should not be computed
-  //fns accessible from the web page
+  // functions are accessible from the web page
   //----------------------------------------------------------------------
   methods: {
-
-    // TODO:
-    // skip forward and backward through end numbers
-    // skip button with spacebar
-
-
     // set the message to display lcoally, keep it for 2-3 cycles (6 seconds)
     // (otherwise local messages disappear too fast)
     setMessage: function( message, pause ) {
@@ -218,6 +244,7 @@ let app = new Vue({
       let now = Math.floor(Date.now() / 1000);
       this.timerEndSeconds = now + this.round.endDuration + this.round.endPrepTime + 1;
       this.playPrepHorn();  // Add 1 second for horn
+      this.setMessage("ARCHERS TO THE LINE");
 
       // every second recalcuate time left, should trigger display
       this.ticker = setInterval(() => { this.updateTimer(); }, 1000);
@@ -230,13 +257,13 @@ let app = new Vue({
     //----------------------------------------
     updateTimer: function() {
 
-      if (!this.timerEndSeconds) {
-        // clock is not running
+      if (!this.isTimerRunning()) {
 
         this.timeLeft = this.round.endPrepTime;
         this.rangeIsHot = false;
 
       } else {
+
         // clock is running, update state if necessary
         let now = Math.floor(Date.now() / 1000);
         this.timeLeft = this.timerEndSeconds - now;
@@ -248,8 +275,9 @@ let app = new Vue({
 
         } else {   // it's shooting time
           if (!this.rangeIsHot) {
-            this.playStartHorn();
             this.rangeIsHot = true;
+            this.playStartHorn();
+            this.setMessage("");
           }
         }
 
@@ -297,7 +325,7 @@ let app = new Vue({
     proceed: function() {
       if (!this.isTimerRunning()) {
         this.startTimer();
-      } else { // skip to end
+      } else {    // skip to end
         this.lineIsDone();
       }
     },
