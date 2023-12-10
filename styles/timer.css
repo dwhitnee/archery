@@ -1,3 +1,11 @@
+
+@media only screen and (orientation:landscape) {  /* doesn't handle 16:9  very well */
+  .timer {
+    font-size: 25vw;
+  }
+}
+
+
 body {
   font-family: arial;
   background-color: #ccc;
@@ -8,7 +16,7 @@ body {
 [v-cloak]::before { position: absolute; top: 10em; left: 10em; content: "loading..."; }
 
 .timer {
-  font-size: 25vw;
+  font-size: 30vw;
   margin: auto;
   grid-area: timer;
 }
@@ -79,7 +87,14 @@ body {
   color: black;
 }
 
+.prefs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
 
+.feedback, .credits, .version {
+  font-size: small;
+}
 
 
 @supports not ( selector( dialog::backdrop )) {
@@ -87,7 +102,7 @@ body {
   dialog {
     display: none;
     left: 10%;
-    background-color: #cc0;
+    background-color: #ff80;
   }
 }
 

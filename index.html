@@ -54,31 +54,29 @@
         <button class="close" @click="closeDialog( $event )"></button>
 
         <div class="settings">
-          <h2>Settings</h2>
-
-          <div>
-            Indoor/Outdoor
+          <div class="prefs">
+            <div>Practice ends:   </div><div> <input v-model.number="round.practiceEnds" size=2></div>
+            <div>Warning Time:  </div><div><input v-model.number="round.endPrepTime" size=2></div>
+            <div>Shooting Time: </div><div><input v-model.number="round.endDuration" size=2></div>
+            <div>Shooting Lines: </div><div><input v-model.number="round.numLines" size=2></div>
           </div>
-
-          <div>
-            One line/two lines
-          </div>
-
+          <hr/>
           <div class="feedback">
             <div>Feedback:</div>
             <div><ul>
-              <li><a :href="'mailto:dwhitnee@gmail.com?subject=Euchre%20Feedback&body='+deviceData">Email</a></li>
-              <li><a href="https://twitter.com/intent/tweet?url=http://dwhitnee.github.io/euchre /&amp;text=Online%20Euchre%20Card%20Game" target="_blank" rel="noopener">Twitter</a></li>
-              <li><a href="https://www.facebook.com/sharer.php?u=http://dwhitnee.github.io/euchre/" target="_blank" rel="noopener">Facebook</a></li>
+              <li><a :href="'mailto:dwhitnee@gmail.com?subject=Archery%20Timer%20Feedback&body='+deviceData">Email</a></li>
+              <li><a href="https://www.facebook.com/sharer.php?u=http://dwhitnee.github.io/archeryTimer/" target="_blank" rel="noopener">Facebook</a></li>
             </ul>
             </div>
           </div>
 
-          <div>
+          <div class="credits">
             Acknowledgements:
-            <button v-on:click="showCredits = !showCredits">View</button>
+            <button class="btn btn-info btn-sm" v-on:click="showCredits = !showCredits">View</button>
             <div v-if="showCredits">
               Author: <ul><li>David Whitney</li></ul>
+              Testers: <ul>
+              <li></li>
             </ul>
             Credits:
             <ul>

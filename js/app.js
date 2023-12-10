@@ -38,7 +38,8 @@ let app = new Vue({
     green: "green",
     yellow: "yellow",
 
-    round: {  // round prefs
+    // round prefs (saved to cookies)
+    round: {
       practiceEnds: 2,
       maxEnds: 10,   // 10 indoor, 12 outdoor
       endDuration: 120,  // 120 indoor 240 outdoor
@@ -47,8 +48,19 @@ let app = new Vue({
       bottomLineUpFirst: true,    // NFAA: bottom line up first, WA: top line
     },
 
-    prefs: { // display prefs
-      cardScale: 100,      // TODO: persist this value to settings, what event?
+    indoorRound: {
+      practiceEnds: 2,
+      maxEnds: 10,
+      endDuration: 120,
+      endPrepTime: 10,
+      numLines: 2,   // AB/CD or AB
+    },
+    outdoorRound: {
+      practiceEnds: 2,
+      maxEnds: 12,
+      endDuration: 240,
+      endPrepTime: 10,
+      numLines: 2,   // AB/CD or AB
     },
 
     showCredits: false,
@@ -99,7 +111,7 @@ let app = new Vue({
 
     this.updateTimer();
 
-    this.prefs = Util.loadData("prefs") || this.prefs;
+    this.round = Util.loadData("round") || this.round;
 
     // this.goFullScreen();  // fails?
   },
@@ -117,7 +129,7 @@ let app = new Vue({
     // TODO:
     // skip forward and backward through end numbers
     // skip button with spacebar
-    // mobile formatting (full screen portrait and landscape)
+    // alternate AB/CD for WA
 
 
     // set the message to display lcoally, keep it for 2-3 cycles (6 seconds)
@@ -159,10 +171,14 @@ let app = new Vue({
       return this.ticker;
     },
 
+    //----------------------------------------
+    // Kick off an end
+    //----------------------------------------
     startTimer: function() {
       if (this.ticker) return;
 
       this.goFullScreen();
+      this.updateRoundPrefs( this.round );  // FIXME: should only call this on dialog close
 
       console.log("Archers to the line");
       let now = Math.floor(Date.now() / 1000);
@@ -296,9 +312,8 @@ let app = new Vue({
     // called after every hand is done? Or just at end of game...FIXME
     //----------------------------------------------------------------------
     updateRoundPrefs: function( round ) {
-      let oldRound = Util.loadData("round") || {};
-
-      Util.saveData("stats", round );
+      // let oldRound = Util.loadData("round") || {};
+      Util.saveData("round", round );
     },
 
 
