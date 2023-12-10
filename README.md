@@ -10,10 +10,12 @@ This is a simple Timer used for Archery Tournaments.
 Handles Indoor and Outdoor World Archery formats with variable end length.
 By default this is two minutes indoor and four minutes outdoor with a 10 second prep time.
 
-No canvas, just HTML elements and CSS.
+No App Store, just HTML elements and CSS. This should work well on
+any browser, OS, phone, iPad, laptop, or tablet. If you find an issue please
+let me know the device in the feedback section of the app.
 
 Inspired by the myriad iOS, Android, and Windows timer apps that are
-all wonderful but seem to always fall just short and require different devices to make work.
+all wonderful but seem to always fall just short and require different tweaks to make work.
 
 ## More info
 
