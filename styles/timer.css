@@ -74,6 +74,9 @@ body {
   margin: auto;
   grid-area: settings;
 }
+#settings button {
+  font-size: 3vw;
+}
 
 .red {
   background-color: #F00;
@@ -88,10 +91,24 @@ body {
   color: black;
 }
 
+.prefGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+}
+
 .prefs {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  align-content: center;
+  grid-template-columns: 1fr 1fr;
 }
+
+.prefPresets button {
+  margin: .5em 2em 0 0;
+}
+
+
+
+
 
 .feedback, .credits, .version {
   font-size: small;
