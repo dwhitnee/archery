@@ -1,10 +1,12 @@
+/* @media only screen and (orientation:landscape) {} */
 
-@media only screen and (orientation:landscape) {  /* doesn't handle 16:9  very well */
-  .timer {
+/* doesn't handle very large aspect ratio very well */
+@media (min-aspect-ratio: 16/9) {
+  .timerBackground .timer {
     font-size: 25vw;
+    font-style: italic;  /* just for testing */
   }
 }
-
 
 body {
   font-family: arial;
@@ -29,10 +31,8 @@ body {
   border: 2px solid black;
   font-weight: bold;
   margin: auto;
-  /* justify-content: end; */
 
   grid-template-columns: 1fr 6fr 1fr;
-  /* grid-template-rows: 1fr 1fr 3fr; */
   grid-template-rows: auto;
   grid-template-areas:
     ".  .     settings"
@@ -41,6 +41,7 @@ body {
 }
 
 
+/* pretty button press */
 .controls:active {
   filter: invert(25%) !important;
 }

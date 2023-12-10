@@ -55,10 +55,10 @@
 
         <div class="settings">
           <div class="prefs">
-            <div>Practice ends:   </div><div> <input v-model.number="round.practiceEnds" size=2></div>
-            <div>Warning Time:  </div><div><input v-model.number="round.endPrepTime" size=2></div>
-            <div>Shooting Time: </div><div><input v-model.number="round.endDuration" size=2></div>
-            <div>Shooting Lines: </div><div><input v-model.number="round.numLines" size=2></div>
+            <div>Practice ends:   </div><div><input v-model.number="round.practiceEnds" size=4></div>
+            <div>Warning Time:  </div><div><input v-model.number="round.endPrepTime" size=4></div>
+            <div>Shooting Time: </div><div><input v-model.number="round.endDuration" size=4></div>
+            <div>Shooting Lines: </div><div><input v-model.number="round.numLines" size=4></div>
           </div>
           <hr/>
           <div class="feedback">
@@ -76,7 +76,7 @@
             <div v-if="showCredits">
               Author: <ul><li>David Whitney</li></ul>
               Testers: <ul>
-              <li></li>
+              <li>your name here!</li>
             </ul>
             Credits:
             <ul>
