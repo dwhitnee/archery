@@ -111,6 +111,7 @@ let app = new Vue({
       debugger;
     });
 
+    // TODO: potential future use for hard coded URL to indoor or outdoor round
     this.roundType = this.$route.query.round;
 
     this.updateTimer();
@@ -133,7 +134,6 @@ let app = new Vue({
     // TODO:
     // skip forward and backward through end numbers
     // skip button with spacebar
-    // alternate AB/CD for WA
 
 
     // set the message to display lcoally, keep it for 2-3 cycles (6 seconds)

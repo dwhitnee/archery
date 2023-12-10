@@ -10,22 +10,22 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- these don't seem to do much.
-       supposedly sets window.navigator.standalone
-  -->
+  <!-- these don't seem to do much.  supposedly sets
+       window.navigator.standalone  -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
 </head>
 
 <body>
   <div id="archeryTimerApp" v-cloak>
-    <audio id="horn" preload="auto" src="sound/truck.mp3"> </audio>
+    <audio id="horn" preload="auto" src="sound/truck.mp3" type="audio/mpeg"> </audio>
 
     <div class="timerApp">
 
       <div class="timerBackground" :class="timerBackgroundClass()">
         <div class="controls">
-          <div class="playButton icon playIcon" title="Play" @click="proceed"></div>
+          <button tabindex="0" class="playButton icon playIcon" title="Continue" @click="proceed"></button>
           <!-- <button class="start btn btn-light btn-lg" @click="proceed">GO</button> -->
         </div>
 

@@ -12,6 +12,9 @@ By default this is two minutes indoor and four minutes outdoor with a 10 second 
 
 No canvas, just HTML elements and CSS.
 
+Inspired by the myriad iOS, Android, and Windows timer apps that are
+all wonderful but seem to always fall just short and require different devices to make work.
+
 ## Run locally
 http://localhost/archeryTimer/
 
