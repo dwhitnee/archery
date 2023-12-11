@@ -92,6 +92,10 @@ body {
 .notLineUp {
   opacity: 30%;
 }
+.metaInfo {
+  font-size: smaller;
+  opacity: 40%;
+}
 
 .red {
   background-color: #F00;
@@ -191,4 +195,18 @@ button.close {
 }
 button.close:hover {
   opacity: 100%;
+}
+
+
+.outlined {
+  color: white;
+  text-shadow:
+    -1px -1px 0 #000,
+     0   -1px 0 #000,
+     1px -1px 0 #000,
+     1px  0   0 #000,
+     1px  1px 0 #000,
+     0    1px 0 #000,
+    -1px  1px 0 #000,
+    -1px  0   0 #000;
 }

@@ -45,20 +45,20 @@
 
         <div class="settings icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>
 
-        <div class="timer">
+        <div class="timer outlined">
           {{ timeLeft | minSecondsFormat }}
         </div>
 
         <div class="info">
           <div class="line">
-            Line:
+            <span class="metaInfo outlined">Line:</span>
             <span v-for="i in round.numLines">
               <span :class="{ notLineUp: !isLineUp( i ) }">{{ displayLine(i) }}</span>
             </span>
           </div>
 
           <div class="end">
-            End: {{ endDisplay() }}
+            <span class="metaInfo outlined">End:</span> {{ endDisplay() }}
           </div>
         </div>
 
