@@ -39,8 +39,12 @@
 
         <div class="info">
           <div class="line">
-            Line: {{ lineDisplay() }}
+            Line:
+            <span v-for="i in round.numLines">
+              <span :class="{ notLineUp: !isLineUp( i ) }">{{ displayLine(i) }}</span>
+            </span>
           </div>
+
           <div class="end">
             End: {{ endDisplay() }}
           </div>

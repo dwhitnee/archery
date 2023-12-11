@@ -88,6 +88,11 @@ body {
   display: inline;
   grid-area: line;
 }
+
+.notLineUp {
+  opacity: 30%;
+}
+
 .red {
   background-color: #F00;
   color: white;

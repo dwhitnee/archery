@@ -67,7 +67,7 @@ let app = new Vue({
     lineUp: 1,
     timeLeft: 0,
     rangeIsHot: false,
-
+    lineName: [0, "ab", "cd", "ef"],
     red: "red",
     green: "green",
     yellow: "yellow",
@@ -197,11 +197,41 @@ let app = new Vue({
         return this.endNumber - this.round.practiceEnds;
       }
     },
+
+
+    //----------------------------------------
+    // @return true if given line number is currently up
+    // For WA rounds, each end alternates who is first
+    // For NFAA rounds, the order stays the same
+    //----------------------------------------
+    isLineUp( lineNum ) {
+      let swapOrder = this.round.alternateLines && !(this.endNumber % 2);
+
+      if (this.lineUp == lineNum) {
+        return !swapOrder;
+      } else {
+        return swapOrder;
+      }
+    },
+
+    //----------------------------------------
+    // "AB" or "ab" - capitalize current line
+    // Alternate AB/CD up first for WA Rounds
+    //----------------------------------------
+    displayLine: function( line ) {
+      let str = this.lineName[line];
+
+      if (this.isLineUp( line )) {
+        str = str.toUpperCase();
+      }
+      return str;
+    },
+
     //----------------------------------------
     // "AB" "CD" "EF"?
     // Alternate AB/CD up first for WA Rounds
     //----------------------------------------
-    lineDisplay: function() {
+    displayAllLines: function() {
       let lineNames = [0, "ab", "cd", "ef"];
 
       // switch for even rounds
