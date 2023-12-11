@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.0"
+   width="80cm"
+   height="80cm"
+   viewBox="-40 -40 80 80"
+   id="svg2">
+  <metadata
+     id="metadata18">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Official FITA 80cm Archery Target</dc:title>
+        <dc:date>2006-06-01</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Alberto Barbati</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/2.0/" />
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>archery target</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <dc:description>An official FITA 80cm archery target.
+Real colors are:
+Yellow: Pantone 107U
+Red: Pantone 032U
+Light blue: Pantone 306U</dc:description>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/2.0/">
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Reproduction" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Distribution" />
+        <cc:requires
+           rdf:resource="http://web.resource.org/cc/Notice" />
+        <cc:requires
+           rdf:resource="http://web.resource.org/cc/Attribution" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://web.resource.org/cc/ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <circle cx="0" cy="0" r="39.9" fill="white" stroke="black" stroke-width="0.2" id="Zone1" />
+  <circle cx="0" cy="0" r="35.9" fill="white" stroke="black" stroke-width="0.2" id="Zone2" />
+  <circle cx="0" cy="0" r="32"   fill="black" id="Zone3" />
+  <circle cx="0" cy="0" r="27.9" fill="black" stroke="white" stroke-width="0.2" id="Zone4" />
+  <circle cx="0" cy="0" r="24"   fill="#41b7c8" id="Zone5" />
+  <circle cx="0" cy="0" r="19.9" fill="#41b7c8" stroke="black" stroke-width="0.2" id="Zone6" />
+  <circle cx="0" cy="0" r="15.9" fill="#fd1b14" stroke="black" stroke-width="0.2" id="Zone7" />
+  <circle cx="0" cy="0" r="11.9" fill="#fd1b14" stroke="black" stroke-width="0.2" id="Zone8" />
+  <circle cx="0" cy="0" r="7.9" fill="#fff535" stroke="black" stroke-width="0.2" id="Zone9" />
+  <circle cx="0" cy="0" r="3.9" fill="#fff535" stroke="black" stroke-width="0.2" id="Zone10" />
+  <circle cx="0" cy="0" r="1.9" fill="#fff535" stroke="black" stroke-width="0.1" id="Inner10" />
+  <path d="M -0.2 0 L 0.2 0 M 0 -0.2 L 0 0.2" stroke="black" stroke-width="0.1" id="Center" />
+</svg>
