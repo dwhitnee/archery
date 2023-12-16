@@ -299,6 +299,10 @@ let app = new Vue({
         let now = Math.floor(Date.now() / 1000);
         this.timeLeft = this.timerEndSeconds - now;
 
+        if (this.inDistractionMode) {
+          this.distract();
+        }
+
         // If during prep time, just show time until you can shoot
         if (this.timeLeft > this.round.endDuration) {
           this.timeLeft = this.timeLeft - this.round.endDuration;
@@ -316,7 +320,7 @@ let app = new Vue({
           this.rangeIsHot = false;
           this.lineIsDone();
         }
-        console.log("time left: " + this.timeLeft);
+        // console.log("time left: " + this.timeLeft);
       }
     },
 
@@ -347,6 +351,23 @@ let app = new Vue({
     },
     playDangerHorn: function() {
       this.playHorn( 5 );
+    },
+
+    // [0, n)
+    random: function( max ) { return Math.floor(max * Math.random());  },
+
+    //----------------------------------------
+    // A 1 in 100 chance of playing a distracting sound
+    //----------------------------------------
+    distract: function() {
+      if (this.random(100) < 3) {
+        console.log("BOO!");
+        let distraction = document.getElementById('distraction');
+
+        distraction.pause();  // stop any previous noise
+        distraction.currentTime = 0;
+        distraction.play();
+      }
     },
 
     //----------------------------------------
