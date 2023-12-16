@@ -71,6 +71,7 @@ let app = new Vue({
     red: "red",
     green: "green",
     yellow: "yellow",
+    inDistractionMode: false,  // whether to play noises randomly
 
     // round prefs (saved to cookies)
     round: {

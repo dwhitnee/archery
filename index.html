@@ -79,6 +79,14 @@
               <div>Warning Time:  </div><div><input  v-model.number="round.endPrepTime" size=4></div>
               <div>Shooting Time: </div><div><input v-model.number="round.endDuration" size=4></div>
               <div>Shooting Lines: </div><div><input v-model.number="round.numLines" size=4></div>
+
+              <div>
+                <label class="form-check-label" for="inDistractionMode">Distraction Mode:</label>
+              </div>
+              <div>
+                <input type="checkbox" v-model="inDistractionMode" id="inDistractionMode"/>
+              </div>
+
             </div>
             <div class="prefPresets">
               <div><button class="btn btn-info btn-sm" v-on:click="populateIndoorDefaults">WA Indoor Round</button></div>
