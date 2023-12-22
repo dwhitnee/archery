@@ -62,6 +62,7 @@ let app = new Vue({
   //----------------------------------------
   data: {
     message: "",
+
     // state machine for where we are in a Round
     endNumber: 1,
     lineUp: 1,
@@ -72,6 +73,21 @@ let app = new Vue({
     green: "green",
     yellow: "yellow",
     inDistractionMode: false,  // whether to play noises randomly
+
+    // match play state
+    isMatch: false,
+    leftUp: true,
+    archerName: [0, "left", "right"],
+
+    // match prefs
+    // a match consists of two archers alternating one at a time. The horn sounds after
+    // an arrow is shot, indicating it is the other archer's turn.
+    match: {
+      leftFirst: true,    // shooter order (swappable)
+      // maxEnds: 3,       // per archer
+      // prepTime: 10,
+      // endDuration: 30
+    },
 
     // round prefs (saved to cookies)
     round: {
@@ -99,7 +115,16 @@ let app = new Vue({
         endPrepTime: 10,
         numLines: 2,   // AB/CD or AB
         alternateLines: true
-      }
+      },
+      matchWA: {
+        practiceEnds: 0,
+        maxEnds: 6,
+        endDuration: 30,
+        endPrepTime: 10,
+        numLines: 6,   // treat each arrow as a "line" since clock is reset
+        alternateLines: true
+      },
+
     },
 
     showCredits: false,
@@ -293,15 +318,15 @@ let app = new Vue({
         this.timeLeft = this.round.endPrepTime;
         this.rangeIsHot = false;
 
-      } else {
-
-        // clock is running, update state if necessary
-        let now = Math.floor(Date.now() / 1000);
-        this.timeLeft = this.timerEndSeconds - now;
+      } else {  // clock is running, what should happen next?
 
         if (this.inDistractionMode) {
           this.distract();
         }
+
+        // clock is running, update state if necessary
+        let now = Math.floor(Date.now() / 1000);
+        this.timeLeft = this.timerEndSeconds - now;
 
         // If during prep time, just show time until you can shoot
         if (this.timeLeft > this.round.endDuration) {
@@ -383,18 +408,23 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // advance the clock
-    // sound horn, move to next state (end over, or next line up)
+    // Advance the clock to zero
+    // Sound horn, move to next state (end over, next line/archer up)
+    // In match play, move to next archer. (ie, treat each shot as a line shooting an end)
     //----------------------------------------
     lineIsDone: function() {
-      console.log("Cease fire");
+
       this.rangeIsHot = false;
       this.timeLeft = 0;
       this.timerEndSeconds = 0;
       clearInterval( this.ticker );
       this.ticker = 0;
 
-      // start next line if necessary
+      if (this.isMatch) {
+        this.leftUp = !this.leftUp;  // swap archers
+      }
+
+      // start next line/archer if necessary
       if (this.lineUp < this.round.numLines) {
         this.lineUp++;
         this.startTimer();
@@ -413,11 +443,14 @@ let app = new Vue({
       this.endNumber++;
     },
 
+    //----------------------------------------
+    // Screen CSS
     // Red, then green, then yellow
+    //----------------------------------------
     timerBackgroundClass: function() {
       if (!this.rangeIsHot) {
         return this.red;
-      } else if (this.timeLeft < 30 ) {
+      } else if ((this.timeLeft < 30) && !this.isMatch) {   // For a match, skip the yellow
         return this.yellow;
       } else {
         return this.green;
@@ -430,6 +463,10 @@ let app = new Vue({
     },
     populateOutdoorDefaults: function() {
       this.round = this.defaultRounds.outdoorWA;
+    },
+    populateMatchDefaults: function() {
+      this.isMatch = true;
+      this.round = this.defaultRounds.matchWA;
     },
 
     //----------------------------------------------------------------------
