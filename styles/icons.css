@@ -18,18 +18,15 @@
 }
 
 /* https://www.svgrepo.com/svg/393707/left-arrow-1 */
-.leftArrow {
+.arrow {
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" \
 viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"> \
 <polygon points="213.3,205.3 213.3,77.3 0,248 213.3,418.7 213.3,290.7 512,290.7 512,205.3 "/> \
 </svg>');
 }
-
+.leftArrow {
+}
 .rightArrow {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" \
-viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"> \
-<polygon points="213.3,205.3 213.3,77.3 0,248 213.3,418.7 213.3,290.7 512,290.7 512,205.3 "/> \
-</svg>');
   transform: rotate( 180deg );
 }
 
