@@ -461,7 +461,16 @@ let app = new Vue({
     // Screen CSS
     // Red, then green, then yellow
     //----------------------------------------
-    timerBackgroundClass: function() {
+    timerBackgroundClass: function( isLeft ) {
+
+      if (this.isMatch && this.rangeIsHot) {
+        if (isLeft) {
+          return this.isLeftUp? this.green : this.red;
+        } else {
+          return !this.isLeftUp? this.green : this.red;
+        }
+      }
+
       if (!this.rangeIsHot) {
         return this.red;
       } else if ((this.timeLeft < 30) && !this.isMatch) {   // For a match, skip the yellow

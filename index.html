@@ -36,7 +36,10 @@
 
     <div class="timerApp">
 
-      <div class="timerBackground" :class="timerBackgroundClass()">
+      <div class="backgroundHalf left" :class="timerBackgroundClass( true )"></div>
+      <div class="backgroundHalf right" :class="timerBackgroundClass( false )"></div>
+
+      <div class="timerBackground" >
 
         <div v-if="message "class="message">{{ message }}</div>
 
