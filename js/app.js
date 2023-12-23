@@ -165,7 +165,8 @@ let app = new Vue({
   mounted() {
     // handle broken promises.
     window.addEventListener('unhandledrejection', function(event) {
-      alert("Rat farts " + JSON.stringify( event ));
+      console.error("Rat farts " + JSON.stringify( event ));
+      // alert("Rat farts " + JSON.stringify( event ));
       debugger;
     });
 
@@ -578,7 +579,8 @@ let app = new Vue({
           document.documentElement.requestFullscreen();
         }
       } catch (e) {
-        console.error( e );
+        console.error("doh! " + e );
+        return;
       }
       // } else if (document.exitFullscreen) {
       //   document.exitFullscreen();
