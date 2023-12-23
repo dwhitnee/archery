@@ -127,7 +127,7 @@ let app = new Vue({
     },
 
     showCredits: false,
-    version: "0.1"
+    version: "0.2"
   },
 
   //----------------------------------------

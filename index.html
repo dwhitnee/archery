@@ -86,6 +86,13 @@
               <div v-if="!isMatch">Shooting Lines: </div>
               <div v-if="!isMatch"><input v-model.number="round.numLines" size=4></div>
 
+              <div v-if="isMatch">
+                <label class="form-check-label" for="isLeftUp">Left up first:</label>
+              </div>
+              <div v-if="isMatch">
+                <input type="checkbox" v-model="isLeftUp" id="isLeftUp"/>
+              </div>
+
               <div>
                 <label class="form-check-label" for="inDistractionMode">Distraction Mode:</label>
               </div>
