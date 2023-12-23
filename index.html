@@ -50,7 +50,7 @@
           {{ timeLeft | minSecondsFormat }}
         </div>
 
-        <div class="info">
+        <div v-if="!isMatch" class="info">
           <div class="line">
             <span class="metaInfo outlined">Line:</span>
             <span v-for="i in round.numLines">
@@ -60,6 +60,11 @@
 
           <div class="end">
             <span class="metaInfo outlined">End:</span> {{ endDisplay() }}
+          </div>
+        </div>
+        <div v-else  class="info">
+          <div :class="{ leftArrow : isLeftUp, rightArrow: !isLeftUp }"
+                class="matchIndicator">
           </div>
         </div>
 
@@ -79,14 +84,8 @@
               <div>Practice ends:   </div><div><input  v-model.number="round.practiceEnds" size=4></div>
               <div>Warning Time:  </div><div><input  v-model.number="round.endPrepTime" size=4></div>
               <div>Shooting Time: </div><div><input v-model.number="round.endDuration" size=4></div>
-              <div>Shooting Lines: </div><div><input v-model.number="round.numLines" size=4></div>
-
-              <div>
-                <label class="form-check-label"  for="isMatch">Match Play:</label>
-              </div>
-              <div>
-                <input type="checkbox" v-model="isMatch" id="isMatch"/>
-              </div>
+              <div v-if="!isMatch">Shooting Lines: </div>
+              <div v-if="!isMatch"><input v-model.number="round.numLines" size=4></div>
 
               <div>
                 <label class="form-check-label" for="inDistractionMode">Distraction Mode:</label>
@@ -100,7 +99,8 @@
             <div class="prefPresets">
               <div><button class="btn btn-info btn-sm" v-on:click="populateIndoorDefaults">WA Indoor Round</button></div>
               <div><button class="btn btn-info btn-sm" v-on:click="populateOutdoorDefaults">WA Outdoor Round</button></div>
-              <div><button class="btn btn-info btn-sm" v-on:click="populateMatchDefaults">Match play</button></div>
+              <div><button class="btn btn-info btn-sm" v-on:click="populateMatchDefaults"
+                           :class="{ toggleOn : isMatch }" >Match play</button></div>
             </div>
           </div>
 

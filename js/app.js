@@ -76,8 +76,7 @@ let app = new Vue({
 
     // match play state
     isMatch: false,
-    leftUp: true,
-    archerName: [0, "left", "right"],
+    isLeftUp: true,
 
     // match prefs
     // a match consists of two archers alternating one at a time. The horn sounds after
@@ -122,7 +121,7 @@ let app = new Vue({
         endDuration: 30,
         endPrepTime: 10,
         numLines: 6,   // treat each arrow as a "line" since clock is reset
-        alternateLines: true
+        alternateLines: false
       },
 
     },
@@ -245,11 +244,12 @@ let app = new Vue({
     // Alternate AB/CD up first for WA Rounds
     //----------------------------------------
     displayLine: function( line ) {
-      let str = this.lineName[line];
+      let str = this.lineName[line] || "";
 
       if (this.isLineUp( line )) {
         str = str.toUpperCase();
       }
+
       return str;
     },
 
@@ -298,12 +298,24 @@ let app = new Vue({
 
       console.log("Archers to the line");
       let now = Math.floor(Date.now() / 1000);
-      this.timerEndSeconds = now + this.round.endDuration + this.round.endPrepTime + 1;
-      this.playPrepHorn();  // Add 1 second for horn
-      this.setMessage("ARCHERS TO THE LINE");
+
+      let prep = this.round.endPrepTime;
+      if (this.isMatch && !this.isLineUp(1) ) {
+        prep = 0;   // no gap between archers in a match
+      }
+
+      this.timerEndSeconds = now + this.round.endDuration + prep;
+
+      if (this.isMatch && !this.isLineUp( 1 )) {
+        this.setMessage("");
+      } else {
+        this.playPrepHorn();  // Add 1 second for horn
+        this.setMessage("ARCHERS TO THE LINE");
+      }
 
       // every second recalcuate time left, should trigger display
       this.ticker = setInterval(() => { this.updateTimer(); }, 1000);
+      this.updateTimer();  // prime the pump
     },
 
     //----------------------------------------
@@ -421,13 +433,14 @@ let app = new Vue({
       this.ticker = 0;
 
       if (this.isMatch) {
-        this.leftUp = !this.leftUp;  // swap archers
+        this.isLeftUp = !this.isLeftUp;  // swap archers
       }
 
       // start next line/archer if necessary
       if (this.lineUp < this.round.numLines) {
         this.lineUp++;
         this.startTimer();
+
       } else {
         this.endIsDone();
       }
@@ -465,8 +478,13 @@ let app = new Vue({
       this.round = this.defaultRounds.outdoorWA;
     },
     populateMatchDefaults: function() {
-      this.isMatch = true;
-      this.round = this.defaultRounds.matchWA;
+      this.isMatch = !this.isMatch;
+      if (this.isMatch) {
+        this.round = this.defaultRounds.matchWA;
+      } else {
+        this.round = Util.loadData("round") || this.round;
+        // reset to last saved values, 6 lines is crazy
+      }
     },
 
     //----------------------------------------------------------------------
