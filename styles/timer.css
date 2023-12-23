@@ -120,8 +120,8 @@ body {
 }
 
 .toggleOn, .toggleOn:hover {
-  border: .25em solid red;
-  color: red;
+  border: .25em solid #c00;
+  color: #c00;
   font-weight: bold;
 }
 

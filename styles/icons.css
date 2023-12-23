@@ -20,17 +20,20 @@
 /* https://www.svgrepo.com/svg/393707/left-arrow-1 */
 .arrow {
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" \
-viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"> \
-<polygon points="213.3,205.3 213.3,77.3 0,248 213.3,418.7 213.3,290.7 512,290.7 512,205.3 "/> \
+viewBox="0 0 512 512" xml:space="preserve"> \
+<polygon fill="white" points="213,205 213,77 0,248 213,418 213,290 512,290 512,205 "/> \
 </svg>');
 }
+
 .leftArrow {
   position: relative;
   left: -3em;
+  opacity: 75%;
 }
 .rightArrow {
   position: relative;
   left: 3em;
+  opacity: 75%;
   transform: rotate( 180deg );
 }
 
