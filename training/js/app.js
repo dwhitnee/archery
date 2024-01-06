@@ -54,7 +54,7 @@ let app = new Vue({
     message: "Let's do training",
 
     data: {   // 365 element list of data points. Need to translate for heatmap
-      arrows: [10,0,30,0,50,0,70,0,0,60,0,70,0,80,0,90,0,0,101,0],
+      arrows: [10,0,30,0,50,0,70,0,0,60,0,70,0,80,0,90,0,0,101,0,0,70,0,80,0,90,0,,0,70,0,80,0,90,0,,0,70,0,80,0,90,0,,0,70,0,80,0,90,0,,0,70,0,80,0,90,0],
       exercises: []
     },
     dataDisplay: {},
@@ -220,7 +220,7 @@ let app = new Vue({
     // chart data is not a 2D array. It is an object with all of Monday's data, all of Tue's etc
     //----------------------------------------
     updateHeatmapFromDB: function() {
-      let days = ["M","T","W","R","F","S","S"];
+      let days = ["M","T","W","Th","F","S","Su"];
       let data = [];
       // let range = { min: 0, max: 90 };
 
@@ -409,6 +409,17 @@ let app = new Vue({
       // let oldRound = Util.loadData("round") || {};
       Util.saveData("round", round );
     },
+
+
+
+
+
+
+
+
+
+
+
 
 
     //----------------------------------------
