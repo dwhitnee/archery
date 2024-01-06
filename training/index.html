@@ -27,6 +27,17 @@
   <meta property="og:url" content="https://dwhitnee.github.io/archeryTimer/" />
   <meta property="og:image" content="https://dwhitnee.github.io/archeryTimer/icon.svg" />
 
+
+  <style>
+    .info {
+      font-size: smaller;
+      border: 2px solid grey;
+      width: 20em;
+      margin-left: 1em;
+      padding-left: 1em;
+    }
+  </style>
+
 </head>
 
 <body>
@@ -38,18 +49,20 @@
 
         <div v-if="message "class="message">{{ message }}</div>
 
-        <div>Date: {{ dataDisplay.day }}, {{ dataDisplay.date }}</div>
+        <div class="info">
+          <div>Date: {{ dataDisplay.day }}, {{ dataDisplay.date }}</div>
 
-        <div v-if="editing">
-          Arrows:
-          <input id="arrowInput" size=4 v-model.number="dataDisplay.arrows"
-                 @blur="updateArrows()"
-                 @keyup.enter="updateArrows()"
-                 @keydown.esc="abortEdit()" />
+          <div v-if="editing">
+            Arrows:
+            <input id="arrowInput" size=4 v-model.number="dataDisplay.arrows"
+                   @blur="updateArrows()"
+                   @keyup.enter="updateArrows()"
+                   @keydown.esc="abortEdit()" />
+          </div>
+          <div v-else>Arrows: {{ dataDisplay.arrows }}  (week: {{ dataDisplay.weekArrows }} )</div>
+
         </div>
-        <div v-else>Arrows: {{ dataDisplay.arrows }}  (week: {{ dataDisplay.weekArrows }} )</div>
 
-        <div id="heatmap"></div>
         <div id="chart">
           <apexchart type="heatmap" ref="arrowCount" height="350" :options="heatmap.chartOptions" :series="heatmap.series"></apexchart>
         </div>

@@ -73,10 +73,10 @@ let app = new Vue({
           enabled: true
         },
         responsive: [{
-          breakpoint: 1000,
+          breakpoint: 1200,
           options: {
             chart: {
-              width: 1000
+              width: 1200
             }
           }
         }],
@@ -124,7 +124,7 @@ let app = new Vue({
         },
         // colors: ["#008FFB"],
         title: {
-          text: 'Training HeatMap'
+          text: 'Training HeatMap - click to edit'
         },
       },
     },
@@ -311,7 +311,7 @@ let app = new Vue({
       let date = this.getDateFromDayOfYear( index );
 
       this.dataDisplay = {
-        arrows: this.data.arrows[index] || "",
+        arrows: this.data.arrows[index] || "0",
         date: date.toLocaleString( 0, { dateStyle: "medium"} ),
         day: date.toLocaleString( 0, { weekday: "short" }),
         weekArrows: this.getWeekTotalFromDayOfYear( index )
