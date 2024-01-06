@@ -72,6 +72,14 @@ let app = new Vue({
         dataLabels: {
           enabled: true
         },
+        responsive: [{
+          breakpoint: 1000,
+          options: {
+            chart: {
+              width: 1000
+            }
+          }
+        }],
 
         chart: {
           selection: {
@@ -92,16 +100,16 @@ let app = new Vue({
               ranges: [
                 {
                   from: -10,
-                  to: -1,
+                  to: -2,
                   color: '#ffffff'
                 },
                 {
-                  from: 0,
-                  to: 1,
+                  from: -1,
+                  to: 0,
                   color: '#cccccc'
                 },
                 {
-                  from: 2,
+                  from: 1,
                   to: 100,
                   color: '#008FFB'
                 },
