@@ -60,10 +60,19 @@ let app = new Vue({
     dataDisplay: {},
     editing: false,
 
-    year: (new Date()).getFullYear(),  // 2022
+    year: (new Date()).getFullYear(),
+    // year: 2022,
+
     heatmap: {
       series: {},
       chartOptions: {
+        tooltip: {
+          enabled: false
+        },
+        dataLabels: {
+          enabled: true
+        },
+
         chart: {
           selection: {
             enabled: true,
@@ -76,16 +85,9 @@ let app = new Vue({
           height: 350,
           type: 'heatmap',
         },
-        dataLabels: {
-          enabled: true
-        },
         plotOptions: {
           heatmap: {
             enableShades: true,
-            dataLabels: {
-              enabled: false,
-              //position: 'top'
-            },
             colorScale: {
               ranges: [
                 {
@@ -231,11 +233,22 @@ let app = new Vue({
           }
         }
 
-        data[6-d] = {
+        data[7-d] = {
           name: days[d],
           data: yearOfMondays,
         };
       }
+
+      let weekTotals = [];
+      for (let w=0; w < 52; w++) {
+        weekTotals[w] = this.getWeekTotalFromDayOfYear(w*7);
+      }
+
+      // weekly total
+      data[0] = {
+        name: "Total",
+        data: weekTotals
+      };
 
       //this.initChartCallbacks();
       this.heatmap.series = data;
@@ -253,9 +266,14 @@ let app = new Vue({
     // given heatmap mouse event data, return [0-365) date index into DB
     //----------------------------------------
     convertChartIndexToDate: function( chartData ) {
+      let chartRows = 7+1;  // not 8 days of week, 8 rows in chart
       let week = chartData.dataPointIndex;
-      let day = 6-chartData.seriesIndex;  // days are reverse order(!)
-      return week*7 + day - this.getFillerDays();
+      let day = chartRows - chartData.seriesIndex;  // days are reverse order(!)
+      if (day > 7) {
+        // skip Total row
+        return -1;
+      }
+      return week*7 + day - this.getFillerDays() - 1;
     },
 
     //----------------------------------------
@@ -279,18 +297,37 @@ let app = new Vue({
       }
 
       let index = this.convertChartIndexToDate( data );
-      let arrows = this.data.arrows[index] || 0;
-      let jan1 = new Date("1-1-"+this.year);
-
-      console.log("arrows = " + arrows );
-
-      let date = new Date( jan1.setDate( jan1.getDate() + index ));
+      if (index < 0) {
+        return;
+      }
+      let date = this.getDateFromDayOfYear( index );
 
       this.dataDisplay = {
         arrows: this.data.arrows[index] || "",
         date: date.toLocaleString( 0, { dateStyle: "medium"} ),
-        day: date.toLocaleString( 0, { weekday: "short" })
+        day: date.toLocaleString( 0, { weekday: "short" }),
+        weekArrows: this.getWeekTotalFromDayOfYear( index )
       };
+    },
+
+    getDateFromDayOfYear: function( doy ) {
+      let jan1 = new Date("1-1-"+this.year);
+      return new Date( jan1.setDate( jan1.getDate() + doy ));
+    },
+
+    getWeekTotalFromDayOfYear: function( doy ) {
+      let weekTotal = 0;   // arrow count since Monday of the week of the given date
+      let date = this.getDateFromDayOfYear( doy );
+      let offset = date.getDay() - 1;  // Monday is day 1, not zero (Sunday)
+      if (offset<0) {
+        offset = 6;
+      }
+
+      for (let i=0; i<7; i++) {
+        weekTotal += this.data.arrows[doy+i-offset] ||0;
+      }
+
+      return weekTotal;
     },
 
     //----------------------------------------
@@ -302,9 +339,13 @@ let app = new Vue({
         return;
       }
 
-      this.editing = true;
       this.currentIndex = this.convertChartIndexToDate( data );
+      if (this.currentIndex < 0) {
+        this.editing = false;
+        return;
+      }
 
+      this.editing = true;
       //this.$refs.arrowInput.$el.focus();  // eww, use v-focus directive?
       setTimeout( () => {
         let input = document.getElementById("arrowInput");

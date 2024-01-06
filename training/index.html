@@ -47,7 +47,7 @@
                  @keyup.enter="updateArrows()"
                  @keydown.esc="abortEdit()" />
         </div>
-        <div v-else>Arrows: {{ dataDisplay.arrows }} </div>
+        <div v-else>Arrows: {{ dataDisplay.arrows }}  (week: {{ dataDisplay.weekArrows }} )</div>
 
         <div id="heatmap"></div>
         <div id="chart">
@@ -57,6 +57,9 @@
         <div class="settings icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>
 
       </div>
+
+
+
 
 
       <!-- Settings-->
