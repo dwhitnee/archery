@@ -33,6 +33,12 @@ var router = new VueRouter({
 
 Vue.component('apexchart', VueApexCharts);
 
+Vue.directive('focus', {
+  inserted: function (el) {
+    el.focus();
+  }
+});
+
 let app = new Vue({
   router,
   el: '#trainingApp',
@@ -47,30 +53,68 @@ let app = new Vue({
   data: {
     message: "Hello",
 
+    data: {   // 365 element list of data points. Need to translate for heatmap
+      arrows: [10,20,30,40,50,60,70,0,0,60,0,70,0,80,0,90,0,0,101,0],
+      exercises: []
+    },
+    dataDisplay: {},
+    editing: false,
+
+    year: (new Date()).getFullYear(),  // 2022
     heatmap: {
       series: {},
       chartOptions: {
         chart: {
-           events: {
-             click: function( event, obj, data) { app.foop(event,obj,data); },
-             dataPointMouseEnter: function( event, obj, data) { app.foop(event,obj,data); },
-             dataPointMouseLeave: function( event, obj, data) { app.foop(event,obj,data); },
-             dataPointSelection:  function( event, obj, data) { app.foop(event,obj,data); },
+          selection: {
+            enabled: true,
+          },
+          events: {
+             // dataPointMouseEnter: function( event, obj, data) { app.foop(event,obj,data); },
+             // dataPointMouseLeave: function( event, obj, data) { app.foop(event,obj,data); },
+             // dataPointSelection:  function( event, obj, data) { app.foop(event,obj,data); },
            },
-
-          // dataPointMouseEnter: function( event, object, data) { console.log("Enter " + data.dataPointIndex );  },
-          // dataPointMouseLeave: function( event, object, data) { console.log("Leave " + data.dataPointIndex);  },
-          // dataPointSelection: function( event, object, data) { debugger;  console.log("select"); },
-
           height: 350,
           type: 'heatmap',
         },
         dataLabels: {
           enabled: true
         },
-        colors: ["#008FFB"],
+        plotOptions: {
+          heatmap: {
+            enableShades: true,
+            dataLabels: {
+              enabled: false,
+              //position: 'top'
+            },
+            colorScale: {
+              ranges: [
+                {
+                  from: -10,
+                  to: -1,
+                  color: '#ffffff'
+                },
+                {
+                  from: 0,
+                  to: 1,
+                  color: '#cccccc'
+                },
+                {
+                  from: 2,
+                  to: 100,
+                  color: '#008FFB'
+                },
+                {
+                  from: 101,
+                  to: 200,
+                  color: '#00E396'
+                },
+              ],
+            },
+          },
+        },
+        // colors: ["#008FFB"],
         title: {
-          text: 'HeatMap'
+          text: 'Training HeatMap'
         },
       },
     },
@@ -139,6 +183,9 @@ let app = new Vue({
       }
     };
     document.body.addEventListener("keydown", this.navigateEnds );
+
+    // setup data
+    this.doHeatmap();
   },
 
   // synchronous app setup before event handling starts
@@ -158,64 +205,135 @@ let app = new Vue({
       this.messageCountdown = pause + 1;
     },
 
-    editData: function( data ) {
-      let week = data.dataPointIndex;
-      let day = data.seriesIndex;
-    },
-
-    displayData: function( data) {
-      //this.currentDatapoint = data;
-      // ​dataPointIndex: 2  // week [1-52]
-      // ​seriesIndex: 6   // day [0-6]
-    },
-
-    // https://apexcharts.com/vue-chart-demos/heatmap-charts/multiple-series/
-    doHeatmap: function() {
-
+    //----------------------------------------
+    // transform year of data into heatmap format
+    // chart data is not a 2D array. It is an object with all of Monday's data, all of Tue's etc
+    //----------------------------------------
+    updateHeatmapFromDB: function() {
       let days = ["M","T","W","R","F","S","S"];
       let data = [];
-      let range = { min: 0, max: 90 };
+      // let range = { min: 0, max: 90 };
+
+      let gapUntilMonday = this.getFillerDays();
 
       for (let d=0; d < 7; d++) {
-        let year = [];
+        let yearOfMondays = [];
         for (let w=0; w < 52; w++) {
-          year[w] = Util.random(100);
+          if ((w == 0) && d < gapUntilMonday) {
+            yearOfMondays[w] = -1;
+          } else {
+            // need data validation here
+            let val = this.data.arrows[w*7+d-gapUntilMonday];
+            if (isNaN(parseFloat( val ))) {
+              val = 0;
+            }
+            yearOfMondays[w] = val;
+          }
         }
-        year[0] = d;
 
         data[6-d] = {
           name: days[d],
-          data: year,
+          data: yearOfMondays,
         };
       }
 
       //this.initChartCallbacks();
       this.heatmap.series = data;
-
     },
 
-    foop: function( event, object, data) {
-      //this.currentDatapoint = data;
-      // ​dataPointIndex: 2  // week [1-52]
-      // ​seriesIndex: 6   // day [0-6]
-      console.log("Day = " + (7-data.seriesIndex));
-      console.log("Week = " + data.dataPointIndex);
-      // debugger
+    // https://apexcharts.com/vue-chart-demos/heatmap-charts/multiple-series/
+    doHeatmap: function() {
+      this.updateHeatmapFromDB();
+      this.initChartCallbacks();
     },
 
+
+
+    //----------------------------------------
+    // given heatmap mouse event data, return [0-365) date index into DB
+    //----------------------------------------
+    convertChartIndexToDate: function( chartData ) {
+      let week = chartData.dataPointIndex;
+      let day = 6-chartData.seriesIndex;  // days are reverse order(!)
+      return week*7 + day - this.getFillerDays();
+    },
+
+    //----------------------------------------
+    // days until Monday - used to space calendar out properly in chart view
+    //----------------------------------------
+    getFillerDays: function() {
+      let jan1 = new Date("1-1-" + this.year);
+      let fillerDays = jan1.getDay() - 1;  // Monday is 1, Sunday is 0
+      if (fillerDays < 0) {
+        fillerDays = 6;   // Sunday
+      }
+      return fillerDays;
+    },
+
+    //----------------------------------------
+    // Calculate actual day and get some data for that day to show
+    //----------------------------------------
+    pointEnter: function( event, obj, data ) {
+      if (this.editing) {
+        return;
+      }
+
+      let index = this.convertChartIndexToDate( data );
+      let arrows = this.data.arrows[index] || 0;
+      let jan1 = new Date("1-1-"+this.year);
+
+      console.log("arrows = " + arrows );
+
+      let date = new Date( jan1.setDate( jan1.getDate() + index ));
+
+      this.dataDisplay = {
+        arrows: this.data.arrows[index] || "",
+        date: date.toLocaleString( 0, { dateStyle: "medium"} ),
+        day: date.toLocaleString( 0, { weekday: "short" })
+      };
+    },
+
+    //----------------------------------------
+    // allow editing of the given day
+    // open editable pane, wait for submit
+    //----------------------------------------
+    pointSelect: function( event, obj, data ) {
+      this.editing = true;
+      //this.$refs.arrowInput.$el.focus();  // eww, use v-focus directive?
+
+      this.currentIndex = this.convertChartIndexToDate( data );
+
+    },
+    //----------------------------------------
+    // FIXME: hard coded to arrows and dataDisplay.arrows
+    //----------------------------------------
+    updateArrows: function() {
+      this.data.arrows[this.currentIndex] = this.dataDisplay.arrows;
+      console.log("Updating " + this.currentIndex + " to " + this.dataDisplay.arrows);
+
+      this.updateHeatmapFromDB();  // map DB to heatmap format
+
+      // FIXME - hardcoded
+      this.$refs.arrowCount.updateSeries( this.heatmap.series );
+
+      this.editing = false;
+    },
+
+    //----------------------------------------
+    // handle mouse events on heatmap
+    // chart is hardcoded in as "arrowCount"  FIXME
+    //----------------------------------------
     initChartCallbacks: function() {
-      let events = {};
-      events.click = () => this.foop();
-      events.dataPointMouseEnter = function() { console.log("bink"); };
-      events.dataPointMouseEnter = () => this.foop;
-      events.dataPointMouseLeave = () => this.foop;
-      events.dataPointSelection = () => this.foop;
+      let events = {
+        dataPointMouseEnter: (a,b,c) => { this.pointEnter(a,b,c); },
+        // dataPointMouseLeave: (a,b,c) => { this.pointLeave(a,b,c); },
+        dataPointSelection:  (a,b,c) => { this.pointSelect(a,b,c); },
+      };
 
       this.heatmap.chartOptions.chart.events = events;
 
-      console.log("callbacks uodated");
-      this.$forceUpdate();
-      debugger;
+      console.log("callbacks updated");
+      this.$refs.arrowCount.updateOptions( this.heatmap.chartOptions );
     },
 
 

@@ -37,11 +37,20 @@
       <div class="" >
 
         <div v-if="message "class="message">{{ message }}</div>
-        <button @click="doHeatmap( )">Heatmap</button>
+
+        <div>Date: {{ dataDisplay.day }}, {{ dataDisplay.date }}</div>
+
+        <div v-if="editing">
+          Arrows:
+          <input ref="arrowinput" autofocus="true" size=4 v-model.number="dataDisplay.arrows"
+                 @blur="updateArrows()"
+                 @keyup.enter="updateArrows()" />
+        </div>
+        <div v-else>Arrows: {{ dataDisplay.arrows }} </div>
 
         <div id="heatmap"></div>
         <div id="chart">
-          <apexchart type="heatmap" height="350" :options="heatmap.chartOptions" :series="heatmap.series"></apexchart>
+          <apexchart type="heatmap" ref="arrowCount" height="350" :options="heatmap.chartOptions" :series="heatmap.series"></apexchart>
         </div>
 
         <div class="settings icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>
