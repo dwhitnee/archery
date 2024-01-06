@@ -51,10 +51,10 @@ let app = new Vue({
   // Data Model (drives the View, update these values only
   //----------------------------------------
   data: {
-    message: "Hello",
+    message: "Let's do training",
 
     data: {   // 365 element list of data points. Need to translate for heatmap
-      arrows: [10,20,30,40,50,60,70,0,0,60,0,70,0,80,0,90,0,0,101,0],
+      arrows: [10,0,30,0,50,0,70,0,0,60,0,70,0,80,0,90,0,0,101,0],
       exercises: []
     },
     dataDisplay: {},
