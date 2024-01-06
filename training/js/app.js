@@ -298,12 +298,27 @@ let app = new Vue({
     // open editable pane, wait for submit
     //----------------------------------------
     pointSelect: function( event, obj, data ) {
-      this.editing = true;
-      //this.$refs.arrowInput.$el.focus();  // eww, use v-focus directive?
+      if (this.editing) {
+        return;
+      }
 
+      this.editing = true;
       this.currentIndex = this.convertChartIndexToDate( data );
 
+      //this.$refs.arrowInput.$el.focus();  // eww, use v-focus directive?
+      setTimeout( () => {
+        let input = document.getElementById("arrowInput");
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }, 1 );
     },
+
+    abortEdit: function() {
+      this.editing = false;
+    },
+
     //----------------------------------------
     // FIXME: hard coded to arrows and dataDisplay.arrows
     //----------------------------------------

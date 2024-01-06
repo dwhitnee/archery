@@ -42,9 +42,10 @@
 
         <div v-if="editing">
           Arrows:
-          <input ref="arrowinput" autofocus="true" size=4 v-model.number="dataDisplay.arrows"
+          <input id="arrowInput" size=4 v-model.number="dataDisplay.arrows"
                  @blur="updateArrows()"
-                 @keyup.enter="updateArrows()" />
+                 @keyup.enter="updateArrows()"
+                 @keydown.esc="abortEdit()" />
         </div>
         <div v-else>Arrows: {{ dataDisplay.arrows }} </div>
 
