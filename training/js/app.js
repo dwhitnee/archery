@@ -51,6 +51,17 @@ let app = new Vue({
       series: {},
       chartOptions: {
         chart: {
+           events: {
+             click: function( event, obj, data) { app.foop(event,obj,data); },
+             dataPointMouseEnter: function( event, obj, data) { app.foop(event,obj,data); },
+             dataPointMouseLeave: function( event, obj, data) { app.foop(event,obj,data); },
+             dataPointSelection:  function( event, obj, data) { app.foop(event,obj,data); },
+           },
+
+          // dataPointMouseEnter: function( event, object, data) { console.log("Enter " + data.dataPointIndex );  },
+          // dataPointMouseLeave: function( event, object, data) { console.log("Leave " + data.dataPointIndex);  },
+          // dataPointSelection: function( event, object, data) { debugger;  console.log("select"); },
+
           height: 350,
           type: 'heatmap',
         },
@@ -147,6 +158,17 @@ let app = new Vue({
       this.messageCountdown = pause + 1;
     },
 
+    editData: function( data ) {
+      let week = data.dataPointIndex;
+      let day = data.seriesIndex;
+    },
+
+    displayData: function( data) {
+      //this.currentDatapoint = data;
+      // ​dataPointIndex: 2  // week [1-52]
+      // ​seriesIndex: 6   // day [0-6]
+    },
+
     // https://apexcharts.com/vue-chart-demos/heatmap-charts/multiple-series/
     doHeatmap: function() {
 
@@ -167,8 +189,35 @@ let app = new Vue({
         };
       }
 
+      //this.initChartCallbacks();
       this.heatmap.series = data;
+
     },
+
+    foop: function( event, object, data) {
+      //this.currentDatapoint = data;
+      // ​dataPointIndex: 2  // week [1-52]
+      // ​seriesIndex: 6   // day [0-6]
+      console.log("Day = " + (7-data.seriesIndex));
+      console.log("Week = " + data.dataPointIndex);
+      // debugger
+    },
+
+    initChartCallbacks: function() {
+      let events = {};
+      events.click = () => this.foop();
+      events.dataPointMouseEnter = function() { console.log("bink"); };
+      events.dataPointMouseEnter = () => this.foop;
+      events.dataPointMouseLeave = () => this.foop;
+      events.dataPointSelection = () => this.foop;
+
+      this.heatmap.chartOptions.chart.events = events;
+
+      console.log("callbacks uodated");
+      this.$forceUpdate();
+      debugger;
+    },
+
 
     //----------------------------------------------------------------------
     // update stats for person who picked trump suit, and defending team
