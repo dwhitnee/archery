@@ -57,7 +57,7 @@
 
           <div v-if="editing">
             Arrows:
-            <input id="arrowInput" size=4 v-model.number="dataDisplay.arrows"
+            <input id="arrowInput" size=2 v-model.number="dataDisplay.arrows"
                    @blur="updateArrows()"
                    @keyup.enter="updateArrows()"
                    @keydown.esc="abortEdit()" />

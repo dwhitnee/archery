@@ -357,8 +357,8 @@ let app = new Vue({
       setTimeout( () => {
         let input = document.getElementById("arrowInput");
         if (input) {
-          input.style.top = event.y-10+"px";
-          input.style.left = event.x-10+"px";
+          input.style.top = event.y-30+"px";
+          input.style.left = event.x-15+"px";
           input.focus();
           input.select();
 
