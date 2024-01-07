@@ -35,7 +35,11 @@
       width: 20em;
       margin-left: 1em;
       padding-left: 1em;
-    }
+      }
+      #arrowInput {
+      position: absolute;
+      z-index: 10;
+      }
   </style>
 
 </head>
@@ -43,9 +47,8 @@
 <body>
   <div id="trainingApp" v-cloak>
 
-    <div class="calender">
-
-      <div class="" >
+    <div>
+      <div>
 
         <div v-if="message "class="message">{{ message }}</div>
 

@@ -90,7 +90,6 @@ let app = new Vue({
              // dataPointMouseLeave: function( event, obj, data) { app.foop(event,obj,data); },
              // dataPointSelection:  function( event, obj, data) { app.foop(event,obj,data); },
            },
-          height: 350,
           type: 'heatmap',
         },
         plotOptions: {
@@ -358,8 +357,11 @@ let app = new Vue({
       setTimeout( () => {
         let input = document.getElementById("arrowInput");
         if (input) {
+          input.style.top = event.y-10+"px";
+          input.style.left = event.x-10+"px";
           input.focus();
           input.select();
+
         }
       }, 1 );
     },
