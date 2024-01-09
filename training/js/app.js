@@ -287,7 +287,7 @@ let app = new Vue({
     // days until Monday - used to space calendar out properly in chart view
     //----------------------------------------
     getFillerDays: function() {
-      let jan1 = new Date("1-1-" + this.year);
+      let jan1 = new Date("1/1/" + this.year);
       let fillerDays = jan1.getDay() - 1;  // Monday is 1, Sunday is 0
       if (fillerDays < 0) {
         fillerDays = 6;   // Sunday
@@ -318,7 +318,7 @@ let app = new Vue({
     },
 
     getDateFromDayOfYear: function( doy ) {
-      let jan1 = new Date("1-1-"+this.year);
+      let jan1 = new Date("1/1/"+this.year);
       return new Date( jan1.setDate( jan1.getDate() + doy ));
     },
 
