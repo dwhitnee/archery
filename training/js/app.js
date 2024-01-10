@@ -272,6 +272,8 @@ let app = new Vue({
     },
 
     loadArrowDB: function() {
+
+      // FIXME - load really
       let oldArrows = Util.loadData("arrows") || [];
       // Util.saveData("arrows", round );
 
@@ -285,13 +287,21 @@ let app = new Vue({
         0,70,0,80,0,90,0,
         0,70,0,80,0,90,0];
 
+      this.populateThisWeek();
+    },
+
+
+    //----------------------------------------
+    // Find this Monday, find index into DB, and populate week
+    //----------------------------------------
+    populateThisWeek: function() {
       this.weekArrows = [1,2,3,4,5,6,7];
 
-      // Find this Monday, find index into DB, and populate week
       let monday = this.getDayOfThisMonday();
       for (let i=0; i < 7; i++) {
         this.weekArrows[i] = this.data.arrows[monday+i];
       }
+
     },
 
     //----------------------------------------------------------------------
@@ -422,15 +432,14 @@ let app = new Vue({
       let id = index;
       if (index === undefined) {
         this.data.arrows[this.currentIndex] = this.dataDisplay.arrows;
-
-        // FIXME: Updating grid should update weekly list, too
+        this.populateThisWeek();  // update week as well.
 
       } else {
         // index is day of this week
         let monday = this.getDayOfThisMonday();
 
-        // should this be v-model instead?
-        this.data.arrows[monday+index] = event.target.value;
+        // should this be v-model instead? to handle strings
+        this.data.arrows[monday+index] = event.target.value|0;
       }
 
       console.log( index );
