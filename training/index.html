@@ -50,8 +50,8 @@
          <label :for="'day_'+day">{{ day }}</label>
           <input :id="'day_'+day" size=2 type="text" v-model.number="weekArrows[index]"
                  @click="event.target.select()"
-                 @blur="updateArrows( index )"
-                 @keyup.enter="updateArrows( index )"
+                 @blur="updateArrows( event, index )"
+                 @keyup.enter="updateArrows( event, index )"
                  @keydown.esc="abortEdit()"
           />
         </span>

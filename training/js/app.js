@@ -77,10 +77,10 @@ let app = new Vue({
           enabled: true
         },
         responsive: [{
-          breakpoint: 1200,
+          breakpoint: 1500,
           options: {
             chart: {
-              width: 1200
+              width: 1500
             }
           }
         }],
@@ -414,15 +414,23 @@ let app = new Vue({
     //----------------------------------------
     // FIXME: hard coded to arrows and dataDisplay.arrows
     //----------------------------------------
-    updateArrows: function( index ) {
+    updateArrows: function( event, index ) {
+
+      // FIXME: Still need to update master DB correctly (and VV)
+      // how to get info from call
 
       let id = index;
       if (index === undefined) {
         this.data.arrows[this.currentIndex] = this.dataDisplay.arrows;
+
+        // FIXME: Updating grid should update weekly list, too
+
       } else {
         // index is day of this week
-        debugger
-        this.data.arrows[this.currentIndex] = this.dataDisplay.arrows;
+        let monday = this.getDayOfThisMonday();
+
+        // should this be v-model instead?
+        this.data.arrows[monday+index] = event.target.value;
       }
 
       console.log( index );
