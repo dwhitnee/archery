@@ -33,40 +33,52 @@
   <div id="trainingApp" class="appGrid" v-cloak>
 
     <div class="menuBar">
-      <div>Menu Stuff</div>
+      <div><a>Menu</a></div>
 
       <div>
         <div v-if="message "class="message">{{ message }}</div>
       </div>
 
-      <div>Login</div>
+      <div><a href="#" @click="openDialog('login')">Login</a></div>
     </div>
 
 
     <div class="weeklyInput">
-      weekly input goes here
+      This week's arrow counts:
+      <div>
+        <span v-for="(day,index) in days">
+         <label :for="'day_'+day">{{ day }}</label>
+          <input :id="'day_'+day" size=2 type="text" v-model.number="weekArrows[index]"
+                 @click="event.target.select()"
+                 @blur="updateArrows( index )"
+                 @keyup.enter="updateArrows( index )"
+                 @keydown.esc="abortEdit()"
+          />
+        </span>
+      </div>
     </div>
 
-    <div class="summaryDisplay">
-      <div class="info">
-        <div>Date: {{ dataDisplay.day }}, {{ dataDisplay.date }}</div>
 
-        <div v-if="editing">
-          Arrows:
-          <input id="arrowInput" size=2 v-model.number="dataDisplay.arrows"
-                 @blur="updateArrows()"
-                 @keyup.enter="updateArrows()"
-                 @keydown.esc="abortEdit()" />
-        </div>
-        <div v-else>Arrows: {{ dataDisplay.arrows }}  (week: {{ dataDisplay.weekArrows }} )</div>
-      </div>
+    <div class="summaryDisplay">
 
       <div id="chart">
         <apexchart type="heatmap" ref="arrowCount" height="350" :options="heatmap.chartOptions" :series="heatmap.series"></apexchart>
       </div>
       <div>
+        <div class="info">
+          <div>Date: {{ dataDisplay.day }}, {{ dataDisplay.date }}</div>
 
-        <div class="settings icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>
+          <div v-if="editing">
+            Arrows:
+            <input id="arrowInput" size=2 v-model.number="dataDisplay.arrows"
+                   @blur="updateArrows()"
+                   @keyup.enter="updateArrows()"
+                   @keydown.esc="endEdit()" />
+          </div>
+          <div v-else>Arrows: {{ dataDisplay.arrows }}  (week: {{ dataDisplay.weekArrows }} )</div>
+        </div>
+
+        <!-- <div class="settings icon settingsIcon" title="Settings" @click="openDialog('settings')"></div> -->
 
       </div>
 

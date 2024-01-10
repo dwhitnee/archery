@@ -4,21 +4,41 @@ html,body {
   margin: 0;
 }
 
+a {
+  text-decoration: underline;
+}
+
+
 #trainingApp {
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr 10fr 1fr;
+  /* grid-template-columns: 1fr 10fr 1fr; */
   grid-template-rows: auto;
+  row-gap: .5em;
   grid-template-areas:
-    "menuBar menuBar menuBar"
-    ". weeklyInput ."
-    ". summaryDisplay .";
+    "menuBar"
+    "weeklyInput"
+    "summaryDisplay";
 }
 
 .menuBar {
   display: grid;
   grid-template-columns: 1fr 10fr 1fr;
   grid-template-rows: auto;
+  background: lightGrey;
+  /* margin: .1em 0; */
+  padding: .25em;
+}
+.menuBar > div {
+  margin: auto;
+  /* border: 2px solid grey; */
+  /* border-radius: .2em; */
+  padding: 0 .5em;
+  text-decoration: inherit;
+
+}
+
+.appGrid {
 }
 
 .appGrid > .menuBar { grid-area: menuBar; }
@@ -26,7 +46,29 @@ html,body {
 .appGrid > .summaryDisplay { grid-area: summaryDisplay; }
 
 
+.weeklyInput {
+  background: #eee;
+  border-radius: .25em;
+  padding: .25em;
+  margin: 1em;
+}
 
+
+.weeklyInput input {
+  text-align: center;
+  user-select: all;
+}
+
+.weeklyInput  span {
+  margin: .25em
+}
+
+#chart {
+  width: 100vw;  /* scroll */
+  overflow-x: scroll;
+  overflow-y:hidden;
+  /* white-space: nowrap; */
+}
 
 .info {
   font-size: smaller;

@@ -53,8 +53,12 @@ let app = new Vue({
   data: {
     message: "Let's do training",
 
-    data: {   // 365 element list of data points. Need to translate for heatmap
-      arrows: [10,0,30,0,50,0,70,0,0,60,0,70,0,80,0,90,0,0,101,0,0,70,0,80,0,90,0,,0,70,0,80,0,90,0,,0,70,0,80,0,90,0,,0,70,0,80,0,90,0,,0,70,0,80,0,90,0],
+    days: ["M","T","W","Th","F","Sa","Su"],
+    weekArrows: [],  // populate this from data.arrows
+
+    data: {
+      // 365 element list of data points. Need to translate for heatmap
+      arrows: [],
       exercises: []
     },
     dataDisplay: {},
@@ -219,7 +223,6 @@ let app = new Vue({
     // chart data is not a 2D array. It is an object with all of Monday's data, all of Tue's etc
     //----------------------------------------
     updateHeatmapFromDB: function() {
-      let days = ["M","T","W","Th","F","S","Su"];
       let data = [];
       // let range = { min: 0, max: 90 };
 
@@ -241,7 +244,7 @@ let app = new Vue({
         }
 
         data[7-d] = {
-          name: days[d],
+          name: this.days[d],
           data: yearOfMondays,
         };
       }
@@ -263,12 +266,49 @@ let app = new Vue({
 
     // https://apexcharts.com/vue-chart-demos/heatmap-charts/multiple-series/
     doHeatmap: function() {
+      this.loadArrowDB();
       this.updateHeatmapFromDB();
       this.initChartCallbacks();
     },
 
+    loadArrowDB: function() {
+      let oldArrows = Util.loadData("arrows") || [];
+      // Util.saveData("arrows", round );
 
+      this.data.arrows = [
+        10,0,30,0,50,0,70,
+        0,0,60,0,70,0,80,
+        0,90,0,0,101,0,
+        0,70,0,80,0,90,0,
+        0,70,0,80,0,90,0,
+        0,70,0,80,0,90,0,
+        0,70,0,80,0,90,0,
+        0,70,0,80,0,90,0];
 
+      this.weekArrows = [1,2,3,4,5,6,7];
+
+      // Find this Monday, find index into DB, and populate week
+      let monday = this.getDayOfThisMonday();
+      for (let i=0; i < 7; i++) {
+        this.weekArrows[i] = this.data.arrows[monday+i];
+      }
+    },
+
+    //----------------------------------------------------------------------
+    // figure out what day of year this monday was
+    // fir indexing into DB
+    //----------------------------------------------------------------------
+    getDayOfThisMonday: function() {
+      let jan1 = new Date("1/1/" + this.year);
+      let today = new Date();
+      let monday = new Date();
+
+      // monday is #1, Sunday is #0 (so Monday is 6 days ago)
+      monday.setDate( today.getDate() - ((today.getDay() + 6) % 7)  );
+
+      console.log("Monday is " + monday);
+      return Math.floor((monday - jan1) / (24*60*60*1000));
+    },
     //----------------------------------------
     // given heatmap mouse event data, return [0-365) date index into DB
     //----------------------------------------
@@ -366,15 +406,27 @@ let app = new Vue({
       }, 1 );
     },
 
-    abortEdit: function() {
+    endEdit: function() {
       this.editing = false;
+      this.currentIndex = 0;
     },
 
     //----------------------------------------
     // FIXME: hard coded to arrows and dataDisplay.arrows
     //----------------------------------------
-    updateArrows: function() {
-      this.data.arrows[this.currentIndex] = this.dataDisplay.arrows;
+    updateArrows: function( index ) {
+
+      let id = index;
+      if (index === undefined) {
+        this.data.arrows[this.currentIndex] = this.dataDisplay.arrows;
+      } else {
+        // index is day of this week
+        debugger
+        this.data.arrows[this.currentIndex] = this.dataDisplay.arrows;
+      }
+
+      console.log( index );
+
       console.log("Updating " + this.currentIndex + " to " + this.dataDisplay.arrows);
 
       this.updateHeatmapFromDB();  // map DB to heatmap format
@@ -382,7 +434,7 @@ let app = new Vue({
       // FIXME - hardcoded
       this.$refs.arrowCount.updateSeries( this.heatmap.series );
 
-      this.editing = false;
+      this.endEdit();
     },
 
     //----------------------------------------
