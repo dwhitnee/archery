@@ -1,0 +1,41 @@
+html,body {
+  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  margin: 0;
+}
+
+#trainingApp {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 10fr 1fr;
+  grid-template-rows: auto;
+  grid-template-areas:
+    "menuBar menuBar menuBar"
+    ". weeklyInput ."
+    ". summaryDisplay .";
+}
+
+.menuBar {
+  display: grid;
+  grid-template-columns: 1fr 10fr 1fr;
+  grid-template-rows: auto;
+}
+
+.appGrid > .menuBar { grid-area: menuBar; }
+.appGrid > .weeklyInput  { grid-area: weeklyInput; }
+.appGrid > .summaryDisplay { grid-area: summaryDisplay; }
+
+
+
+
+.info {
+  font-size: smaller;
+  border: 2px solid grey;
+  width: 20em;
+  margin-left: 1em;
+  padding-left: 1em;
+}
+#arrowInput {
+  position: absolute;
+  z-index: 10;
+}
