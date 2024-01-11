@@ -22,8 +22,8 @@
   <meta name="theme-color" content="#ffff00" />
 
   <!-- Open Graph (social metadata) -->
-  <meta property="og:title" content="Archery Tournament Timer" />
-  <meta property="og:description" content="A simple phone/tablet/laptop timer to run archery tournaments of most kinds" />
+  <meta property="og:title" content="Archery Arrow Counter" />
+  <meta property="og:description" content="A simple phone/tablet/laptop app to keep track of arrows" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://dwhitnee.github.io/archeryTimer/" />
   <meta property="og:image" content="https://dwhitnee.github.io/archeryTimer/icon.svg" />
@@ -33,13 +33,17 @@
   <div id="trainingApp" class="appGrid" v-cloak>
 
     <div class="menuBar">
-      <div><a>Menu</a></div>
+      <div>
+        <div class="settings icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>
+      </div>
 
       <div>
         <div v-if="message "class="message">{{ message }}</div>
       </div>
 
-      <div><a href="#" @click="openDialog('login')">Login</a></div>
+      <div class="loginMenu">
+        <a href="#" @click="openDialog('login')">Login</a>
+      </div>
     </div>
 
 
@@ -77,9 +81,6 @@
           </div>
           <div v-else>Arrows: {{ dataDisplay.arrows }}  (week: {{ dataDisplay.weekArrows }} )</div>
         </div>
-
-        <!-- <div class="settings icon settingsIcon" title="Settings" @click="openDialog('settings')"></div> -->
-
       </div>
 
       <!-- Settings-->
@@ -119,7 +120,7 @@
           <div class="feedback">
             <div>Feedback:</div>
             <div><ul>
-              <li><a :href="'mailto:dwhitnee@gmail.com?subject=Archery%20Timer%20Feedback&body='+deviceData">Email</a></li>
+              <li><a :href="'mailto:dwhitnee@gmail.com?subject=Arrrow%20Counter%20Feedback&body='+deviceData">Email</a></li>
               <li><a href="https://www.facebook.com/sharer.php?u=http://dwhitnee.github.io/archeryTimer/" target="_blank" rel="noopener">Facebook</a></li>
             </ul>
             </div>

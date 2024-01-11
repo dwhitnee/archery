@@ -56,7 +56,7 @@ let app = new Vue({
   // Data Model (drives the View, update these values only
   //----------------------------------------
   data: {
-    message: "Let's do some training",
+    message: "Weekly Arrow Counter",
 
     userId: "anonymous",  // get this from login
 
