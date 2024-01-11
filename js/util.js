@@ -10,6 +10,8 @@ var Util = {
 
   sadface: "(╯°□°)╯︵ ┻━┻  ",
 
+  random: function( max ) { return Math.floor(max * Math.random());  },
+
   //----------------------------------------
   // Do HTTP whizbangery to post a JSON blob
   //----------------------------------------
@@ -30,22 +32,22 @@ var Util = {
   // @return null if no value is stored (or an error)
   //----------------------------------------------------------------------
   loadData( key ) {
- 	let json = window.localStorage.getItem( key );
-  	try {
-	  return JSON.parse( json );
-	}
-	catch (e) {
-	  console.error("Loading data " + key + ": " + e );
-	}
-	return null;
+    let json = window.localStorage.getItem( key );
+    try {
+      return JSON.parse( json );
+    }
+    catch (e) {
+      console.error("Loading data " + key + ": " + e );
+    }
+    return null;
   },
   saveData( key, value ) {
-	try {
-	  window.localStorage.setItem( key, JSON.stringify( value ));
-	}
-	catch (e) {
-	  console.error("Saving data " + key + ": " + e );
-	}
+    try {
+      window.localStorage.setItem( key, JSON.stringify( value ));
+    }
+    catch (e) {
+      console.error("Saving data " + key + ": " + e );
+    }
   },
 
 

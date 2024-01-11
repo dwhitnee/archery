@@ -1,7 +1,7 @@
 /*global fetch, Vue, VueRouter, Util, VueApexCharts */
 //-----------------------------------------------------------------------
-//  Copyright 2023, David Whitney
-//  This file is part of Tournament Archery Timer
+//  Copyright 2024, David Whitney
+//  This file is part of Tournament Tools
 
 // Archery Timer is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,6 +23,11 @@
 
 //  Calendar View
 //  Heat Map
+
+// TODO: Local Storage
+//   DYnamo
+//  account ID
+// revert to previous? Save yesterday/last week's data for revert?
 //  ----------------------------------------------------------------------
 
 // Vue-router 3
@@ -51,7 +56,9 @@ let app = new Vue({
   // Data Model (drives the View, update these values only
   //----------------------------------------
   data: {
-    message: "Let's do training",
+    message: "Let's do some training",
+
+    userId: "anonymous",  // get this from login
 
     days: ["M","T","W","Th","F","Sa","Su"],
     weekArrows: [],  // populate this from data.arrows
@@ -198,7 +205,7 @@ let app = new Vue({
     document.body.addEventListener("keydown", this.navigateEnds );
 
     // setup data
-    this.doHeatmap();
+    this.initArrowData();
   },
 
   // synchronous app setup before event handling starts
@@ -221,6 +228,8 @@ let app = new Vue({
     //----------------------------------------
     // transform year of data into heatmap format
     // chart data is not a 2D array. It is an object with all of Monday's data, all of Tue's etc
+    //
+    // https://apexcharts.com/vue-chart-demos/heatmap-charts/multiple-series/
     //----------------------------------------
     updateHeatmapFromDB: function() {
       let data = [];
@@ -264,30 +273,45 @@ let app = new Vue({
       this.heatmap.series = data;
     },
 
-    // https://apexcharts.com/vue-chart-demos/heatmap-charts/multiple-series/
-    doHeatmap: function() {
+
+    //----------------------------------------
+    // get data from storage (DB or browser)
+    // populate the heat map and the week's arrows
+    // set up heatmap handlers
+    //----------------------------------------
+    initArrowData: function() {
       this.loadArrowDB();
+      this.populateThisWeek();
       this.updateHeatmapFromDB();
       this.initChartCallbacks();
     },
 
+    getDBKey: function() {
+      return this.userId + ":arrows:" + this.year;
+    },
+
+    //----------------------------------------
+    // keys: userId, year, arrows
+    //----------------------------------------
+    saveArrowDB: function() {
+      if (this.data.arrows) {
+        Util.saveData( this.getDBKey(), this.data.arrows );
+      }
+    },
+
+    //----------------------------------------
+    // arrow DB is a 365 element array of arrow counts for every day of the year
+    // saved to localStorage
+    // FIXME: switch to DynamoDB
+    //----------------------------------------
     loadArrowDB: function() {
+      this.data.arrows = Util.loadData( this.getDBKey() ) || [];
 
-      // FIXME - load really
-      let oldArrows = Util.loadData("arrows") || [];
-      // Util.saveData("arrows", round );
-
-      this.data.arrows = [
-        10,0,30,0,50,0,70,
-        0,0,60,0,70,0,80,
-        0,90,0,0,101,0,
-        0,70,0,80,0,90,0,
-        0,70,0,80,0,90,0,
-        0,70,0,80,0,90,0,
-        0,70,0,80,0,90,0,
-        0,70,0,80,0,90,0];
-
-      this.populateThisWeek();
+      // this.data.arrows = [10,0,30,0,50,0,70,
+      //                     0,0,60,0,70,0,80,
+      //                     0,90,0,0,101,0,
+      //                     0,70,0,80,0,90,0,
+      //                     0,70,0,80,0,90,0];
     },
 
 
@@ -423,12 +447,9 @@ let app = new Vue({
 
     //----------------------------------------
     // FIXME: hard coded to arrows and dataDisplay.arrows
+    // FIXME: tap on phone gives wrong location for text box (when in landscape (relative to top of whole page)
     //----------------------------------------
     updateArrows: function( event, index ) {
-
-      // FIXME: Still need to update master DB correctly (and VV)
-      // how to get info from call
-
       let id = index;
       if (index === undefined) {
         this.data.arrows[this.currentIndex] = this.dataDisplay.arrows;
@@ -445,6 +466,8 @@ let app = new Vue({
       console.log( index );
 
       console.log("Updating " + this.currentIndex + " to " + this.dataDisplay.arrows);
+
+      // SAVE TO DB
 
       this.updateHeatmapFromDB();  // map DB to heatmap format
 
@@ -470,23 +493,6 @@ let app = new Vue({
       console.log("callbacks updated");
       this.$refs.arrowCount.updateOptions( this.heatmap.chartOptions );
     },
-
-
-    //----------------------------------------------------------------------
-    // update stats for person who picked trump suit, and defending team
-    // called after every hand is done? Or just at end of game...FIXME
-    //----------------------------------------------------------------------
-    updateRoundPrefs: function( round ) {
-      // let oldRound = Util.loadData("round") || {};
-      Util.saveData("round", round );
-    },
-
-
-
-
-
-
-
 
 
 

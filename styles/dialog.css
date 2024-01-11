@@ -1,0 +1,60 @@
+
+@supports not ( selector( dialog::backdrop )) {
+  /* Dialogs be whack in Safari and iOS 15 */
+  dialog {
+    display: none;
+    left: 10%;
+    background-color: #ff80;
+  }
+}
+
+dialog {
+  background-color: #cc0;
+  background: linear-gradient( #ccc, 40%, #5c5);
+  position: fixed;
+  width: 80vw;
+  height: 70vh;
+  top: 15%;
+  border: 1px solid gray;
+  border-radius: .5em;
+  z-index: 100;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+/* screen the app behind the modal dialog to capture events */
+.backdropObscured {
+  z-index: 99;  /* one less than dialog */
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  left: 0;
+  top: 0;
+  background-color: black;
+  opacity: 50%;
+  overflow-x: hidden;  /* Disable horizontal scroll */
+}
+
+button {
+  margin: 0 .15em;
+  width: fit-content;
+}
+
+
+button.close::before {
+  content: "X";   /* svg? FIXME */
+}
+button.close {
+  /* width: 24px; */ /* fit-content does this, unless SVG? */
+  /* height: 24px; */
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  opacity: 50%;
+  border: 1px solid grey;
+  font-size: inherit;
+  padding: 0 .25em;
+}
+button.close:hover {
+  opacity: 100%;
+}
