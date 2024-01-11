@@ -183,8 +183,8 @@ let app = new Vue({
       debugger;
     });
 
-    // TODO: potential future use for hard coded URL to indoor or outdoor round
-    this.roundType = this.$route.query.round;
+    // Coach view?
+    this.userId = this.$route.query.user || this.userId;
 
     this.round = Util.loadData("round") || this.round;
 
@@ -450,25 +450,23 @@ let app = new Vue({
     // FIXME: tap on phone gives wrong location for text box (when in landscape (relative to top of whole page)
     //----------------------------------------
     updateArrows: function( event, index ) {
-      let id = index;
+
+      // direct heatmap update (index is day of year)
       if (index === undefined) {
         this.data.arrows[this.currentIndex] = this.dataDisplay.arrows;
         this.populateThisWeek();  // update week as well.
 
-      } else {
-        // index is day of this week
+      } else {      // weekly list update (index is day of this week)
         let monday = this.getDayOfThisMonday();
 
         // should this be v-model instead? to handle strings
         this.data.arrows[monday+index] = event.target.value|0;
       }
 
-      console.log( index );
-
       console.log("Updating " + this.currentIndex + " to " + this.dataDisplay.arrows);
 
       // SAVE TO DB
-
+      this.saveArrowDB();
       this.updateHeatmapFromDB();  // map DB to heatmap format
 
       // FIXME - hardcoded

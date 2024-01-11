@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <head>
@@ -90,8 +89,21 @@
       <dialog id="login">
         <button class="close" @click="closeDialog( $event )"></button>
 
-        Login!
-      </dialog>
+        <div class="loginGrid">
+          <div>Name:
+          <input  v-model="userId" size=10 @click="event.target.select()"/>
+          </div>
+          <div></div>
+
+          <div>
+            <div>
+              <label class="form-check-label" for="makePublic">Allow others to see?</label>
+              <input type="checkbox" v-model="makePublic" id="makePublic"/>
+            </div>
+          </div>
+        </div>
+
+        </dialog>
 
 
       <dialog id="settings">

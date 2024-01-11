@@ -81,3 +81,10 @@ a {
   position: absolute;
   z-index: 10;
 }
+
+
+.loginGrid {
+  display: grid;
+  align-content: safe;
+  grid-template-columns: 1fr 1fr;
+}
