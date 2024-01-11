@@ -85,7 +85,7 @@ a {
 
 .loginGrid {
   display: grid;
-  align-content: safe;
+  align-content: space-evenly;
   grid-template-columns: 1fr 1fr;
 }
 

@@ -59,6 +59,8 @@ let app = new Vue({
     message: "Weekly Arrow Counter",
 
     userId: "anonymous",  // get this from login
+    coach: "KSL",            // for sorting?
+    coaches: ["KSL", "Josh", "Diane", "Alice", "Jett"],
 
     days: ["M","T","W","Th","F","Sa","Su"],
     weekArrows: [],  // populate this from data.arrows

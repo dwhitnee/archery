@@ -1,0 +1,131 @@
+#----------------------------------------
+# configuration for uploading code to the AWS cloud
+# https://serverless.com/framework/docs/
+#----------------------------------------
+#
+# edit ~/.aws/credentials with [serverless-admin] private keys
+#
+#    export AWS_PROFILE="serverless-admin"
+#    export AWS_REGION=us-west-2
+#    serverless deploy    # --aws-profile serverless-admin --region us-west-2
+#
+# or for updates of a single function:
+#    serverless deploy function -f getBusEvents
+#
+# The `service` block is the name of the service, as in
+# https://1zqvyi3gfk.execute-api.us-east-1.amazonaws.com/dev/euchre
+#
+#  https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/games
+ # https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/game
+ # https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/newGame
+ # https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/joinGame
+
+# serverless logs -f gameList -t
+
+# See also https://serverless.com/blog/quick-tips-for-faster-serverless-development/
+#----------------------------------------
+
+service:
+   name: archer
+
+#----------------------------------------
+# Where the service will be deployed and what it can access
+#----------------------------------------
+provider:
+  name: aws
+  region: us-west-2
+  runtime: nodejs12.x
+  versionFunctions: false
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:*
+      Resource: [
+        "arn:aws:dynamodb:us-west-2:*:table/Archer*"
+      ]
+
+#----------------------------------------
+# if we put DB config here, then every deploy fails with "Table already exists"
+#
+# see db/serverless.yml to create the DB table. This will create the table:
+#  cd db; serverless deploy
+#----------------------------------------
+
+
+#----------------------------------------
+# Code to deploy
+# The 'events' block defines how to trigger the handler code
+# 'handler' refers to <file name>.<function name>
+# CORS doesn't seem to work right, I had to manually add
+# OPTIONS "Access-Control-Allow-Origin" to each API Gateway
+# https://us-west-2.console.aws.amazon.com/apigateway/home?region=us-west-2#/apis/f7c3878i78/resources/q37u0j/methods/OPTIONS
+#----------------------------------------
+functions:
+
+  getArcher:
+    handler: archerAPI.getArcher
+    description: All data for given archer, a single year can be specified
+    events:
+      - http:
+          path: archer
+          method: get
+          cors: true
+
+  getArchersByYear:
+    handler: archerAPI.getArchersByYear
+    description: All archers with data for given year
+    events:
+      - http:
+          path: archers
+          method: get
+          cors: true
+
+  newArcherYear:
+    handler: archerAPI.createNewArcherYear
+    description: Create an empty year of data for archer
+    events:
+      - http:
+          path: newArcherYear
+          method: post
+          cors: true
+
+  updateArcherYear:
+    handler: archerAPI.updateArcher
+    description: Update current year of data, clobbers old record
+    events:
+      - http:
+          path: updateArcherYear
+          method: post
+          cors: true
+
+  updateCoach:
+    handler: archerAPI.updateCoach
+    description: Update coach for year
+    events:
+      - http:
+          path: updateCoach
+          method: post
+          cors: true
+
+  updateArrowCount:
+    handler: archerAPI.updateCount
+    description: Overwrite arrow counts for year (just one day? FIXME)
+    events:
+      - http:
+          path: updateArrowCount
+          method: post
+          cors: true
+
+
+  deleteArcherYear:
+    handler: archerAPI.deleteArcherYear
+    description: Year of data for archer permanently deleted
+    events:
+      - http:
+          path: deleteArcherYear
+          method: post
+          cors: true
+
+resources:
+  # API Gateway Errors
+  - ${file(resources/api-gateway-errors.yml)}

@@ -1,0 +1,64 @@
+#----------------------------------------
+# configuration for creating DynamoDB table in the AWS cloud
+# https://serverless.com/framework/docs/
+#----------------------------------------
+#
+# edit ~/.aws/credentials with [serverless-admin] private keys
+#
+#    export AWS_PROFILE="serverless-admin"
+#    export AWS_REGION=us-west-2
+#    serverless deploy    # --aws-profile serverless-admin --region us-west-2
+#
+#
+# This only needs to be run once to create the tables in the region desired.
+#----------------------------------------
+
+service:
+  name: archer-resources
+
+# Where the service will be deployed and what it can access
+provider:
+  name: aws
+  region: us-west-2
+  runtime: nodejs6.12
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:*
+      Resource: [
+        "arn:aws:dynamodb:us-west-2:*:table/Archer*"
+      ]
+
+# we need a secondary index on lastUpdated to query by date range?!
+resources:
+  Resources:
+    EuchreGameStateTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ArcherYears
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: lastUpdated
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        GlobalSecondaryIndexes:
+          - IndexName: createdDate-index
+            KeySchema:
+              - AttributeName: gameOver
+                KeyType: HASH
+              - AttributeName: createdDate
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1

@@ -91,10 +91,23 @@
         <button class="close" @click="closeDialog( $event )"></button>
 
         <div class="loginGrid">
+
           <div>Name:
           <input  v-model="userId" size=10 @click="event.target.select()"/>
           </div>
+
           <div></div>
+
+          <div>
+            <div>
+              <label class="form-check-label" for="coach">Coach:</label>
+              <select id="coach" v-model="coach">
+                <option v-for="coach in coaches" :value="coach">
+                  {{ coach }}
+                </option>
+              </select>
+            </div>
+          </div>
 
           <div>
             <div>
@@ -102,9 +115,10 @@
               <input type="checkbox" v-model="makePublic" id="makePublic"/>
             </div>
           </div>
+
         </div>
 
-        </dialog>
+      </dialog>
 
 
       <dialog id="settings">
