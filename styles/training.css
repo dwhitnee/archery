@@ -86,14 +86,23 @@ a {
 .loginGrid {
   display: grid;
   align-content: space-evenly;
-  grid-template-columns: 1fr 1fr 2fr;
-  text-align: right;
+  /* grid-template-columns: 1fr 1fr 2fr; */
+  grid-template-areas:
+    "name  . loginButtons"
+    "misc1 . loginButtons"
+    "misc2 . loginButtons"
+    ". . loginButtons"
+    ". . loginButtons";
+
   width: 90%;
 }
 
 .loginGrid div {
-  margin: auto;  /* center in cells */
 }
+.loginGrid > .loginButtons { grid-area: loginButtons; }
+.loginGrid > .name  { grid-area: name; }
+.loginGrid > .misc1 { grid-area: misc1; }
+.loginGrid > .misc2 { grid-area: misc2; }
 
 .loginMenu {
 }

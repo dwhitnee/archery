@@ -96,48 +96,51 @@
 
         <div class="loginGrid">
 
-          <div v-if="user.auth">
+          <div  v-if="user.auth" class="name">
             <div>
               Welcome, {{ user.given_name }}
               (<a href="#" @click="logout()">Logout</a>)
             </div>
           </div>
-          <div v-else>Name:
+          <div v-else class="name">Local storage name:
             <input  v-model="user.id" size=10 @click="event.target.select()"/>
           </div>
 
           <div></div>
 
-          <div v-if="user.auth">
+          <div v-if="user.auth" class="loginButtons">
             <div v-if="user.pictureUrl">
               <img :src="user.pictureUrl" />
             </div>
           </div>
 
-          <div v-else>
-            <div id="g_id_onload"
-                 data-client_id="1021363791635-7p4g4ltun01jq4o0lirgk8vfhgm46ejp.apps.googleusercontent.com"
-                 data-context="signin"
-                 data-ux_mode="popup"
-                 data-callback="handleGoogleLogin"
-                 data-login_uri="http://localhost:8080/~dwhitney/archeryTimer/arrowCount.html"
-                 data-auto_select="true"
-                 data-itp_support="true">
-            </div>
+          <div v-else class="loginButtons">
 
-            <div class="g_id_signin"
-                 data-type="standard"
-                 data-shape="pill"
-                 data-theme="outline"
-                 data-text="signin_with"
-                 data-size="large"
-                 data-logo_alignment="left">
+            <div class="googleLogin">
+              <div id="g_id_onload"
+                   data-client_id="1021363791635-7p4g4ltun01jq4o0lirgk8vfhgm46ejp.apps.googleusercontent.com"
+                   data-context="signin"
+                   data-ux_mode="popup"
+                   data-callback="handleGoogleLogin"
+                   data-login_uri="http://localhost:8080/~dwhitney/archeryTimer/arrowCount.html"
+                   data-auto_select="true"
+                   data-itp_support="true">
+              </div>
+
+              <div class="g_id_signin"
+                   data-type="standard"
+                   data-shape="pill"
+                   data-theme="outline"
+                   data-text="signin_with"
+                   data-size="large"
+                   data-logo_alignment="left">
+              </div>
             </div>
 
           </div>
 
 
-          <div>
+          <div class="misc1">
             <div>
               <label class="form-check-label" for="coach">Coach:</label>
               <select id="coach" v-model="coach">
@@ -148,9 +151,7 @@
             </div>
           </div>
 
-          <div></div>
-          <div></div>
-          <div>
+          <div class="misc2">
             <div>
               <label class="form-check-label" for="makePublic">Allow others to see?</label>
               <input type="checkbox" v-model="makePublic" id="makePublic"/>
