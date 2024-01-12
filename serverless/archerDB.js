@@ -18,7 +18,7 @@ module.exports = {
   },
 
   //----------------------------------------------------------------------
-  // Async, retrieve a single game record from DB and invoke callback
+  // Async, retrieve a single record from DB and invoke callback
   // This is intended to be called internally
   // Params: gameId and callback( error, gameData )
   //----------------------------------------------------------------------

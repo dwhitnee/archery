@@ -1,4 +1,4 @@
-/*global fetch, Vue, VueRouter, Util, VueApexCharts */
+/*global fetch, Vue, VueRouter, Util, VueApexCharts, user */
 //-----------------------------------------------------------------------
 //  Copyright 2024, David Whitney
 //  This file is part of Tournament Tools
@@ -38,11 +38,29 @@ var router = new VueRouter({
 
 Vue.component('apexchart', VueApexCharts);
 
-Vue.directive('focus', {
-  inserted: function (el) {
-    el.focus();
+// Vue.directive('focus', {
+//   inserted: function (el) {
+//     el.focus();
+//   }
+// });
+
+// Update globals this way? ickx
+// Vue.set( Vue.prototype, '$globalUser', user );
+
+const globalUser = Vue.observable({
+  user: {}
+});
+
+Object.defineProperty(Vue.prototype, '$globalUser', {
+  get() {
+    return globalUser.user;
+  },
+  set(value) {
+    globalUser.user = value;
   }
 });
+
+
 
 let app = new Vue({
   router,
@@ -58,7 +76,11 @@ let app = new Vue({
   data: {
     message: "Weekly Arrow Counter",
 
-    userId: "anonymous",  // get this from login
+    user: {
+      id: "anonymous",
+      name: "Login"   // id and name are populated from login
+    },
+
     coach: "KSL",            // for sorting?
     coaches: ["KSL", "Josh", "Diane", "Alice", "Jett"],
 
@@ -143,6 +165,16 @@ let app = new Vue({
 
     showCredits: false,
     version: "0.1"
+  },
+
+  // watch global variables for reactivity
+  watch: {
+    '$globalUser'( user ) {
+      console.log("New user logged in");
+      this.user = user;
+
+      // this.$globalUser = value;
+    }
   },
 
   //----------------------------------------
@@ -289,7 +321,7 @@ let app = new Vue({
     },
 
     getDBKey: function() {
-      return this.userId + ":arrows:" + this.year;
+      return this.user.id + ":arrows:" + this.year;
     },
 
     //----------------------------------------
@@ -573,5 +605,7 @@ let app = new Vue({
       document.body.addEventListener("keydown", this.closeDialogOnESC );
     },
 
-  }
+  },
+
+
 });

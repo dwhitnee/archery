@@ -98,25 +98,6 @@ functions:
           method: post
           cors: true
 
-  updateCoach:
-    handler: archerAPI.updateCoach
-    description: Update coach for year
-    events:
-      - http:
-          path: updateCoach
-          method: post
-          cors: true
-
-  updateArrowCount:
-    handler: archerAPI.updateCount
-    description: Overwrite arrow counts for year (just one day? FIXME)
-    events:
-      - http:
-          path: updateArrowCount
-          method: post
-          cors: true
-
-
   deleteArcherYear:
     handler: archerAPI.deleteArcherYear
     description: Year of data for archer permanently deleted

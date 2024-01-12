@@ -27,6 +27,10 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://dwhitnee.github.io/archeryTimer/" />
   <meta property="og:image" content="https://dwhitnee.github.io/archeryTimer/icon.svg" />
+
+  <!-- for localhost testing -->
+  <meta name="Referrer-Policy" content="no-referrer-when-downgrade" />
+
 </head>
 
 <body>
@@ -42,7 +46,7 @@
       </div>
 
       <div class="loginMenu">
-        <a href="#" @click="openDialog('login')">Login</a>
+        <a href="#" @click="openDialog('login')">{{ user.name }}</a>
       </div>
     </div>
 
@@ -93,10 +97,33 @@
         <div class="loginGrid">
 
           <div>Name:
-          <input  v-model="userId" size=10 @click="event.target.select()"/>
+            <input  v-model="user.id" size=10 @click="event.target.select()"/>
+          </div>
+          <div><img v-if="user.pictureUrl" src="{{ user.pictureUrl }}"></div>
+          <div>
+
+            <!-- data-login_uri="https://tolocalhost.com/~dwhitney/archeryTimer/arrowCount.html" -->
+            <div id="g_id_onload"
+                 data-client_id="1021363791635-7p4g4ltun01jq4o0lirgk8vfhgm46ejp.apps.googleusercontent.com"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleGoogleLogin"
+                 data-login_uri="http://localhost:8080/~dwhitney/archeryTimer/arrowCount.html"
+                 data-auto_select="true"
+                 data-itp_support="true">
+            </div>
+
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="pill"
+                 data-theme="outline"
+                 data-text="signin_with"
+                 data-size="large"
+                 data-logo_alignment="left">
+            </div>
+
           </div>
 
-          <div></div>
 
           <div>
             <div>
@@ -162,6 +189,7 @@
 
 </div>
 
+<script src="https://accounts.google.com/gsi/client" async></script>
 
 <script  src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.7.15/vue.min.js"
          integrity="sha512-2hINX01gn7TwWmZNKvrt+ZiHjOW2l7+gCaghPVL6Ge4kTTA7S35Q3zqJmCpKWMLvV5ih4fawBiNW+0WhIbEELg=="
@@ -179,6 +207,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.6.12/apexcharts.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue-apexcharts"></script>
 
+<script src="js/login.js"></script>
 <script src="js/util.js"></script>
 <script src="js/arrowCountApp.js"></script>
 

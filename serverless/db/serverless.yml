@@ -32,14 +32,16 @@ provider:
 # we need a secondary index on lastUpdated to query by date range?!
 resources:
   Resources:
-    EuchreGameStateTable:
+    ArcherYearTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: ArcherYears
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
-          - AttributeName: lastUpdated
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: year
             AttributeType: S
 
         KeySchema:
@@ -51,11 +53,11 @@ resources:
           WriteCapacityUnits: 1
 
         GlobalSecondaryIndexes:
-          - IndexName: createdDate-index
+          - IndexName: year-index
             KeySchema:
               - AttributeName: gameOver
                 KeyType: HASH
-              - AttributeName: createdDate
+              - AttributeName: year
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL

@@ -1,7 +1,9 @@
 //----------------------------------------
 //  AWS Lambda Functions to be uploaded.  These are the public API.
 //  All code related to HTTP requests here.
-
+//
+// TODO: uodateArcher, updateArrows, updateWorkout
+//
 // Async calls, retrieve records from DB and invoke callback
 //----------------------------------------
 
@@ -64,9 +66,10 @@ module.exports = {
   },
 
   //----------------------------------------------------------------------
-  // Create new game state with given playerName as Player One
-  // @param playerName
-  // @return newly created gameId and playerId
+  // Create new year's data blob
+  // @param userId
+  // @param year
+  // @return newly created record id (user + year)
   //----------------------------------------------------------------------
   createNewArcherYear: function( request, context, callback ) {
     if (!message.verifyParam( request, callback, "userId") ||
@@ -105,12 +108,12 @@ module.exports = {
 
   },
 
-
   //----------------------------------------------------------------------
-  // Update game state in DB, this stomps existing data,
+  // Update all year's data in DB, this stomps existing data,
   //  should there be subcalls?  UpdateArrows? UpdateCoach?
   //
-  // @param game
+  // @param userId
+  // @param year
   // @return nothing
   //----------------------------------------------------------------------
   updateArcherYear: function( request, context, callback ) {
@@ -126,8 +129,9 @@ module.exports = {
   },
 
   //----------------------------------------------------------------------
-  // Wipe game out
-  // @param gameId
+  // Wipe data out
+  // @param userId
+  // @param year
   // @return nothing
   //----------------------------------------------------------------------
   deleteArcherYear: function( request, context, callback ) {
