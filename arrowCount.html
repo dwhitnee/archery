@@ -96,13 +96,25 @@
 
         <div class="loginGrid">
 
-          <div>Name:
+          <div v-if="user.auth">
+            <div>
+              Welcome, {{ user.given_name }}
+              (<a href="#" @click="logout()">Logout</a>)
+            </div>
+          </div>
+          <div v-else>Name:
             <input  v-model="user.id" size=10 @click="event.target.select()"/>
           </div>
-          <div><img v-if="user.pictureUrl" src="{{ user.pictureUrl }}"></div>
-          <div>
 
-            <!-- data-login_uri="https://tolocalhost.com/~dwhitney/archeryTimer/arrowCount.html" -->
+          <div></div>
+
+          <div v-if="user.auth">
+            <div v-if="user.pictureUrl">
+              <img :src="user.pictureUrl" />
+            </div>
+          </div>
+
+          <div v-else>
             <div id="g_id_onload"
                  data-client_id="1021363791635-7p4g4ltun01jq4o0lirgk8vfhgm46ejp.apps.googleusercontent.com"
                  data-context="signin"
@@ -136,6 +148,8 @@
             </div>
           </div>
 
+          <div></div>
+          <div></div>
           <div>
             <div>
               <label class="form-check-label" for="makePublic">Allow others to see?</label>

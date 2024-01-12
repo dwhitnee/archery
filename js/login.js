@@ -75,9 +75,11 @@ function handleGoogleLogin( response ) {
     family_name: credential.family_name,
     email:       credential.email,
     pictureUrl:  credential.picture,
+    auth: "google"
   };
 
   // let Vue know about globals
+  // https://nathanaelmcmillan.com/blog/how-to-watch-global-variables-in-vue-js/
   Vue.set( Vue.prototype, '$globalUser', user );
 
 

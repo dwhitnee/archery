@@ -76,6 +76,10 @@ let app = new Vue({
   data: {
     message: "Weekly Arrow Counter",
 
+    noUser: {
+      id: "anonymous",
+      name: "Login"   // id and name are populated from login
+    },
     user: {
       id: "anonymous",
       name: "Login"   // id and name are populated from login
@@ -257,6 +261,13 @@ let app = new Vue({
       this.message = message;
       pause = pause || 0;
       this.messageCountdown = pause + 1;
+    },
+
+    logout: function() {
+      if (this.user.auth =="google") {
+        this.user = this.noUser;
+        document.location.href = "https://www.google.com/accounts/Logout?continue=https://appengine.google.com/_ah/logout?continue=" + location.href;
+      }
     },
 
     //----------------------------------------
