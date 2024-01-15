@@ -9,6 +9,7 @@
 // Delete and Update require hash keys
 //----------------------------------------------------------------------
 
+// Do these need to go in function calls? FIXME
 let AWS = require('aws-sdk');
 let dynamoDB = new AWS.DynamoDB.DocumentClient();
 
@@ -199,7 +200,9 @@ module.exports = {
       Item: data
     };
 
-    dbParams.Item.id = id;   // PK
+    if (id) {
+      dbParams.Item.id = id;   // PK, not sure why it would be different
+    }
     dbParams.Item.updatedDate = now.toISOString();
 
     // optimistic locking  TEST ME

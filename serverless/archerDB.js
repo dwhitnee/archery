@@ -69,10 +69,10 @@ module.exports = {
   },
 
   updateArcher: function( id, data, callback ) {
-    return db.saveRecord( ArcherTableName, data, callback );
+    return db.saveRecord( ArcherTableName, id, data, callback );
   },
   deleteArcher: function( id, callback ) {
-    return db.deleteRecord( ArcherTableName, callback );
+    return db.deleteRecord( ArcherTableName, id, callback );
   },
 
 
@@ -90,7 +90,9 @@ module.exports = {
     return db.getRecordsByQuery( ArcherDataTableName, query, args, callback );
   },
 
+  //----------------------------------------
   // get all data for the year for everyone
+  //----------------------------------------
   getAllArcherDataByYear: function( id, year, callback ) {
     let filter =  "#id = :id, #year = :year";
     let argNames =  { "#id": "id", "#year": "year" };  // Is this necessary? why #?

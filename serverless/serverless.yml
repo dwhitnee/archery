@@ -1,3 +1,5 @@
+org: dwhitnee
+app: archer
 #----------------------------------------
 # configuration for uploading code to the AWS cloud
 # https://serverless.com/framework/docs/
@@ -74,46 +76,37 @@ functions:
 
   getArcher:
     handler: archerAPI.getArcher
-    description: All data for given archer, a single year can be specified
+    description: Attributes of an archer
     events:
       - http:
           path: archer
           method: get
           cors: true
 
-  getArchersByYear:
-    handler: archerAPI.getArchersByYear
-    description: All archers with data for given year
+  getArchers:
+    handler: archerAPI.getArchers
+    description: List of archers (optional "coach" param)
     events:
       - http:
           path: archers
           method: get
           cors: true
 
-  newArcherYear:
-    handler: archerAPI.createNewArcherYear
-    description: Create an empty year of data for archer
-    events:
-      - http:
-          path: newArcherYear
-          method: post
-          cors: true
-
-  updateArcherYear:
+  updateArcher:
     handler: archerAPI.updateArcher
-    description: Update current year of data, clobbers old record
+    description: Update archer name, coach, etc
     events:
       - http:
-          path: updateArcherYear
+          path: updateArcher
           method: post
           cors: true
 
-  deleteArcherYear:
-    handler: archerAPI.deleteArcherYear
-    description: Year of data for archer permanently deleted
+  deleteArcher:
+    handler: archerAPI.deleteArcher
+    description: Archer attributes permanently deleted
     events:
       - http:
-          path: deleteArcherYear
+          path: deleteArcher
           method: post
           cors: true
 
