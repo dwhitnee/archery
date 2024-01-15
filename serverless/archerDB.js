@@ -20,9 +20,9 @@ module.exports = {
   //----------------------------------------------------------------------
   // Async, retrieve a single record from DB and invoke callback
   // This is intended to be called internally
-  // Params: gameId and callback( error, gameData )
+  // Params: compound id of userdId and Year, and callback( error, gameData )
   //----------------------------------------------------------------------
-  getRecordByNameAndYear: function( userId, year, callback ) {
+  getRecordByIdAndYear: function( userId, year, callback ) {
     console.log("Getting archer " + userId );
 
     let id = this.getDBKey( userId, year);

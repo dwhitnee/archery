@@ -4,6 +4,28 @@
 //
 // TODO: uodateArcher, updateArrows, updateWorkout
 //
+/*
+ o getArcher( id )
+ o getArchers( [coach] )
+ o updateArcher( id, [coach] )
+ o deleteArcher( id )
+
+ o getAllArcherDataByYear( year )
+
+ o getArcherData( id, [year] )
+ o updateArcherData( id, year )
+ o deleteArcherData( id, year )
+
+{
+  "id",    PK
+  "year",  RK
+  "arrows" : [365],
+  "exercises" : [365],
+  "spts":  [365],
+  "mental":  [365],
+}
+
+*/
 // Async calls, retrieve records from DB and invoke callback
 //----------------------------------------
 

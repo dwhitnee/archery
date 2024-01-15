@@ -25,8 +25,9 @@
 # See also https://serverless.com/blog/quick-tips-for-faster-serverless-development/
 #----------------------------------------
 
-service:
-   name: archer
+service: archer
+frameworkVersion: '3'
+configValidationMode: error
 
 #----------------------------------------
 # Where the service will be deployed and what it can access
@@ -34,15 +35,24 @@ service:
 provider:
   name: aws
   region: us-west-2
-  runtime: nodejs12.x
+  runtime: nodejs16.x
   versionFunctions: false
-  iamRoleStatements:
-    - Effect: "Allow"
-      Action:
-        - dynamodb:*
-      Resource: [
-        "arn:aws:dynamodb:us-west-2:*:table/Archer*"
-      ]
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - dynamodb:*
+          Resource: [
+              "arn:aws:dynamodb:us-west-2:*:table/Archer*"
+          ]
+
+# needed for Node18 and beyond so aws-sdk is included?
+#custom:
+#  esbuild:
+#    exclude: []
+
+
 
 #----------------------------------------
 # if we put DB config here, then every deploy fails with "Table already exists"
