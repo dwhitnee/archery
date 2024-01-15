@@ -1,8 +1,7 @@
+/*jslint node: true, esversion: 6 */
 //----------------------------------------
 //  AWS Lambda Functions to be uploaded.  These are the public API.
 //  All code related to HTTP requests here.
-//
-// TODO: uodateArcher, updateArrows, updateWorkout
 //
 /*
  o getArcher( id )

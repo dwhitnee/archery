@@ -1,5 +1,6 @@
+/*jslint node: true, esversion: 6 */
 //----------------------------------------------------------------------
-// Weird global layer between HTTP calls, game logic, and DB
+// Weird global layer between HTTP calls, app logic, and DB
 // Really just thin layer over DB (private GET/PUT for game data)
 //
 // Used primarily to hide DB when a DB call is made, some logic must occur, a DB update is made,

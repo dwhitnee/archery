@@ -1,3 +1,4 @@
+/*jslint node: true, esversion: 6 */
 //----------------------------------------------------------------------
 // All stuff related to responding to the HTTP Request
 //----------------------------------------------------------------------
@@ -26,7 +27,7 @@ function respondWithSuccess( data, callback ) {
   response.body = JSON.stringify( data );  // prettify for transit
   console.log("Successful Response: " + response.body );
   callback( null, response );
-};
+}
 
 
 module.exports = {
