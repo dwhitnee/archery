@@ -32,7 +32,6 @@ module.exports = {
   // ARCHER
   // Get static attribues for indiivdual archer (name, coach, etc)
   //----------------------------------------
-
   getArcherById: function( id, callback ) {
     return db.getRecordById( ArcherTableName, id, callback );
   },
@@ -46,14 +45,14 @@ module.exports = {
   //----------------------------------------
   getArchersByCoach: function( coach, callback ) {
     if (!coach) {
-      return db.getAllRecordsWithFilter( ArcherTableName, undefined, callback );
+      return db.getAllRecords( ArcherTableName, callback );
     }
 
     let filter =  "#coach = :coach";
     let argNames =  { "#coach": "coach" };  // Is this necessary? why #?
     let args = { ":coach": coach };
 
-    return db.getAllRecordsWithFilter( ArcherTableName, filter, argNames, args, callback );
+    return db.getRecordById( ArcherTableName, filter, argNames, args, callback );
 
     // this.getArchers( function( err, data ) {
     //   if (data.Items) {
@@ -98,7 +97,7 @@ module.exports = {
     let argNames =  { "#id": "id", "#year": "year" };  // Is this necessary? why #?
     let args = { ":id": id,":year": year };
 
-    return db.getAllRecordsWithFilter( ArcherDataTableName, filter, argNames, args, callback );
+    return db.getRecordsByFilter( ArcherDataTableName, filter, argNames, args, callback );
   },
 
   getArcherData: function( id, year, callback ) {

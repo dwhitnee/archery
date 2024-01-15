@@ -1,6 +1,8 @@
 /*jslint node: true, esversion: 6 */
 //----------------------------------------------------------------------
-// Base Internal DynamoDB functions, not the API
+// Generic Internal DynamoDB functions, not the API
+//
+// Expects tableName to be passed to all fucntions,
 //
 // Uses Get() - requires a hash key
 // Query() - requires hash and range key (or secondary Global Index)
@@ -9,7 +11,6 @@
 // Delete and Update require hash keys
 //----------------------------------------------------------------------
 
-// Do these need to go in function calls? FIXME
 let AWS = require('aws-sdk');
 let dynamoDB = new AWS.DynamoDB.DocumentClient();
 
@@ -22,18 +23,19 @@ module.exports = {
   // @param id - the PK (hash key)
   //----------------------------------------
   getRecordById: function( tableName, id, callback ) {
-    console.log("Getting " + tableName + ": " + id );
+    let keys = {"id": id };
+    return this.getRecordByKeys( tableName, keys, callback);
+  },
+
+  getRecordByKeys: function( tableName, keys, callback ) {
+    console.log("Getting " + tableName + ": " + keys );
 
     let dbRequest = {
       TableName : tableName,
-      Key: {"id": id }};
-
-    // KeyConditions
+      Key: keys
+    };
 
     console.log( dbRequest );
-
-    // let AWS = require('aws-sdk');
-    // let dynamoDB = new AWS.DynamoDB.DocumentClient();
 
     dynamoDB.get( dbRequest, function( err, data ) {
       if (err) {
@@ -59,7 +61,7 @@ module.exports = {
   // @param args for query - ex: { ':id': 'id', ':year': year };
   // @param callback - node style callback( err, data )
   //----------------------------------------------------------------------
-  getRecordByQuery: function( tableName, query, args, callback ) {
+  getRecordsByQuery: function( tableName, query, args, callback ) {
     console.log("Querying " + tableName + ": " + args);
 
     let dbRequest = {
@@ -70,17 +72,14 @@ module.exports = {
 
     console.log( dbRequest );
 
-    // let AWS = require('aws-sdk');
-    // let dynamoDB = new AWS.DynamoDB.DocumentClient();
-
     dynamoDB.query( dbRequest, function( err, data ) {
       if (err) {
         console.log("DynamoDB error: " + err );
         callback( err );
-      } else if (!data.Item) {  // no data returns undefined, not an object
+      } else if (!data.Items) {  // no data returns undefined, not an object
         callback( null, {} );   // return empty object instead
       } else {
-        callback( null, data.Item );
+        callback( null, data.Items );
       }
     });
   },
@@ -101,7 +100,7 @@ module.exports = {
   // @param args for filter - ex: { ':id': 'id', ':year': year };
   // @param callback - node style callback( err, data )
   //----------------------------------------------------------------------
-  getAllRecordByFilter: function( tableName, filter, argNames, args, callback ) {
+  getRecordsByFilter: function( tableName, filter, argNames, args, callback ) {
     console.log("Querying " + tableName + ": " + args);
 
     let dbRequest = {
@@ -113,17 +112,36 @@ module.exports = {
 
     console.log( dbRequest );
 
-    // let AWS = require('aws-sdk');
-    // let dynamoDB = new AWS.DynamoDB.DocumentClient();
+    dynamoDB.scan( dbRequest, function( err, data ) {
+      if (err) {
+        console.log("DynamoDB error: " + err );
+        callback( err );
+      } else if (!data.Items) {  // no data returns undefined, not an object
+        callback( null, {} );   // return empty object instead
+      } else {
+        callback( null, data.Items );
+      }
+    });
+  },
+
+  //----------------------------------------------------------------------
+  // SELECT *
+  //----------------------------------------------------------------------
+  getAllRecords: function( tableName, callback ) {
+    console.log("Querying " + tableName );
+
+    let dbRequest = {
+      TableName: tableName,
+    };
 
     dynamoDB.scan( dbRequest, function( err, data ) {
       if (err) {
         console.log("DynamoDB error: " + err );
         callback( err );
-      } else if (!data.Item) {  // no data returns undefined, not an object
+      } else if (!data.Items) {  // no data returns undefined, not an object
         callback( null, {} );   // return empty object instead
       } else {
-        callback( null, data.Item );
+        callback( null, data.Items );
       }
     });
   },
@@ -165,9 +183,6 @@ module.exports = {
     };
 
     console.log( dbRequest );
-
-    // let AWS = require('aws-sdk');
-    // let dynamoDB = new AWS.DynamoDB.DocumentClient();
 
     dynamoDB.query( dbRequest, function( err, data ) {
       if (err) {
@@ -223,9 +238,6 @@ module.exports = {
 
     console.log("PUT request: " +  JSON.stringify( dbParams ));
 
-    // let AWS = require('aws-sdk');
-    // let dynamoDB = new AWS.DynamoDB.DocumentClient();
-
     // Put and not Update, we want to clobber old entry
     dynamoDB.put( dbParams, function( err, data ) {
       if (err) {
@@ -247,9 +259,6 @@ module.exports = {
     let dbRequest = {
       TableName : tableName,
       Key: {"id": id }};
-
-    // let AWS = require('aws-sdk');
-    // let dynamoDB = new AWS.DynamoDB.DocumentClient();
 
     dynamoDB.delete( dbRequest, function( err, data ) {
       if (err) {

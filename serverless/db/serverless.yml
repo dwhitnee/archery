@@ -45,14 +45,10 @@ resources:
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
-          - AttributeName: coach
-            AttributeType: S
 
         KeySchema:
           - AttributeName: id
             KeyType: HASH
-          - AttributeName: coach
-            KeyType: RANGE
 
         ProvisionedThroughput:
           ReadCapacityUnits: 1

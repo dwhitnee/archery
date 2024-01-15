@@ -72,7 +72,7 @@ module.exports = {
     if (!message.verifyParam( request, callback, "userId")) {
       return;
     }
-    archerDB.getArcher( query.userId, function( err, data ) {
+    archerDB.getArcherById( query.userId, function( err, data ) {
       if (!err) {
         message.respond( err, data, callback );
       }
