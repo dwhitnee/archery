@@ -145,7 +145,7 @@
           <div class="coach">
             <div>
               <label class="form-check-label" for="coach">Coach:</label>
-              <select id="coach" v-model="user.coach" @select="updateArcher()">
+              <select id="coach" v-model="user.coach" @change="updateArcher()">
                 <option v-for="coach in coaches" :value="coach">
                   {{ coach }}
                 </option>

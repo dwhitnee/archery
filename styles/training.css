@@ -23,7 +23,7 @@ a {
 
 .menuBar {
   display: grid;
-  grid-template-columns: 1fr 10fr 1fr;
+  grid-template-columns: 1fr 5fr 1fr;
   grid-template-rows: auto;
   background: lightGrey;
   /* margin: .1em 0; */

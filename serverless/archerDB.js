@@ -67,8 +67,9 @@ module.exports = {
     // });
   },
 
-  updateArcher: function( id, data, callback ) {
-    return db.saveRecord( ArcherTableName, id, data, callback );
+  updateArcher: function( data, callback ) {
+    // PK (data.id) is presumed to be present
+    return db.saveRecord( ArcherTableName, data, callback );
   },
   deleteArcher: function( id, callback ) {
     return db.deleteRecord( ArcherTableName, id, callback );
@@ -103,11 +104,13 @@ module.exports = {
   getArcherData: function( id, year, callback ) {
     return db.getRecordById( ArcherDataTableName, id, callback );
   },
-  updateArcherData: function( id, year, data, callback ) {
+  updateArcherData: function( data, callback ) {
+    // PK (data.id and data.year) is presumed to be present
     return db.saveRecord( ArcherDataTableName, data, callback );
   },
   deleteArcherData: function( id, year, callback ) {
-    return db.deleteRecord( ArcherDataTableName, callback );
+    let keys = {"id": id, "year": year };
+    return db.deleteRecordByKeys( ArcherDataTableName, keys, callback );
   },
 
 

@@ -179,19 +179,32 @@ let app = new Vue({
 
   // watch global variables for reactivity
   watch: {
-    '$globalUser'( user ) {
-      console.log("New user logged in");
+    async '$globalUser'( user ) {
+      console.log("New login");
 
-      // only update name if we don't have one
-      this.user.name = this.user.name || user.name;
+      // got get current archer record if we have one
+      try {
+        this.user.id = user.id;
+        await this.getArcher();
 
-      // copy over immutable data
-      this.user.id = user.id;
-      this.user.auth = user;
-      this.user.given_name = user.given_name;
-      this.user.pictureUrl = user.pictureUrl;
+        if (this.user.name) {
+          console.log("Loaded " + this.user.name );
+        } else {
+          // new archer, create record
+          this.user.name = this.user.name || user.name;
+          this.user.auth = user;
+          console.log("Creating new archer " + this.user.name );
+          await this.updateArcher();
+        }
+        // copy over interesting immutable data
+        this.user.auth = user;
+        this.user.given_name = user.given_name;
+        this.user.pictureUrl = user.pictureUrl;
+      }
+      catch( err ) {
+        console.err("WTF? " + err );
+    }
 
-      this.updateArcher();
 
       // this.$globalUser = value;
     }
@@ -645,7 +658,9 @@ let app = new Vue({
         let response = await fetch(serverURL + "archer?userId=" + this.user.id );
         if (!response.ok) { throw await response.json(); }
         let archer = await response.json();
-        this.user = archer;
+        if (archer.id) {
+          this.user = archer;
+        }
       }
       catch( err ) {
         alert("Problem getting archer " + Util.sadface + (err.message || err));
@@ -684,11 +699,16 @@ let app = new Vue({
       try {
         this.saveInProgress = true;
         let postData = this.user;
-        postData.userId = postData.id;
 
         let response = await fetch( serverURL + "updateArcher",
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
+
+        // refresh our local data with whatever goodness the DB thinks we should have (last updated, version)
+        let archer = await response.json();
+        if (archer.id) {
+          this.user = archer;
+        }
       }
       catch( err ) {
         console.error("Change name: " + JSON.stringify( err ));

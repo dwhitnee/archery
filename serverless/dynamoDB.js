@@ -208,7 +208,7 @@ module.exports = {
   // @param: data - blob to save
   // Params: callback( err, data )  success IFF err==null
   //----------------------------------------
-  saveRecord: function( tableName, id, data, callback ) {
+  saveRecord: function( tableName, data, callback ) {
     let now = new Date();
 
     //----------------------------------------
@@ -219,10 +219,9 @@ module.exports = {
       Item: data
     };
 
-    if (id) {
-      dbParams.Item.id = id;   // PK, not sure why it would be different
-    }
     dbParams.Item.updatedDate = now.toISOString();
+
+    // console.log("Expecting to update v" + data.version);
 
     // optimistic locking  TEST ME
     // Make sure version # has not been incremented since last read
@@ -248,7 +247,7 @@ module.exports = {
         console.log("DynamoDB error:" + err );
         callback( err );
       } else {
-        callback( null );  // success! Nothing to report
+        callback( null, data );  // success! Report what was written
       }
     });
   },
@@ -265,6 +264,24 @@ module.exports = {
     let dbRequest = {
       TableName : tableName,
       Key: {"id": id }};
+
+    dynamoDB.delete( dbRequest, function( err, data ) {
+      if (err) {
+        console.log("DynamoDB error:" + err );
+        callback( err );
+      } else {
+        callback( null );
+      }
+    });
+  },
+
+  deleteRecordByKeys: function( tableName, keys, callback ) {
+    console.log("Permanently Deleting " + JSON.stringify( keys ) );
+
+    let dbRequest = {
+      TableName : tableName,
+      Key: keys
+    };
 
     dynamoDB.delete( dbRequest, function( err, data ) {
       if (err) {

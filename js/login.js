@@ -65,7 +65,7 @@ function decodeJwt(token) {
 function handleGoogleLogin( response ) {
   const credential = decodeJwt( response.credential );
 
-  console.log("Cred: " +  JSON.stringify( credential ));
+  console.log("Auth Cred: " +  JSON.stringify( credential ));
 
   // parse out the good stuff. God this was painful to find (see #obtainuserinfo)
   user = {

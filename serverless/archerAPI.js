@@ -57,8 +57,8 @@ module.exports = {
     let query = request.queryStringParameters;
 
     let coach = query ? query.coach : undefined;
-    archerDB.getArchersByCoach( coach, function( err, records ) {
-      message.respond( err, records, callback );
+    archerDB.getArchersByCoach( coach, function( err, data ) {
+      message.respond( err, data, callback );
     });
   },
 
@@ -85,29 +85,26 @@ module.exports = {
   // Update all year's data in DB, this stomps existing data,
   //  should there be subcalls?  UpdateArrows? UpdateCoach?
   //
-  // @param userId
-  // @param year
+  // @param all data for archer in request.body
   // @return nothing
   //----------------------------------------------------------------------
   updateArcher: function( request, context, callback ) {
-    if (!message.verifyParam( request, callback, "userId")) {
-      return;
-    }
-
     let data = JSON.parse( request.body );
 
+    // sanitize ID
     // Remove spaces/specials from Name (if id is user inputted and not from login)
-    data.id = data.userId.replace(/\W/g,'_');
+    data.id = data.id.replace(/\W/g,'_');
 
     archerDB.updateArcher( data, function( err, response ) {
-      callback( err, response );
+      if (!err) {
+        message.respond( err, data, callback );
+      }
     });
   },
 
   //----------------------------------------------------------------------
-  // Wipe data out
+  // Wipe archer out (delete data, too?)
   // @param userId
-  // @param year
   // @return nothing
   //----------------------------------------------------------------------
   deleteArcher: function( request, context, callback ) {
@@ -116,6 +113,25 @@ module.exports = {
     }
     let params = JSON.parse( request.body );
     archerDB.deleteArcher( params.userId, function( err, response ) {
+      message.respond( err, response , callback );
+    });
+  },
+
+
+  //----------------------------------------------------------------------
+  // Wipe data out
+  // @param userId
+  // @param year
+  // @return nothing
+  //----------------------------------------------------------------------
+  deleteArcherData: function( request, context, callback ) {
+    if (!message.verifyParam( request, callback, "userId") ||
+        !message.verifyParam( request, callback, "year")) {
+      return;
+    }
+
+    let params = JSON.parse( request.body );
+    archerDB.deleteArcherData( params.userId, params.year, function( err, response ) {
       message.respond( err, response , callback );
     });
   }
