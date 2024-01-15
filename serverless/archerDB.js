@@ -48,11 +48,11 @@ module.exports = {
       return db.getAllRecords( ArcherTableName, callback );
     }
 
-    let filter =  "#coach = :coach";
+    let filter =  "#coach = :coach";   // could be "contains( #coach )"
     let argNames =  { "#coach": "coach" };  // Is this necessary? why #?
     let args = { ":coach": coach };
 
-    return db.getRecordById( ArcherTableName, filter, argNames, args, callback );
+    return db.getRecordsByFilter( ArcherTableName, filter, argNames, args, callback );
 
     // this.getArchers( function( err, data ) {
     //   if (data.Items) {
