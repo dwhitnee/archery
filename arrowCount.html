@@ -39,6 +39,9 @@
     <div class="menuBar">
       <div>
         <div class="settings icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>
+
+        <div v-if="saveInProgress" class="spinner-border spinner-border-sm"></div>
+
       </div>
 
       <div>
@@ -46,7 +49,7 @@
       </div>
 
       <div class="loginMenu">
-        <a href="#" @click="openDialog('login')">{{ user.name }}</a>
+        <a href="#" @click="openDialog('login')">{{ user.name || "Login" }}</a>
       </div>
     </div>
 
@@ -57,7 +60,7 @@
         <span v-for="(day,index) in days">
          <label :for="'day_'+day">{{ day }}</label>
           <input :id="'day_'+day" size=2 type="text" v-model.number="weekArrows[index]"
-                 @click="event.target.select()"
+                 @focus="event.target.select()"
                  @blur="updateArrows( event, index )"
                  @keyup.enter="updateArrows( event, index )"
                  @keydown.esc="abortEdit()"
@@ -96,14 +99,13 @@
 
         <div class="loginGrid">
 
-          <div  v-if="user.auth" class="name">
-            <div>
-              Welcome, {{ user.given_name }}
-              (<a href="#" @click="logout()">Logout</a>)
-            </div>
+          <div  v-if="user.auth" class="welcome">
+            Welcome, {{ user.given_name }}
+            (<a href="#" @click="logout()">Logout</a>)
           </div>
-          <div v-else class="name">Local storage name:
-            <input  v-model="user.id" size=10 @click="event.target.select()"/>
+
+          <div class="name">Name:
+            <input  v-model="user.name" size=10 @blur="updateArcher()" @focus="event.target.select()"/>
           </div>
 
           <div></div>
@@ -140,10 +142,10 @@
           </div>
 
 
-          <div class="misc1">
+          <div class="coach">
             <div>
               <label class="form-check-label" for="coach">Coach:</label>
-              <select id="coach" v-model="coach">
+              <select id="coach" v-model="user.coach" @select="updateArcher()">
                 <option v-for="coach in coaches" :value="coach">
                   {{ coach }}
                 </option>

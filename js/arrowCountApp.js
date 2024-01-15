@@ -1,4 +1,5 @@
 /*global fetch, Vue, VueRouter, Util, VueApexCharts, user */
+/*jslint esversion: 6 */
 //-----------------------------------------------------------------------
 //  Copyright 2024, David Whitney
 //  This file is part of Tournament Tools
@@ -29,6 +30,9 @@
 //  account ID
 // revert to previous? Save yesterday/last week's data for revert?
 //  ----------------------------------------------------------------------
+
+// AWS Lambda serverless API deployment endpoint
+let serverURL = "https://317bll5em3.execute-api.us-west-2.amazonaws.com/dev/";
 
 // Vue-router 3
 var router = new VueRouter({
@@ -75,17 +79,19 @@ let app = new Vue({
   //----------------------------------------
   data: {
     message: "Weekly Arrow Counter",
+    saveInProgress: false,    // prevent other actions while this is going on
 
     noUser: {
       id: "anonymous",
-      name: "Login"   // id and name are populated from login
+      name: "",
+      coach: "KSL"
     },
     user: {
       id: "anonymous",
-      name: "Login"   // id and name are populated from login
+      name: "",    // id and name are populated from login
+      coach: "KSL",
     },
 
-    coach: "KSL",            // for sorting?
     coaches: ["KSL", "Josh", "Diane", "Alice", "Jett"],
 
     days: ["M","T","W","Th","F","Sa","Su"],
@@ -175,7 +181,17 @@ let app = new Vue({
   watch: {
     '$globalUser'( user ) {
       console.log("New user logged in");
-      this.user = user;
+
+      // only update name if we don't have one
+      this.user.name = this.user.name || user.name;
+
+      // copy over immutable data
+      this.user.id = user.id;
+      this.user.auth = user;
+      this.user.given_name = user.given_name;
+      this.user.pictureUrl = user.pictureUrl;
+
+      this.updateArcher();
 
       // this.$globalUser = value;
     }
@@ -616,7 +632,76 @@ let app = new Vue({
       document.body.addEventListener("keydown", this.closeDialogOnESC );
     },
 
-  },
 
+    //----------------------------------------------------------------------
+    // SERVER CALLS
+    //----------------------------------------------------------------------
+
+    //----------------------------------------
+    // on login, get what we know about this archer
+    //----------------------------------------
+    async getArcher() {
+      try {
+        let response = await fetch(serverURL + "archer?userId=" + this.user.id );
+        if (!response.ok) { throw await response.json(); }
+        let archer = await response.json();
+        this.user = archer;
+      }
+      catch( err ) {
+        alert("Problem getting archer " + Util.sadface + (err.message || err));
+      };
+    },
+
+    //----------------------------------------
+    // Admin?
+    //----------------------------------------
+    async getArchersByCoach( coach ) {
+
+      try {
+        let response = await fetch(serverURL + "archers?coach=" + coach );
+        if (!response.ok) { throw await response.json(); }
+        let archers = await response.json();
+        this.archerList = archers;
+      }
+      catch( err ) {
+        if (++this.updateRetries < 2) { return; }   // ignore first 2 fails?
+
+        alert("Problem getting archer list " + Util.sadface + (err.message || err));
+      };
+    },
+
+
+    //----------------------------------------
+    // save archer attributes
+    // (after new login, update name/coach)
+    //----------------------------------------
+    async updateArcher() {
+
+      if (this.saveInProgress) { return; }
+
+      console.log("changing archer to " + JSON.stringify( this.user ));
+
+      try {
+        this.saveInProgress = true;
+        let postData = this.user;
+        postData.userId = postData.id;
+
+        let response = await fetch( serverURL + "updateArcher",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+      }
+      catch( err ) {
+        console.error("Change name: " + JSON.stringify( err ));
+        alert("Try again. Change name failed " +
+              Util.sadface + (err.message || err));
+
+        // D'oh. revert
+        // event.target.innerText = this.playerName;
+      };
+
+      this.saveInProgress = false;
+    },
+
+  },
 
 });

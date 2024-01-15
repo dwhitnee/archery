@@ -28,7 +28,7 @@ module.exports = {
   },
 
   getRecordByKeys: function( tableName, keys, callback ) {
-    console.log("Getting " + tableName + ": " + keys );
+    console.log("Getting " + tableName + ": " + JSON.stringify( keys ));
 
     let dbRequest = {
       TableName : tableName,
@@ -62,7 +62,7 @@ module.exports = {
   // @param callback - node style callback( err, data )
   //----------------------------------------------------------------------
   getRecordsByQuery: function( tableName, query, args, callback ) {
-    console.log("Querying " + tableName + ": " + args);
+    console.log("Querying " + tableName + ": " + JSON.stringify( args ));
 
     let dbRequest = {
       TableName : tableName,
@@ -125,7 +125,7 @@ module.exports = {
   },
 
   //----------------------------------------------------------------------
-  // SELECT *
+  // Full table scan - SELECT * from tableName
   //----------------------------------------------------------------------
   getAllRecords: function( tableName, callback ) {
     console.log("Querying " + tableName );
@@ -149,10 +149,14 @@ module.exports = {
 
 
   //----------------------------------------------------------------------
-  // return all records (need an index?)
+  // return all records based on Secondary Global Index created manually
+  // Same as getRecordsByQuery otherwise
   //
-  // @param full Dynamo query - too complex to make generel
-  // Params: callback( err, gameList )
+  // @param tableName - DB table
+  // @param tableName - indexName (must be created in Dynamo)
+  // @param query - ex: "coach = :coach and year = :year";
+  // @param args for query - ex: { ':coach': 'coach', ':year': year };
+  // @param callback( err, results )
   //----------------------------------------------------------------------
   getRecordsBySecondaryIndex: function( tableName, indexName, query, args, callback ) {
 
@@ -251,7 +255,9 @@ module.exports = {
 
   //----------------------------------------
   // Wipe record out
-  // Params: gameId
+  // @params tableName - DB table
+  // @params id - PK
+  // @params callback - on completion (no data returned)
   //----------------------------------------
   deleteRecord: function( tableName, id, callback ) {
     console.log("Permanently Deleting " + id );

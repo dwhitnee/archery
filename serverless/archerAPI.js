@@ -31,8 +31,9 @@
 'use strict';
 
 let archerDB = require('archerDB');  // All the Dynamo stuff
-let thomas = require('thomas');   // Thomas is our private middleware (between HTTP and Node/Dynamo)
 let message = require('responseHandler');  // HTTP message handling
+
+// let thomas = require('thomas');   // Thomas is our private middleware (between HTTP and Node/Dynamo for app logic)
 
 //----------------------------------------
 //----------------------------------------
@@ -98,7 +99,7 @@ module.exports = {
     // Remove spaces/specials from Name (if id is user inputted and not from login)
     data.id = data.userId.replace(/\W/g,'_');
 
-    archerDB.saveRecord( data, function( err, response ) {
+    archerDB.updateArcher( data, function( err, response ) {
       callback( err, response );
     });
   },

@@ -88,8 +88,9 @@ a {
   align-content: space-evenly;
   /* grid-template-columns: 1fr 1fr 2fr; */
   grid-template-areas:
+    "welcome welcome welcome"
     "name  . loginButtons"
-    "misc1 . loginButtons"
+    "coach . loginButtons"
     "misc2 . loginButtons"
     ". . loginButtons"
     ". . loginButtons";
@@ -100,8 +101,9 @@ a {
 .loginGrid div {
 }
 .loginGrid > .loginButtons { grid-area: loginButtons; }
+.loginGrid > .welcome  { grid-area: welcome; }
 .loginGrid > .name  { grid-area: name; }
-.loginGrid > .misc1 { grid-area: misc1; }
+.loginGrid > .coach { grid-area: coach; }
 .loginGrid > .misc2 { grid-area: misc2; }
 
 .loginMenu {
