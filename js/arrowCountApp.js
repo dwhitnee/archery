@@ -82,13 +82,13 @@ let app = new Vue({
     saveInProgress: false,    // prevent other actions while this is going on
 
     noUser: {
-      id: "anonymous",
+      id: "",
       name: "",
       coach: "KSL"
     },
     user: {
-      id: "anonymous",
-      name: "",    // id and name are populated from login
+      id: "",    // id and name are populated from login
+      name: "",
       coach: "KSL",
     },
 
@@ -272,6 +272,7 @@ let app = new Vue({
     document.body.addEventListener("keydown", this.navigateEnds );
 
     // setup data
+    this.user = Util.loadData("archer");    // localstore only
     this.initArrowData();
   },
 
@@ -293,7 +294,7 @@ let app = new Vue({
     },
 
     logout: function() {
-      if (this.user.auth =="google") {
+      if (this.user.auth.auth =="google") {
         this.user = this.noUser;
         document.location.href = "https://www.google.com/accounts/Logout?continue=https://appengine.google.com/_ah/logout?continue=" + location.href;
       }
@@ -361,7 +362,8 @@ let app = new Vue({
     },
 
     getDBKey: function() {
-      return this.user.id + ":arrows:" + this.year;
+      // return this.user.id + ":arrows:" + this.year;
+      return "arrows:" + this.year;
     },
 
     //----------------------------------------
@@ -691,6 +693,14 @@ let app = new Vue({
     // (after new login, update name/coach)
     //----------------------------------------
     async updateArcher() {
+
+      if (!this.user.id) {
+        // we are anonymous, how to save to DB? Use name as ID?
+        alert("No archer ID specified. Can't save to cloud without login");
+        // save to localstore instead  FIXME
+        Util.saveData("archer", this.user );
+        return;
+      }
 
       if (this.saveInProgress) { return; }
 

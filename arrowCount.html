@@ -56,16 +56,16 @@
 
     <div class="weeklyInput">
       This week's arrow counts:
-      <div>
-        <span v-for="(day,index) in days">
-         <label :for="'day_'+day">{{ day }}</label>
+      <div class="days">
+        <div class="day" v-for="(day,index) in days">
+          <label :for="'day_'+day">{{ day }}</label>
           <input :id="'day_'+day" size=2 type="text" v-model.number="weekArrows[index]"
                  @focus="event.target.select()"
                  @blur="updateArrows( event, index )"
                  @keyup.enter="updateArrows( event, index )"
                  @keydown.esc="abortEdit()"
           />
-        </span>
+        </div>
       </div>
     </div>
 

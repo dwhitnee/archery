@@ -53,6 +53,18 @@ a {
   margin: 1em;
 }
 
+.days {
+  display: flex;
+  /* grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1f; */
+}
+
+.day {
+  display: inline;
+  padding-left: .5em;
+  margin: auto;
+  align-items: center;
+  justify-content: center;
+}
 
 .weeklyInput input {
   text-align: center;
