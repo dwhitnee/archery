@@ -272,7 +272,7 @@ let app = new Vue({
     document.body.addEventListener("keydown", this.navigateEnds );
 
     // setup data
-    this.user = Util.loadData("archer");    // localstore only
+    this.user = Util.loadData("archer") || this.user;    // localstore only
     this.initArrowData();
   },
 
