@@ -1,5 +1,5 @@
 /*global fetch, Vue, VueRouter, Util, VueApexCharts, user */
-/*jslint esversion: 6 */
+/*jslint esversion: 8 */
 //-----------------------------------------------------------------------
 //  Copyright 2024, David Whitney
 //  This file is part of Tournament Tools
@@ -200,6 +200,9 @@ let app = new Vue({
         this.user.auth = user;
         this.user.given_name = user.given_name;
         this.user.pictureUrl = user.pictureUrl;
+
+        // now load archer data (and nuke the local stuff)
+        // await this.data
       }
       catch( err ) {
         console.err("WTF? " + err );
@@ -361,6 +364,14 @@ let app = new Vue({
       this.initChartCallbacks();
     },
 
+    //----------------------------------------
+    // If we have a credential we can do more (like save to a database)
+    // If not we can only use the localstorage on the browser
+    //----------------------------------------
+    isSignedIn: function() {
+      return this.user.id;
+    },
+
     getDBKey: function() {
       // return this.user.id + ":arrows:" + this.year;
       return "arrows:" + this.year;
@@ -371,7 +382,11 @@ let app = new Vue({
     //----------------------------------------
     saveArrowDB: function() {
       if (this.data.arrows) {
-        Util.saveData( this.getDBKey(), this.data.arrows );
+        if (this.isSignedIn()) {
+          this.updateArcherArrows( this.data.arrows );
+        } else {
+          Util.saveData( this.getDBKey(), this.data.arrows );
+        }
       }
     },
 
@@ -695,10 +710,9 @@ let app = new Vue({
     async updateArcher() {
 
       if (!this.user.id) {
-        // we are anonymous, how to save to DB? Use name as ID?
-        alert("No archer ID specified. Can't save to cloud without login");
-        // save to localstore instead  FIXME
-        Util.saveData("archer", this.user );
+        // we are anonymous, how to save to DB? Use name as ID?  FIXME
+        // alert("No archer ID specified. Can't save to cloud without login");
+        Util.saveData("archer", this.user );    // save to localstore instead
         return;
       }
 
@@ -727,10 +741,70 @@ let app = new Vue({
 
         // D'oh. revert
         // event.target.innerText = this.playerName;
-      };
+      }
 
       this.saveInProgress = false;
     },
+
+
+    //----------------------------------------
+    // store this years arrow count (maybe other stuff soon?)
+    //----------------------------------------
+    async updateArcherArrows() {
+      this.updateArcherData("arrows", this.data.arrows );
+    },
+
+    async updateArcherWorkouts() {
+      this.updateArcherData("workouts", this.data.workouts );
+    },
+
+    //----------------------------------------
+    // Save a year of data for one activity ("arrows", "exercises", ...)
+    //
+    // updateArcherData("arrows", this.data.arrows)  ?
+    // POST id=id&year=year&type=arrows&data=...
+    //----------------------------------------
+    async updateArcherData( dataType, data ) {
+      if (!this.isSignedIn()) {
+        console.err("tried to write to DB without a signin id");
+        return;
+      }
+
+      if (this.saveInProgress) { return; }
+      console.log("updating " + dataType + " count to DB");
+
+      try {
+        this.saveInProgress = true;
+
+        let postData = {
+          userId: this.user.id,
+          year: this.year,
+          data: data,
+          dataType: dataType
+        };
+
+        let response = await fetch( serverURL + "updateArcherData",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+
+        // refresh our local data with whatever goodness the DB thinks we should have (last updated, version)
+
+        // FIXME - should this be done?
+        let newData = await response.json();
+        if (data.year) {
+          this.user.data[dataType] = newData;
+        }
+      }
+      catch( err ) {
+        console.error("Update arrow count: " + JSON.stringify( err ));
+        alert("Try again. Update failed " +
+              Util.sadface + (err.message || err));
+      }
+
+      this.saveInProgress = false;
+    },
+
+
 
   },
 

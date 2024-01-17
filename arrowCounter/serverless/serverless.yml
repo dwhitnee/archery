@@ -110,6 +110,34 @@ functions:
           method: post
           cors: true
 
+
+  getArcherData:
+    handler: archerAPI.getArcherData
+    description: Get year of archer activities
+    events:
+      - http:
+          path: archerData
+          method: get
+          cors: true
+
+  updateArcherData:
+    handler: archerAPI.updateArcherData
+    description: Update archer activities for this year
+    events:
+      - http:
+          path: updateArcherData
+          method: post
+          cors: true
+
+  deleteArcherData:
+    handler: archerAPI.deleteArcherData
+    description: Archer year activities permanently deleted
+    events:
+      - http:
+          path: deleteArcherData
+          method: post
+          cors: true
+
 resources:
   # API Gateway Errors
   - ${file(resources/api-gateway-errors.yml)}

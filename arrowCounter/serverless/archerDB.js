@@ -48,8 +48,8 @@ module.exports = {
       return db.getAllRecords( ArcherTableName, callback );
     }
 
+    let argNames =  { "#coach": "coach" };
     let filter =  "#coach = :coach";   // could be "contains( #coach )"
-    let argNames =  { "#coach": "coach" };  // Is this necessary? why #?
     let args = { ":coach": coach };
 
     return db.getRecordsByFilter( ArcherTableName, filter, argNames, args, callback );
@@ -80,22 +80,24 @@ module.exports = {
   //----------------------------------------
   //----------------------------------------
   // ARCHER_DATA
-  // Get training data for indiivdual archers
+  // Get training data for indivdual archers
   //----------------------------------------
 
   //----------------------------------------
-  getArcherDataForYear: function( id, year, callback ) {
-    let query = "id = :id and year = :year";
-    let args = { ':id': 'id', ':year': year };
-    return db.getRecordsByQuery( ArcherDataTableName, query, args, callback );
+  getArcherDataByArcherAndYear: function( id, year, callback ) {
+    let argNames =  { "#id": "id", "#year": "year" };  // "year" is reserved, #year is not
+    let query = "#id = :id and #year = :year";
+    let args = { ':id': id, ':year': year };
+
+    return db.getRecordsByQuery( ArcherDataTableName, query, args, argNames, callback );
   },
 
   //----------------------------------------
   // get all data for the year for everyone
   //----------------------------------------
   getAllArcherDataByYear: function( id, year, callback ) {
+    let argNames =  { "#id": "id", "#year": "year" };  // Naming variables avoids reserved words
     let filter =  "#id = :id, #year = :year";
-    let argNames =  { "#id": "id", "#year": "year" };  // Is this necessary? why #?
     let args = { ":id": id,":year": year };
 
     return db.getRecordsByFilter( ArcherDataTableName, filter, argNames, args, callback );
@@ -112,7 +114,6 @@ module.exports = {
     let keys = {"id": id, "year": year };
     return db.deleteRecordByKeys( ArcherDataTableName, keys, callback );
   },
-
 
 
 

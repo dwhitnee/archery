@@ -62,7 +62,7 @@ resources:
           - AttributeName: id
             AttributeType: S
           - AttributeName: year
-            AttributeType: N
+            AttributeType: S
 
         KeySchema:
           - AttributeName: id

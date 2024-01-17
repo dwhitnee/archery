@@ -9,7 +9,7 @@
  o updateArcher( id, [coach] )
  o deleteArcher( id )
 
- o getAllArcherDataByYear( year )
+ o getAllArcherDataByYear( year ) (ex: get everyone's arrow counts)
 
  o getArcherData( id, [year] )
  o updateArcherData( id, year )
@@ -86,7 +86,7 @@ module.exports = {
   //  should there be subcalls?  UpdateArrows? UpdateCoach?
   //
   // @param all data for archer in request.body
-  // @return nothing
+  // @return saved value
   //----------------------------------------------------------------------
   updateArcher: function( request, context, callback ) {
     let data = JSON.parse( request.body );
@@ -119,7 +119,62 @@ module.exports = {
 
 
   //----------------------------------------------------------------------
-  // Wipe data out
+  // Get array of activites for an archer's year
+  // @param: userId
+  //----------------------------------------------------------------------
+  getArcherData: function( request, context, callback ) {
+    let query = request.queryStringParameters;
+
+    if (!message.verifyParam( request, callback, "userId") ||
+        !message.verifyParam( request, callback, "year")) {
+      return;
+    }
+    archerDB.getArcherDataByArcherAndYear( query.userId, query.year, function( err, data ) {
+      if (!err) {
+        message.respond( err, data, callback );
+      }
+    });
+  },
+
+
+  //----------------------------------------------------------------------
+  // Update all year's data in DB, this stomps existing data of this type.
+  // ex: where dataType = "arrows"
+  /* {
+       id: David1234,
+       year: 2024,
+       "arrows": [..data..]
+     }
+*/
+  // @param data blob with DB keys and data type (key) to save
+  // @return savedValue
+  //----------------------------------------------------------------------
+  updateArcherData: function( request, context, callback ) {
+    if (!message.verifyParam( request, callback, "userId") ||
+        !message.verifyParam( request, callback, "year") ||
+        !message.verifyParam( request, callback, "data") ||
+        !message.verifyParam( request, callback, "dataType")) {
+      return;
+    }
+
+    let input = JSON.parse( request.body );
+
+    // parse request into a storable data blob
+    let data = {};
+    data.id = input.userId;
+    data.year = ""+input.year;
+    data[input.dataType] = input.data;
+
+    archerDB.updateArcherData( data, function( err, response ) {
+      if (!err) {
+        message.respond( err, data, callback );
+      }
+    });
+  },
+
+
+  //----------------------------------------------------------------------
+  // Wipe all year's data out (should there be a way to wipe just one data type?)
   // @param userId
   // @param year
   // @return nothing
