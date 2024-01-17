@@ -184,6 +184,8 @@ let app = new Vue({
 
       // got get current archer record if we have one
       try {
+        this.saveInProgress = true;  // not really, but loading in progress
+
         this.user.id = user.id;
         await this.getArcher();
 
@@ -202,12 +204,13 @@ let app = new Vue({
         this.user.pictureUrl = user.pictureUrl;
 
         // now load archer data (and nuke the local stuff)
-        // await this.data
+        await this.getArcherData();
       }
       catch( err ) {
         console.err("WTF? " + err );
-    }
+      }
 
+      this.saveInProgress = false;
 
       // this.$globalUser = value;
     }
@@ -309,30 +312,30 @@ let app = new Vue({
     //
     // https://apexcharts.com/vue-chart-demos/heatmap-charts/multiple-series/
     //----------------------------------------
-    updateHeatmapFromDB: function() {
+    updateHeatmapFromData: function( yearOfData ) {
       let data = [];
       // let range = { min: 0, max: 90 };
 
       let gapUntilMonday = this.getFillerDays();
 
       for (let d=0; d < 7; d++) {
-        let yearOfMondays = [];
+        let yearOfWeekdays = [];
         for (let w=0; w < 52; w++) {
           if ((w == 0) && d < gapUntilMonday) {
-            yearOfMondays[w] = -1;
+            yearOfWeekdays[w] = -1;
           } else {
             // need data validation here
-            let val = this.data.arrows[w*7+d-gapUntilMonday];
+            let val = yearOfData[w*7+d-gapUntilMonday];
             if (isNaN(parseFloat( val ))) {
               val = 0;
             }
-            yearOfMondays[w] = val;
+            yearOfWeekdays[w] = val;
           }
         }
 
         data[7-d] = {
           name: this.days[d],
-          data: yearOfMondays,
+          data: yearOfWeekdays,
         };
       }
 
@@ -347,7 +350,6 @@ let app = new Vue({
         data: weekTotals
       };
 
-      //this.initChartCallbacks();
       this.heatmap.series = data;
     },
 
@@ -359,9 +361,14 @@ let app = new Vue({
     //----------------------------------------
     initArrowData: function() {
       this.loadArrowDB();
-      this.populateThisWeek();
-      this.updateHeatmapFromDB();
       this.initChartCallbacks();
+      this.handleArrowUpdate();
+    },
+
+    // watch this.data.arrow and do update UI - Vue should do this sorta?
+    handleArrowUpdate: function() {
+      this.populateThisWeek();
+      this.updateHeatmapFromData( this.data.arrows );
     },
 
     //----------------------------------------
@@ -382,10 +389,9 @@ let app = new Vue({
     //----------------------------------------
     saveArrowDB: function() {
       if (this.data.arrows) {
+        Util.saveData( this.getDBKey(), this.data.arrows );
         if (this.isSignedIn()) {
           this.updateArcherArrows( this.data.arrows );
-        } else {
-          Util.saveData( this.getDBKey(), this.data.arrows );
         }
       }
     },
@@ -545,22 +551,23 @@ let app = new Vue({
       // direct heatmap update (index is day of year)
       if (index === undefined) {
         this.data.arrows[this.currentIndex] = this.dataDisplay.arrows;
-        this.populateThisWeek();  // update week as well.
+        this.handleArrowUpdate(); // update week as well.
 
       } else {      // weekly list update (index is day of this week)
         let monday = this.getDayOfThisMonday();
 
         // should this be v-model instead? to handle strings
         this.data.arrows[monday+index] = event.target.value|0;
+        this.handleArrowUpdate();
       }
 
       console.log("Updating " + this.currentIndex + " to " + this.dataDisplay.arrows);
 
       // SAVE TO DB
       this.saveArrowDB();
-      this.updateHeatmapFromDB();  // map DB to heatmap format
 
       // FIXME - hardcoded
+      // Tell Vue this element changed - go read new data
       this.$refs.arrowCount.updateSeries( this.heatmap.series );
 
       this.endEdit();
@@ -681,7 +688,7 @@ let app = new Vue({
       }
       catch( err ) {
         alert("Problem getting archer " + Util.sadface + (err.message || err));
-      };
+      }
     },
 
     //----------------------------------------
@@ -699,7 +706,27 @@ let app = new Vue({
         if (++this.updateRetries < 2) { return; }   // ignore first 2 fails?
 
         alert("Problem getting archer list " + Util.sadface + (err.message || err));
-      };
+      }
+    },
+
+
+    //----------------------------------------
+    // on login, get what we know about this archer
+    //----------------------------------------
+    async getArcherData() {
+      try {
+        let response = await fetch(serverURL +
+                                   "archerData?userId=" + this.user.id + "&year=" + this.year );
+        if (!response.ok) { throw await response.json(); }
+        let data = await response.json();
+        if (data.id) {
+          this.data = data;
+          this.handleArrowUpdate();
+        }
+      }
+      catch( err ) {
+        alert("Problem getting archer " + Util.sadface + (err.message || err));
+      }
     },
 
 

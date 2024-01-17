@@ -27,6 +27,7 @@ module.exports = {
     return this.getRecordByKeys( tableName, keys, callback);
   },
 
+  // return one value given the (possibly compound: Hash key + sort key) keys
   getRecordByKeys: function( tableName, keys, callback ) {
     console.log("Getting " + tableName + ": " + JSON.stringify( keys ));
 

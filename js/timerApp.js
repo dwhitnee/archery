@@ -1,4 +1,5 @@
 /*global fetch, Vue, VueRouter, Util */
+/*jslint esversion: 8 */
 //-----------------------------------------------------------------------
 //  Copyright 2023, David Whitney
 //  This file is part of Tournament Archery Timer

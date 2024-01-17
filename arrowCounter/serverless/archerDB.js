@@ -85,11 +85,8 @@ module.exports = {
 
   //----------------------------------------
   getArcherDataByArcherAndYear: function( id, year, callback ) {
-    let argNames =  { "#id": "id", "#year": "year" };  // "year" is reserved, #year is not
-    let query = "#id = :id and #year = :year";
-    let args = { ':id': id, ':year': year };
-
-    return db.getRecordsByQuery( ArcherDataTableName, query, args, argNames, callback );
+    let args = { 'id': id, 'year': year };
+    return db.getRecordByKeys( ArcherDataTableName, args, callback );
   },
 
   //----------------------------------------
