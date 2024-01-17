@@ -2,7 +2,7 @@
 Copyright (c) 2023 <a href="http://dwhitnee.s3-website-us-east-1.amazonaws.com/">David Whitney</a>
 
 ## Use it!
-https://dwhitnee.github.io/archeryTimer
+https://dwhitnee.github.io/archer/timer
 
 ## About
 This is a simple Timer used for Archery Tournaments.
@@ -45,7 +45,7 @@ An archery round consists of a number of ends shot by any number of
  for outdoor), and these prefs are saved to LocalStorage
 
 ## Run locally
-http://localhost/archeryTimer/
+http://localhost/archery/timer/
 
 ## Credits
 All code written and directed by David Whitney.
