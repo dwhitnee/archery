@@ -83,7 +83,7 @@ let app = new Vue({
     loadingData: false,    // prevent other actions while this is going on
 
     coachView: false,
-    allArchers: [],
+    allArchers: [{name:"Loading..."}],
 
     noUser: {
       id: "",
