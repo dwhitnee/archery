@@ -74,9 +74,7 @@ module.exports = {
       return;
     }
     archerDB.getArcherById( query.userId, function( err, data ) {
-      if (!err) {
-        message.respond( err, data, callback );
-      }
+      message.respond( err, data, callback );
     });
   },
 
@@ -96,9 +94,7 @@ module.exports = {
     data.id = data.id.replace(/\W/g,'_');
 
     archerDB.updateArcher( data, function( err, response ) {
-      if (!err) {
-        message.respond( err, data, callback );
-      }
+      message.respond( err, data, callback );
     });
   },
 
@@ -130,9 +126,7 @@ module.exports = {
       return;
     }
     archerDB.getArcherDataByArcherAndYear( query.userId, query.year, function( err, data ) {
-      if (!err) {
-        message.respond( err, data, callback );
-      }
+      message.respond( err, data, callback );
     });
   },
 
@@ -166,9 +160,7 @@ module.exports = {
     data[input.dataType] = input.data;
 
     archerDB.updateArcherData( data, function( err, response ) {
-      if (!err) {
-        message.respond( err, data, callback );
-      }
+      message.respond( err, data, callback );
     });
   },
 
