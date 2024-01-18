@@ -247,18 +247,13 @@ let app = new Vue({
   //----------------------------------------
   // We spin until game loaded so this can be anywhere in lifecycle
   //----------------------------------------
-  mounted() {
+  async mounted() {
     // handle broken promises.
     window.addEventListener('unhandledrejection', function(event) {
       console.error("Rat farts " + JSON.stringify( event ));
       // alert("Rat farts " + JSON.stringify( event ));
       debugger;
     });
-
-    // Coach view?
-    this.userId = this.$route.query.user || this.userId;
-
-    this.round = Util.loadData("round") || this.round;
 
     // cycle through ends with arrow keys
     let left = 37, right = 39;
@@ -276,9 +271,19 @@ let app = new Vue({
     };
     document.body.addEventListener("keydown", this.navigateEnds );
 
-    // setup data
-    this.user = Util.loadData("archer") || this.user;    // localstore only
     this.initArrowData();
+
+    // Coach view? A little too much power here (full edit)
+    let coachView = this.$route.query.user;
+    if (coachView) {
+      await this.getArcher( coachView );
+      await this.getArcherData( coachView );
+    } else {
+      // setup data without login
+      this.user = Util.loadData("archer") || this.user;    // localstore only
+      // I wich we could tell if a login were in progress
+      // currently we show localstorage view, then flash to cloud view
+    }
   },
 
   // synchronous app setup before event handling starts
@@ -397,17 +402,11 @@ let app = new Vue({
 
     //----------------------------------------
     // arrow DB is a 365 element array of arrow counts for every day of the year
-    // saved to localStorage
-    // FIXME: switch to DynamoDB
+    // saved to localStorage.
+    // If cloud is available, login callback will load all data
     //----------------------------------------
     loadArrowDB: function() {
       this.data.arrows = Util.loadData( this.getDBKey() ) || [];
-
-      // this.data.arrows = [10,0,30,0,50,0,70,
-      //                     0,0,60,0,70,0,80,
-      //                     0,90,0,0,101,0,
-      //                     0,70,0,80,0,90,0,
-      //                     0,70,0,80,0,90,0];
     },
 
 
@@ -560,7 +559,7 @@ let app = new Vue({
         this.handleArrowUpdate();
       }
 
-      console.log("Updating " + this.currentIndex + " to " + this.dataDisplay.arrows);
+      console.log("Updating day " + this.currentIndex + " to " + this.dataDisplay.arrows);
 
       // SAVE TO DB
       this.saveArrowDB();
@@ -756,6 +755,7 @@ let app = new Vue({
 
         // refresh our local data with whatever goodness the DB thinks we should have (last updated, version)
         let archer = await response.json();
+        console.log("update resulted in " + JSON.stringify( archer ));
         if (archer.id) {
           this.user = archer;
         }
@@ -764,9 +764,6 @@ let app = new Vue({
         console.error("Change name: " + JSON.stringify( err ));
         alert("Try again. Change name failed " +
               Util.sadface + (err.message || err));
-
-        // D'oh. revert
-        // event.target.innerText = this.playerName;
       }
 
       this.saveInProgress = false;
@@ -816,10 +813,11 @@ let app = new Vue({
         // refresh our local data with whatever goodness the DB thinks we should have (last updated, version)
 
         // FIXME - should this be done?
+        // archerData sub elements don't have a version, only the overall data record
         let newData = await response.json();
-        if (data.year) {
-          this.user.data[dataType] = newData;
-        }
+        // if (newData.year) {
+        //   this.data[dataType] = newData; // { arrows: [], id: 131, year: 2024, version: 2 }
+        // }
       }
       catch( err ) {
         console.error("Update arrow count: " + JSON.stringify( err ));
