@@ -178,10 +178,11 @@
         <div class="coachView">
           Hi, coaches!
           <ul>
-          <li v-for="archer in allArchers">
-            <a :href="archerUrl(archer.id)" @click="closeDialog($event )">
-              {{archer.name }} ({{ archer.coach}})
-            </a>
+            <li v-for="archer in allArchers">
+              <a :href="archerUrl(archer.id)" @click="closeDialog($event )">
+                {{archer.name }} ({{ archer.coach}})
+            </a></li>
+            <li><a :href="archerUrl(0)">Exit</a></li>
           </ul>
         </div>
       </div>

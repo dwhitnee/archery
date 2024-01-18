@@ -266,7 +266,12 @@ let app = new Vue({
     this.coachView = this.$route.query.user;
     if (this.coachView) {
       await this.getArcher( this.coachView );
-      await this.getArcherData( this.coachView );
+      if (this.user.id) {
+        await this.getArcherData( this.coachView );
+      } else {
+        this.user.name = "No archer found";
+        // no such archer?
+      }
 
     } else {   // setup data without login
 
@@ -307,7 +312,11 @@ let app = new Vue({
     },
 
     archerUrl: function( archer ) {
-      return document.location.origin + document.location.pathname + "?user=" + archer;
+      let url = document.location.origin + document.location.pathname;
+      if (archer) {
+        url = url + "?user=" + archer;
+      }
+      return url;
     },
 
     inProgress: function() {
@@ -688,6 +697,7 @@ let app = new Vue({
         }
       }
       catch( err ) {
+        debugger
         alert("Problem getting archer " + Util.sadface + (err.message || err));
       }
       this.loadingData = false;
