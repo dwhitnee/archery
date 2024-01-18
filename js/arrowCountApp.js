@@ -80,7 +80,10 @@ let app = new Vue({
   data: {
     message: "Weekly Arrow Counter",
     saveInProgress: false,    // prevent other actions while this is going on
+    loadingData: false,    // prevent other actions while this is going on
+
     coachView: false,
+    allArchers: [],
 
     noUser: {
       id: "",
@@ -181,6 +184,10 @@ let app = new Vue({
   // watch global variables for reactivity
   watch: {
     async '$globalUser'( user ) {
+      if (this.coachView) {      // ignore in coach mode
+        return;
+      }
+
       console.log("New login");
 
       // got get current archer record if we have one
@@ -203,15 +210,11 @@ let app = new Vue({
         this.user.pictureUrl = user.pictureUrl;
 
         // now load archer data (and nuke the local stuff)
-        this.saveInProgress = true;  // not really, but loading in progress
         await this.getArcherData();
       }
       catch( err ) {
         console.err("WTF? " + err );
       }
-
-      this.saveInProgress = false;
-
       // this.$globalUser = value;
     }
   },
@@ -256,35 +259,34 @@ let app = new Vue({
       debugger;
     });
 
-    // cycle through ends with arrow keys
-    let left = 37, right = 39;
-    this.navigateEnds = (event) => {
-      if (event.keyCode === left) {
-        console.log("left");
-        if (this.endNumber > 1) {
-          this.endNumber--;
-        }
-      }
-      if (event.keyCode === right) {
-        console.log("right");
-        this.endNumber++;
-      }
-    };
-    document.body.addEventListener("keydown", this.navigateEnds );
+    // set up heatmap handlers
+    this.initChartCallbacks();
 
-    this.initArrowData();
-
-    // Coach view? A little too much power here (full edit)
+    // Coach view of an archer
     this.coachView = this.$route.query.user;
     if (this.coachView) {
       await this.getArcher( this.coachView );
       await this.getArcherData( this.coachView );
-    } else {
-      // setup data without login
+
+    } else {   // setup data without login
+
       this.user = Util.loadData("archer") || this.user;    // localstore only
+      this.loadLocalArrowDB();
+
       // I wich we could tell if a login were in progress
       // currently we show localstorage view, then flash to cloud view
     }
+
+    this.handleKeypress = (event) => {
+      if (event.shiftKey && (event.key === "C")) {
+        console.log("Coach view!");
+        this.loadAllArchers();
+        this.openDialog("coachView");
+      }
+    };
+    document.body.addEventListener("keydown", this.handleKeypress );
+
+
   },
 
   // synchronous app setup before event handling starts
@@ -302,6 +304,14 @@ let app = new Vue({
       this.message = message;
       pause = pause || 0;
       this.messageCountdown = pause + 1;
+    },
+
+    archerUrl: function( archer ) {
+      return document.location.origin + document.location.pathname + "?user=" + archer;
+    },
+
+    inProgress: function() {
+      return this.saveInProgress || this.loadingData;
     },
 
     logout: function() {
@@ -359,17 +369,6 @@ let app = new Vue({
     },
 
 
-    //----------------------------------------
-    // get data from storage (DB or browser)
-    // populate the heat map and the week's arrows
-    // set up heatmap handlers
-    //----------------------------------------
-    initArrowData: function() {
-      this.loadArrowDB();
-      this.initChartCallbacks();
-      this.handleArrowUpdate();
-    },
-
     // watch this.data.arrow and do update UI - Vue should do this sorta?
     handleArrowUpdate: function() {
       this.populateThisWeek();
@@ -406,8 +405,9 @@ let app = new Vue({
     // saved to localStorage.
     // If cloud is available, login callback will load all data
     //----------------------------------------
-    loadArrowDB: function() {
+    loadLocalArrowDB: function() {
       this.data.arrows = Util.loadData( this.getDBKey() ) || [];
+      this.handleArrowUpdate();
     },
 
 
@@ -563,7 +563,7 @@ let app = new Vue({
 
       console.log("Updating day " + this.currentIndex + " to " + this.dataDisplay.arrows);
 
-      // SAVE TO DB
+      // SAVE TO DB (cloud or local)
       this.saveArrowDB();
 
       // FIXME - hardcoded
@@ -679,6 +679,7 @@ let app = new Vue({
     //----------------------------------------
     async getArcher( userId ) {
       try {
+        this.loadingData = true;
         let response = await fetch(serverURL + "archer?userId=" + userId );
         if (!response.ok) { throw await response.json(); }
         let archer = await response.json();
@@ -689,6 +690,7 @@ let app = new Vue({
       catch( err ) {
         alert("Problem getting archer " + Util.sadface + (err.message || err));
       }
+      this.loadingData = false;
     },
 
     //----------------------------------------
@@ -697,6 +699,7 @@ let app = new Vue({
     async getArchersByCoach( coach ) {
 
       try {
+        this.loadingData = true;
         let response = await fetch(serverURL + "archers?coach=" + coach );
         if (!response.ok) { throw await response.json(); }
         let archers = await response.json();
@@ -707,6 +710,7 @@ let app = new Vue({
 
         alert("Problem getting archer list " + Util.sadface + (err.message || err));
       }
+      this.loadingData = false;
     },
 
 
@@ -715,6 +719,7 @@ let app = new Vue({
     //----------------------------------------
     async getArcherData() {
       try {
+        this.loadingData = true;
         let response = await fetch(serverURL +
                                    "archerData?userId=" + this.user.id + "&year=" + this.year );
         if (!response.ok) { throw await response.json(); }
@@ -727,6 +732,7 @@ let app = new Vue({
       catch( err ) {
         alert("Problem getting archer " + Util.sadface + (err.message || err));
       }
+      this.loadingData = false;
     },
 
 
@@ -834,6 +840,20 @@ let app = new Vue({
     },
 
 
+    //----------------------------------------
+    async loadAllArchers() {
+      // go get all archers for coach view
+      try {
+        let response = await fetch(serverURL + "archers");
+        if (!response.ok) { throw await response.json(); }
+        this.allArchers = await response.json();
+
+        this.allArchers.sort((a, b) => (a.coach > b.coach));
+      }
+      catch (err) {
+        console.err( err );
+      }
+    }
 
   },
 
