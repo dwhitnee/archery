@@ -4,6 +4,9 @@ html,body {
   margin: 0;
 }
 
+[v-cloak] {  display:none; }
+[v-cloak]::before { position: absolute; top: 10em; left: 10em; content: "loading..."; }
+
 a {
   text-decoration: underline;
 }

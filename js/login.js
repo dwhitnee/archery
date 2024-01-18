@@ -7,6 +7,8 @@
 //----------------------------------------------------------------------
 //  OAuth for Google. Some magic JS to invoke Google Login and Authentication
 //
+//  Config: https://console.cloud.google.com/apis/credentials/oauthclient/1021363791635-7p4g4ltun01jq4o0lirgk8vfhgm46ejp.apps.googleusercontent.com?project=test-1494458735954&pli=1
+
 // Setting up OAuth cliebt for Google:
 //   https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid
 //   https://console.cloud.google.com/apis/credentials
