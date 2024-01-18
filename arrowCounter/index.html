@@ -36,6 +36,12 @@
 <body>
   <div id="trainingApp" class="appGrid" v-cloak>
 
+    <div v-if="coachView" class="watermark">
+      <div>COACH</div>
+      <div>COACH</div>
+      <div>COACH</div>
+    </div>
+
     <div class="menuBar">
       <div>
         <div class="settings icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>

@@ -123,3 +123,15 @@ a {
 #settings {
   margin: auto;
 }
+
+.watermark {
+  position: absolute;
+  color: black;
+  opacity: 20%;
+  font-weight: bold;
+  font-size: 20vw;
+  transform: rotate(-45deg);
+  top: 0;
+  left: 15vw;
+  z-index: 999
+}

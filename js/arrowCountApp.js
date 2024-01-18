@@ -80,6 +80,7 @@ let app = new Vue({
   data: {
     message: "Weekly Arrow Counter",
     saveInProgress: false,    // prevent other actions while this is going on
+    coachView: false,
 
     noUser: {
       id: "",
@@ -274,10 +275,10 @@ let app = new Vue({
     this.initArrowData();
 
     // Coach view? A little too much power here (full edit)
-    let coachView = this.$route.query.user;
-    if (coachView) {
-      await this.getArcher( coachView );
-      await this.getArcherData( coachView );
+    this.coachView = this.$route.query.user;
+    if (this.coachView) {
+      await this.getArcher( this.coachView );
+      await this.getArcherData( this.coachView );
     } else {
       // setup data without login
       this.user = Util.loadData("archer") || this.user;    // localstore only
@@ -545,6 +546,7 @@ let app = new Vue({
     // FIXME: tap on phone gives wrong location for text box (when in landscape (relative to top of whole page)
     //----------------------------------------
     updateArrows: function( event, index ) {
+      if (this.coachView) { this.endEdit(); return; }
 
       // direct heatmap update (index is day of year)
       if (index === undefined) {
@@ -742,6 +744,7 @@ let app = new Vue({
       }
 
       if (this.saveInProgress) { return; }
+      if (this.coachView) { return; }
 
       console.log("changing archer to " + JSON.stringify( this.user ));
 
@@ -788,6 +791,8 @@ let app = new Vue({
     // POST id=id&year=year&type=arrows&data=...
     //----------------------------------------
     async updateArcherData( dataType, data ) {
+      if (this.coachView) { return; }
+
       if (!this.isSignedIn()) {
         console.err("tried to write to DB without a signin id");
         return;
