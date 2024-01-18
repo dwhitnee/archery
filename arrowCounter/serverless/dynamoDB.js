@@ -247,11 +247,13 @@ module.exports = {
 
     // Put and not Update, we want to clobber old entry
     dynamoDB.put( dbParams, function( err, data ) {
+      // data is empty in a put, why?
       if (err) {
         console.log("DynamoDB error:" + err );
         callback( err );
       } else {
-        callback( null, data );  // success! Report what was written
+        console.log("Responding with updated data: " +  JSON.stringify( dbParams.Item ));
+        callback( null, dbParams.Item );  // success! Report what was written
       }
     });
   },

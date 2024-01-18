@@ -33,8 +33,6 @@
 let archerDB = require('archerDB');  // All the Dynamo stuff
 let message = require('responseHandler');  // HTTP message handling
 
-// let thomas = require('thomas');   // Thomas is our private middleware (between HTTP and Node/Dynamo for app logic)
-
 //----------------------------------------
 //----------------------------------------
 // API server functions go here
@@ -93,7 +91,7 @@ module.exports = {
     // Remove spaces/specials from Name (if id is user inputted and not from login)
     data.id = data.id.replace(/\W/g,'_');
 
-    archerDB.updateArcher( data, function( err, response ) {
+    archerDB.updateArcher( data, function( err, data ) {
       message.respond( err, data, callback );
     });
   },
@@ -108,8 +106,8 @@ module.exports = {
       return;
     }
     let params = JSON.parse( request.body );
-    archerDB.deleteArcher( params.userId, function( err, response ) {
-      message.respond( err, response , callback );
+    archerDB.deleteArcher( params.userId, function( err, data ) {
+      message.respond( err, data, callback );
     });
   },
 
@@ -126,6 +124,21 @@ module.exports = {
       return;
     }
     archerDB.getArcherDataByArcherAndYear( query.userId, query.year, function( err, data ) {
+      message.respond( err, data, callback );
+    });
+  },
+
+    //----------------------------------------------------------------------
+  // Get array of activites for an archer's year
+  // @param: userId
+  //----------------------------------------------------------------------
+  getAllArchersData: function( request, context, callback ) {
+    let query = request.queryStringParameters;
+
+    if (!message.verifyParam( request, callback, "year")) {
+      return;
+    }
+    archerDB.getAllArcherDataByYear( query.year, function( err, data ) {
       message.respond( err, data, callback );
     });
   },
@@ -159,7 +172,7 @@ module.exports = {
     data.year = ""+input.year;
     data[input.dataType] = input.data;
 
-    archerDB.updateArcherData( data, function( err, response ) {
+    archerDB.updateArcherData( data, function( err, data ) {
       message.respond( err, data, callback );
     });
   },
@@ -178,8 +191,8 @@ module.exports = {
     }
 
     let params = JSON.parse( request.body );
-    archerDB.deleteArcherData( params.userId, params.year, function( err, response ) {
-      message.respond( err, response , callback );
+    archerDB.deleteArcherData( params.userId, params.year, function( err, data ) {
+      message.respond( err, data, callback );
     });
   }
 };

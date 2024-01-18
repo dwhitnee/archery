@@ -120,6 +120,15 @@ functions:
           method: get
           cors: true
 
+  getAllArchersData:
+    handler: archerAPI.getAllArchersData
+    description: Get all activities for the year, for all archers
+    events:
+      - http:
+          path: allArchersData
+          method: get
+          cors: true
+
   updateArcherData:
     handler: archerAPI.updateArcherData
     description: Update archer activities for this year

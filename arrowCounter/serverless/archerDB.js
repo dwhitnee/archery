@@ -92,7 +92,7 @@ module.exports = {
   //----------------------------------------
   // get all data for the year for everyone
   //----------------------------------------
-  getAllArcherDataByYear: function( id, year, callback ) {
+  getAllArcherDataByYear: function( year, callback ) {
     let argNames =  { "#year": "year" };  // Naming variables avoids reserved words
     let filter = "#year = :year";
     let args = { ":year": year };
@@ -100,9 +100,6 @@ module.exports = {
     return db.getRecordsByFilter( ArcherDataTableName, filter, argNames, args, callback );
   },
 
-  getArcherData: function( id, year, callback ) {
-    return db.getRecordById( ArcherDataTableName, id, callback );
-  },
   updateArcherData: function( data, callback ) {
     // PK (data.id and data.year) is presumed to be present
     return db.saveRecord( ArcherDataTableName, data, callback );
