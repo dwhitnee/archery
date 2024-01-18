@@ -184,15 +184,13 @@ let app = new Vue({
 
       // got get current archer record if we have one
       try {
-        this.saveInProgress = true;  // not really, but loading in progress
+        await this.getArcher( user.id );
 
-        this.user.id = user.id;
-        await this.getArcher();
-
-        if (this.user.name) {
+        if (this.user.id) {
           console.log("Loaded " + this.user.name );
         } else {
           // new archer, create record
+          this.user.id = user.id;
           this.user.name = this.user.name || user.name;
           this.user.auth = user;
           console.log("Creating new archer " + this.user.name );
@@ -204,6 +202,7 @@ let app = new Vue({
         this.user.pictureUrl = user.pictureUrl;
 
         // now load archer data (and nuke the local stuff)
+        this.saveInProgress = true;  // not really, but loading in progress
         await this.getArcherData();
       }
       catch( err ) {
@@ -677,9 +676,9 @@ let app = new Vue({
     //----------------------------------------
     // on login, get what we know about this archer
     //----------------------------------------
-    async getArcher() {
+    async getArcher( userId ) {
       try {
-        let response = await fetch(serverURL + "archer?userId=" + this.user.id );
+        let response = await fetch(serverURL + "archer?userId=" + userId );
         if (!response.ok) { throw await response.json(); }
         let archer = await response.json();
         if (archer.id) {

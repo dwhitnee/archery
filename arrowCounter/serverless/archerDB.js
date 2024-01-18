@@ -85,7 +85,7 @@ module.exports = {
 
   //----------------------------------------
   getArcherDataByArcherAndYear: function( id, year, callback ) {
-    let args = { 'id': id, 'year': year };
+    let args = { "id": id, "year": year };
     return db.getRecordByKeys( ArcherDataTableName, args, callback );
   },
 
@@ -93,9 +93,9 @@ module.exports = {
   // get all data for the year for everyone
   //----------------------------------------
   getAllArcherDataByYear: function( id, year, callback ) {
-    let argNames =  { "#id": "id", "#year": "year" };  // Naming variables avoids reserved words
-    let filter =  "#id = :id, #year = :year";
-    let args = { ":id": id,":year": year };
+    let argNames =  { "#year": "year" };  // Naming variables avoids reserved words
+    let filter = "#year = :year";
+    let args = { ":year": year };
 
     return db.getRecordsByFilter( ArcherDataTableName, filter, argNames, args, callback );
   },
