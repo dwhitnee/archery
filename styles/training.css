@@ -120,7 +120,8 @@ a {
 .loginGrid > .coach { grid-area: coach; }
 .loginGrid > .misc2 { grid-area: misc2; }
 
-.loginMenu {
+.loginButtons > div {
+  padding: 1em;
 }
 
 #settings {

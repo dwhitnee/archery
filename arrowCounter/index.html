@@ -73,8 +73,8 @@
           <label :for="'day_'+day">{{ day }}</label>
           <input :id="'day_'+day" size=2 type="text" v-model.number="weekArrows[index]"
                  @focus="event.target.select()"
-                 @blur="updateArrows( event, index )"
-                 @keyup.enter="updateArrows( event, index )"
+                 @blur="editArrows( event, index )"
+                 @keyup.enter="event.target.blur()"
                  @keydown.esc="abortEdit()"
           />
         </div>
@@ -94,8 +94,8 @@
           <div v-if="editing">
             Arrows:
             <input id="arrowInput" size=2 v-model.number="dataDisplay.arrows"
-                   @blur="updateArrows()"
-                   @keyup.enter="updateArrows()"
+                   @blur="editArrows()"
+                   @keyup.enter="event.target.blur()"
                    @keydown.esc="endEdit()" />
           </div>
           <div v-else>Arrows: {{ dataDisplay.arrows }}  (week: {{ dataDisplay.weekArrows }} )</div>
@@ -143,7 +143,7 @@
                    data-itp_support="true">
               </div>
 
-              <div class="g_id_signin"
+              <div v-show="!doEmailLogin" class="g_id_signin"
                    data-type="standard"
                    data-shape="pill"
                    data-theme="outline"
@@ -153,6 +153,17 @@
               </div>
             </div>
 
+            <div class="emailLoginButton">
+              <div v-if="doEmailLogin">
+                <label for="'emailLogin">email:</label>
+                <input id="emailLogin" size=10 type="text"
+                       @blur="emailLogin( event.target.value )"
+                       @keyup.enter="event.target.blur()"/>
+              </div>
+              <button  v-if="!doEmailLogin" class="btn btn-primary btn-sm" @click="doEmailLogin=true">
+                Login with email
+              </button>
+            </div>
           </div>
 
           <div class="coach">

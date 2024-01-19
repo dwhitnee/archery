@@ -71,7 +71,11 @@ module.exports = {
     if (!message.verifyParam( request, callback, "userId")) {
       return;
     }
-    archerDB.getArcherById( query.userId, function( err, data ) {
+
+    let userId = query.userId;
+    userId = userId.replace(/\W/g,'_');    // sanitize ID
+
+    archerDB.getArcherById( userId, function( err, data ) {
       message.respond( err, data, callback );
     });
   },
@@ -87,9 +91,9 @@ module.exports = {
   updateArcher: function( request, context, callback ) {
     let data = JSON.parse( request.body );
 
-    // sanitize ID
     // Remove spaces/specials from Name (if id is user inputted and not from login)
-    data.id = data.id.replace(/\W/g,'_');
+    data.id = data.id.replace(/\W/g,'_');       // sanitize ID
+    // we need to munger on getAecher as well.
 
     archerDB.updateArcher( data, function( err, data ) {
       message.respond( err, data, callback );

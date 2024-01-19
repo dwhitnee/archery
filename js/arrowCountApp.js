@@ -81,6 +81,7 @@ let app = new Vue({
     message: "Weekly Arrow Counter",
     saveInProgress: false,    // prevent other actions while this is going on
     loadingData: false,    // prevent other actions while this is going on
+    doEmailLogin: false,   // toggle to enter email address as userId
 
     coachView: false,
     allArchers: [{name:"Loading..."}],
@@ -187,34 +188,8 @@ let app = new Vue({
       if (this.coachView) {      // ignore in coach mode
         return;
       }
-
-      console.log("New login");
-
-      // got get current archer record if we have one
-      try {
-        await this.getArcher( user.id );
-
-        if (this.user.id) {
-          console.log("Loaded " + this.user.name );
-        } else {
-          // new archer, create record
-          this.user.id = user.id;
-          this.user.name = this.user.name || user.name;
-          this.user.auth = user;
-          console.log("Creating new archer " + this.user.name );
-          await this.updateArcher();
-        }
-        // copy over interesting immutable data
-        this.user.auth = user;
-        this.user.given_name = user.given_name;
-        this.user.pictureUrl = user.pictureUrl;
-
-        // now load archer data (and nuke the local stuff)
-        await this.getArcherData();
-      }
-      catch( err ) {
-        console.err("WTF? " + err );
-      }
+      console.log("New login from OAuth");
+      await this.archerLogin( user );
       // this.$globalUser = value;
     }
   },
@@ -278,7 +253,9 @@ let app = new Vue({
       this.user = Util.loadData("archer") || this.user;    // localstore only
       this.loadLocalArrowDB();
 
-      // I wich we could tell if a login were in progress
+      await this.archerLogin( this.user );
+
+      // i wich we could tell if a login were in progress
       // currently we show localstorage view, then flash to cloud view
     }
 
@@ -311,6 +288,7 @@ let app = new Vue({
       this.messageCountdown = pause + 1;
     },
 
+
     archerUrl: function( archer ) {
       let url = document.location.origin + document.location.pathname;
       if (archer) {
@@ -323,9 +301,92 @@ let app = new Vue({
       return this.saveInProgress || this.loadingData;
     },
 
-    logout: function() {
-      if (this.user.auth.auth =="google") {
-        this.user = this.noUser;
+
+    //----------------------------------------
+    // login with just an email address (no password)
+    // this is just so we can get a name and ID
+    //----------------------------------------
+    async emailLogin( newEmail ) {
+      // this.user.id is email now
+      this.doEmailLogin = false;  // we're done with the UI
+
+      let user = {
+        id: newEmail
+      };
+      let match = user.id.match( /^(.*)@/);
+      if (match && match[1]) {
+        user.name = match[1];
+      } else {
+        alert("could not understnad email address: " + newEmail );
+        return;
+      }
+      user.given_name = user.name;
+      user.auth = {
+        auth: "email"
+      };
+      await this.archerLogin( user );
+    },
+
+    //----------------------------------------
+    // a new user has arrived via OAuth or otherwise
+    // populate data from cloud (stuff it into localStore for now, too)
+    //----------------------------------------
+    async archerLogin( user ) {
+      // go get current archer record if we have one
+      try {
+        await this.getArcher( user.id );
+
+        if (!this.user.name) {
+          console.log("No archer name found");
+          return;
+        }
+        if (this.user.id) {
+          console.log("Loaded " + this.user.name );
+        } else {
+          // new archer, create record
+          this.user.id = user.id;
+          this.user.name = this.user.name || user.name;
+          this.user.auth = user;
+          console.log("Creating new archer " + this.user.name );
+          await this.updateArcher();
+        }
+        // copy over interesting immutable data
+        this.user.auth = user;
+        this.user.given_name = user.given_name;
+        this.user.pictureUrl = user.pictureUrl;
+
+        // now load archer data (and nuke the local stuff)
+        await this.getArcherData();
+
+        this.saveLocalArcher();
+        this.saveLocalArrowDB();
+      }
+      catch( err ) {
+        console.error("WTF? " + err );
+      }
+    },
+
+    //----------------------------------------
+    // redirect to google to dump cookies, or just empty user record
+    // empty archerData too?
+    //----------------------------------------
+    async logout() {
+      let auth = this.user.auth.auth;
+      this.user = this.noUser;
+      this.updateArcher();   // Just localstorage update since ID is gone
+      this.data.arrows = [];
+      this.updateArcherArrows();
+
+      // hack to rerender google button, F this
+      window.setTimeout(function() {
+        console.log("re-rendering google login - WTF");
+        window.google.accounts.id.renderButton(
+          document.getElementById('g_id_onload'),
+          { theme: 'outline', type: "standard",shape: "pill", size: 'large', text: "signin" });
+      }, 1000);
+
+
+      if (auth =="google") {
         document.location.href = "https://www.google.com/accounts/Logout?continue=https://appengine.google.com/_ah/logout?continue=" + location.href;
       }
     },
@@ -397,15 +458,16 @@ let app = new Vue({
       return "arrows:" + this.year;
     },
 
+    saveLocalArcher: function() {
+      Util.saveData("archer", this.user );
+    },
+
     //----------------------------------------
     // keys: userId, year, arrows
     //----------------------------------------
-    saveArrowDB: function() {
+    saveLocalArrowDB: function() {
       if (this.data.arrows) {
         Util.saveData( this.getDBKey(), this.data.arrows );
-        if (this.isSignedIn()) {
-          this.updateArcherArrows( this.data.arrows );
-        }
       }
     },
 
@@ -554,7 +616,7 @@ let app = new Vue({
     // FIXME: hard coded to arrows and dataDisplay.arrows
     // FIXME: tap on phone gives wrong location for text box (when in landscape (relative to top of whole page)
     //----------------------------------------
-    updateArrows: function( event, index ) {
+    async editArrows( event, index ) {
       if (this.coachView) { this.endEdit(); return; }
 
       // direct heatmap update (index is day of year)
@@ -573,7 +635,7 @@ let app = new Vue({
       console.log("Updating day " + this.currentIndex + " to " + this.dataDisplay.arrows);
 
       // SAVE TO DB (cloud or local)
-      this.saveArrowDB();
+      await this.updateArcherArrows();
 
       // FIXME - hardcoded
       // Tell Vue this element changed - go read new data
@@ -687,6 +749,10 @@ let app = new Vue({
     // on login, get what we know about this archer
     //----------------------------------------
     async getArcher( userId ) {
+      if (!userId) {
+        console.log("No archer to load");
+        return;
+      }
       try {
         this.loadingData = true;
         let response = await fetch(serverURL + "archer?userId=" + userId );
@@ -697,7 +763,6 @@ let app = new Vue({
         }
       }
       catch( err ) {
-        debugger
         alert("Problem getting archer " + Util.sadface + (err.message || err));
       }
       this.loadingData = false;
@@ -716,8 +781,6 @@ let app = new Vue({
         this.archerList = archers;
       }
       catch( err ) {
-        if (++this.updateRetries < 2) { return; }   // ignore first 2 fails?
-
         alert("Problem getting archer list " + Util.sadface + (err.message || err));
       }
       this.loadingData = false;
@@ -751,11 +814,11 @@ let app = new Vue({
     // (after new login, update name/coach)
     //----------------------------------------
     async updateArcher() {
+      this.saveLocalArcher();
 
       if (!this.user.id) {
         // we are anonymous, how to save to DB? Use name as ID?  FIXME
         // alert("No archer ID specified. Can't save to cloud without login");
-        Util.saveData("archer", this.user );    // save to localstore instead
         return;
       }
 
@@ -793,6 +856,7 @@ let app = new Vue({
     // store this years arrow count (maybe other stuff soon?)
     //----------------------------------------
     async updateArcherArrows() {
+      this.saveLocalArrowDB();
       this.updateArcherData("arrows", this.data.arrows );
     },
 
@@ -810,7 +874,7 @@ let app = new Vue({
       if (this.coachView) { return; }
 
       if (!this.isSignedIn()) {
-        console.err("tried to write to DB without a signin id");
+        console.error("tried to write to DB without a signin id");
         return;
       }
 
