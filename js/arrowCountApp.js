@@ -333,6 +333,11 @@ let app = new Vue({
     //----------------------------------------
     async archerLogin( user ) {
       // go get current archer record if we have one
+
+      if (!user || !user.id) {
+        return;
+      }
+
       try {
         await this.getArcher( user.id );
 
