@@ -415,7 +415,7 @@ let app = new Vue({
             yearOfWeekdays[w] = -1;
           } else {
             // need data validation here
-            let val = yearOfData[w*7+d-gapUntilMonday];
+            let val = yearOfData[w*7+d-gapUntilMonday]|0;
             if (isNaN(parseFloat( val ))) {
               val = 0;
             }
@@ -626,7 +626,7 @@ let app = new Vue({
 
       // direct heatmap update (index is day of year)
       if (index === undefined) {
-        this.data.arrows[this.currentIndex] = this.dataDisplay.arrows;
+        this.data.arrows[this.currentIndex] = this.dataDisplay.arrows|0;
         this.handleArrowUpdate(); // update week as well.
 
       } else {      // weekly list update (index is day of this week)
