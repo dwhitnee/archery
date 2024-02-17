@@ -102,6 +102,8 @@ let app = new Vue({
     days: ["M","T","W","Th","F","Sa","Su"],
     weekArrows: [],  // populate this from data.arrows
 
+    weeksFocus: [],  // what to focus on each week
+
     data: {
       // 365 element list of data points. Need to translate for heatmap
       arrows: [],
@@ -147,11 +149,6 @@ let app = new Vue({
             enableShades: true,
             colorScale: {
               ranges: [
-                {
-                  from: -10,
-                  to: -2,
-                  color: '#ffffff'
-                },
                 {
                   from: -1,
                   to: 0,
@@ -268,7 +265,24 @@ let app = new Vue({
     };
     document.body.addEventListener("keydown", this.handleKeypress );
 
+    // FIXME make this editable in DB
+    let focus = [
+      "Stance & Posture",
+      "Hook & Grip",
+      "Set, Set Up & Alignment",
+      "Scoring Week",
+      "Loading & Anchor",
+      "Transfer & Expansion",
+      "Release & Follow Through",
+      "Feedback",
+      "Mental Game",
+      "Game Night"
+    ];
 
+    this.weeksFocus = focus.concat([""], focus, [""], focus, [""], focus);
+    let thisWeeksFocus = this.weeksFocus[ this.getWeekNumber() ];
+    console.log("Week " + this.getWeekNumber() + "'s focus is " + thisWeeksFocus );
+    this.setMessage( thisWeeksFocus );
   },
 
   // synchronous app setup before event handling starts
@@ -500,9 +514,16 @@ let app = new Vue({
 
     },
 
+    //----------------------------------------
+    // Assuming weeks start on Monday, which week number are we in (0 indexed)
+    //----------------------------------------
+    getWeekNumber: function() {
+      return this.getDayOfThisMonday()/7;
+    },
+
     //----------------------------------------------------------------------
     // figure out what day of year this monday was
-    // fir indexing into DB
+    // for indexing into DB
     //----------------------------------------------------------------------
     getDayOfThisMonday: function() {
       let jan1 = new Date("1/1/" + this.year);
