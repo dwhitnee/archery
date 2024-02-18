@@ -101,7 +101,7 @@ let app = new Vue({
 
     days: ["M","T","W","Th","F","Sa","Su"],
     weekArrows: [],  // populate this from data.arrows
-
+    weekScores: [1],  // populate this from data.scores?
     weeksFocus: [],  // what to focus on each week
 
     data: {
@@ -270,7 +270,7 @@ let app = new Vue({
       "Stance & Posture",
       "Hook & Grip",
       "Set, Set Up & Alignment",
-      "Scoring Week",
+      "Scoring Night",
       "Loading & Anchor",
       "Transfer & Expansion",
       "Release & Follow Through",
@@ -637,6 +637,17 @@ let app = new Vue({
       this.editing = false;
       this.currentIndex = 0;
     },
+
+    //----------------------------------------
+    // FIXME: how to store weekly scores, under data? indexed 0-51?
+    //----------------------------------------
+    async editScores( event, index ) {
+      if (this.coachView) { this.endEdit(); return; }
+      this.weekScores[index] = event.target.value|0;
+
+      console.log("New score: " + this.weekScores[index] );
+    },
+
 
     //----------------------------------------
     // FIXME: hard coded to arrows and dataDisplay.arrows
