@@ -71,7 +71,7 @@
       <div class="days">
         <div class="day" v-for="(day,index) in days">
           <label :for="'day_'+day">{{ day }}</label>
-          <input :id="'day_'+day" size=2 type="text" v-model.number="weekArrows[index]"
+          <input :id="'day_'+day" size=3 type="text" v-model.number="weekArrows[index]"
                  @focus="event.target.select()"
                  @blur="editArrows( event, index )"
                  @keyup.enter="event.target.blur()"

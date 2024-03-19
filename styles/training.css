@@ -65,7 +65,7 @@ a {
 
 .day {
   display: inline;
-  padding-left: .5em;
+  padding-left: .1em;
   margin: auto;
   text-align: center;
 }

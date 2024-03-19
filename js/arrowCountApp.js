@@ -101,7 +101,7 @@ let app = new Vue({
 
     days: ["M","T","W","Th","F","Sa","Su"],
     weekArrows: [],  // populate this from data.arrows
-    weekScores: [1],  // populate this from data.scores?
+    weekScores: [300],  // populate this from data.scores?
     weeksFocus: [],  // what to focus on each week
 
     data: {
