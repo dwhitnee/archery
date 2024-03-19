@@ -148,22 +148,24 @@ let app = new Vue({
           heatmap: {
             enableShades: true,
             colorScale: {
+              ranges_orig: [
+                { from: -1,  to:   0, color: '#cccccc'},
+                { from: 1,   to: 100, color: '#008FFB'},
+                { from: 101, to: 200, color: '#00E396'},
+                { from: 201, to: 300, color: '#aaaa00'},
+              ],
               ranges: [
-                {
-                  from: -1,
-                  to: 0,
-                  color: '#cccccc'
-                },
-                {
-                  from: 1,
-                  to: 100,
-                  color: '#008FFB'
-                },
-                {
-                  from: 101,
-                  to: 200,
-                  color: '#00E396'
-                },
+                { from: -1,  to:   0, color: '#cccccc', foreColor: '#cccccc'},
+                { from: 1,   to:  50, color: '#53cbef'},
+                { from: 51,  to: 100, color: '#18bfae'},
+                { from: 101, to: 200, color: '#8cb357'},
+                { from: 201, to: 300, color: '#ffa600'},
+                { from: 301, to: 400, color: '#ff8531'},
+                { from: 401, to: 500, color: '#ff6361'},
+                { from: 501, to: 600, color: '#cc0863'},
+                { from: 601, to: 700, color: '#8a508f'},
+                { from: 701, to: 800, color: '#5b4c82'},
+                { from: 801, to: 8000, color: '#2c4875'},
               ],
             },
           },
@@ -178,6 +180,9 @@ let app = new Vue({
     showCredits: false,
     version: "0.1"
   },
+
+  // https://colorkit.co/palette/2c4875-5b4c82-8a508f-cc0863-ff6361-ff8531-ffa600-8cb357-18bfae-53cbef/
+//#2c4875, #5b4c82, #8a508f, #cc0863, #ff6361, #ff8531, #ffa600, #8cb357, #18bfae and #53cbef.
 
   // watch global variables for reactivity
   watch: {
