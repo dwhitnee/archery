@@ -156,7 +156,7 @@ let app = new Vue({
               ],
               ranges: [
                 { from: -1,  to:   0, color: '#cccccc', foreColor: '#cccccc'},
-                { from: 1,   to:  50, color: '#53cbef'},
+                { from: 1,   to:  50, color: '#53cbef', foreColor: '#aabbcc' },
                 { from: 51,  to: 100, color: '#18bfae'},
                 { from: 101, to: 200, color: '#8cb357'},
                 { from: 201, to: 300, color: '#ffa600'},
@@ -272,6 +272,7 @@ let app = new Vue({
 
     // FIXME make this editable in DB
     let focus = [
+      "Breathing",
       "Stance & Posture",
       "Hook & Grip",
       "Set, Set Up & Alignment",
@@ -279,12 +280,11 @@ let app = new Vue({
       "Loading & Anchor",
       "Transfer & Expansion",
       "Release & Follow Through",
-      "Feedback",
       "Mental Game",
       "Game Night"
     ];
 
-    this.weeksFocus = focus.concat([""], focus, [""], focus, [""], focus);
+    this.weeksFocus = [""].concat( focus, focus, focus);
     let thisWeeksFocus = this.weeksFocus[ this.getWeekNumber() ];
     console.log("Week " + this.getWeekNumber() + "'s focus is " + thisWeeksFocus );
     this.setMessage( thisWeeksFocus );
@@ -523,7 +523,7 @@ let app = new Vue({
     // Assuming weeks start on Monday, which week number are we in (0 indexed)
     //----------------------------------------
     getWeekNumber: function() {
-      return this.getDayOfThisMonday()/7;
+      return Math.floor( this.getDayOfThisMonday()/7 );
     },
 
     //----------------------------------------------------------------------
