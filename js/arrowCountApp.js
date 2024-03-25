@@ -84,6 +84,7 @@ let app = new Vue({
     doEmailLogin: false,   // toggle to enter email address as userId
 
     coachView: false,
+    teamView: false,
     allArchers: [{name:"Loading..."}],
 
     noUser: {
@@ -97,7 +98,7 @@ let app = new Vue({
       coach: "KSL",
     },
 
-    coaches: ["KSL", "Josh", "Diane", "Alice", "Jett"],
+    coaches: ["KSL", "Josh", "Diane", "Alice", "Joel"],
 
     days: ["M","T","W","Th","F","Sa","Su"],
     weekArrows: [],  // populate this from data.arrows
@@ -239,12 +240,18 @@ let app = new Vue({
     // set up heatmap handlers
     this.initChartCallbacks();
 
+    this.teamView = this.$route.query.teamView;
+    if (this.teamView) {
+      await this.loadAllArchers();
+      await this.loadWeeksArrowsForAllArchers();
+    }
+
     // Coach view of an archer
     this.coachView = this.$route.query.user;
     if (this.coachView) {
       await this.getArcher( this.coachView );
       if (this.user.id) {
-        await this.getArcherData( this.coachView );
+        await this.getArcherData();
       } else {
         this.user.name = "No archer found";
         // no such archer?
@@ -831,23 +838,34 @@ let app = new Vue({
 
     //----------------------------------------
     // on login, get what we know about this archer
+    // If @id is set, this is an outside request for a different archer (coach or team view)
     //----------------------------------------
-    async getArcherData() {
+    async getArcherData( id ) {
+      let data, outsideRequest = true;
+
       try {
         this.loadingData = true;
-        let response = await fetch(serverURL +
-                                   "archerData?userId=" + this.user.id + "&year=" + this.year );
+        if (!id) {
+          id = this.user.id;
+          outsideRequest = false;
+        }
+
+        let response = await fetch(serverURL + "archerData?userId=" + id + "&year=" + this.year );
         if (!response.ok) { throw await response.json(); }
-        let data = await response.json();
+        data = await response.json();
         if (data.id) {
-          this.data = data;
-          this.handleArrowUpdate();
+          if (!outsideRequest) {
+            this.data = data;
+            this.handleArrowUpdate();
+          }
         }
       }
       catch( err ) {
         alert("Problem getting archer " + Util.sadface + (err.message || err));
       }
       this.loadingData = false;
+
+      return data;
     },
 
 
@@ -957,6 +975,8 @@ let app = new Vue({
 
 
     //----------------------------------------
+    // load all names
+    //----------------------------------------
     async loadAllArchers() {
       // go get all archers for coach view
       try {
@@ -969,7 +989,35 @@ let app = new Vue({
       catch (err) {
         console.err( err );
       }
-    }
+    },
+
+    //----------------------------------------
+    // load arrow counts for everyone
+    //----------------------------------------
+    async loadWeeksArrowsForAllArchers() {
+      let monday = this.getDayOfThisMonday();
+
+      this.allArchers.sort( (a,b) => a.name > b.name);
+
+      for (let i=0; i < this.allArchers.length; i++) {
+        let archer = this.allArchers[i];
+        archer.weekArrows = [];
+
+        console.log("Loading " + archer.name );
+
+        let data = await this.getArcherData( archer.id );
+        if (data && data.arrows) {
+          let total = 0;
+          for (let i=0; i < 7; i++) {
+            archer.weekArrows[i] = data.arrows[monday+i];
+            if (archer.weekArrows[i]) {
+              total += archer.weekArrows[i];
+            }
+          }
+          archer.weekArrows[7] = total;
+        }
+      }
+    },
 
   },
 
