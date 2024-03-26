@@ -126,9 +126,13 @@
         <table>
           <tr>
             <th>
-              <a href="#" @click="prevTeamWeek()"> &lt </a>
-              &nbsp{{ this.teamViewWeek.toLocaleDateString() }}&nbsp
-              <a href="#" @click="nextTeamWeek()"> &gt </a>
+              <div>
+                {{ this.teamViewWeek.toLocaleDateString() }}
+              </div>
+              <div style="padding-bottom: 0.5em">
+                <a href="#" @click="prevTeamWeek()"> &lt </a>&nbsp;&nbsp; &nbsp; &nbsp;
+                <a href="#" @click="nextTeamWeek()"> &gt </a>
+              </div>
             </th>
             <th v-for="day in this.days"> {{ day }}</th>
           </tr>
