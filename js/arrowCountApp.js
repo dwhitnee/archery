@@ -521,7 +521,10 @@ let app = new Vue({
 
       let monday = this.getDayOfThisMonday();
       for (let i=0; i < 7; i++) {
-        this.weekArrows[i] = this.data.arrows[monday+i];
+        let arrows = this.data.arrows[monday+i];
+        if (arrows) {
+          this.weekArrows[i] = arrows;
+        }
       }
 
     },

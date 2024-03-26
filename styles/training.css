@@ -157,13 +157,13 @@ a {
 .teamView {
   display: table;
   padding: 1em;
-  min-width: 4em;
   table-layout: auto;
 }
 
 .teamView td {
   border: 1px solid black;
   padding: 0 .5em;
+  min-width: 2em;
 }
 
 .teamView th {
