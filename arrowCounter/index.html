@@ -116,9 +116,20 @@
         </div>
       </div>
 
-      <div class="teamView" v-if="teamView">
+      <div v-if="!teamViewWeek" style="padding: 2em;">
+        <a href="#" @click="showTeamWeek()">Show weekly team arrow counts</a>
+      </div>
+
+      <div class="teamView" v-if="teamViewWeek">
+        <hr>
+        <h2>Team Arrow Counts</h2>
         <table>
-          <tr><th></th>
+          <tr>
+            <th>
+              <a href="#" @click="prevTeamWeek()"> &lt </a>
+              &nbsp{{ this.teamViewWeek.toLocaleDateString() }}&nbsp
+              <a href="#" @click="nextTeamWeek()"> &gt </a>
+            </th>
             <th v-for="day in this.days"> {{ day }}</th>
           </tr>
 

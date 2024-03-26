@@ -84,7 +84,8 @@ let app = new Vue({
     doEmailLogin: false,   // toggle to enter email address as userId
 
     coachView: false,
-    teamView: false,
+    teamView: undefined,
+    teamViewWeek: undefined,
     allArchers: [{name:"Loading..."}],
 
     noUser: {
@@ -241,9 +242,12 @@ let app = new Vue({
     this.initChartCallbacks();
 
     this.teamView = this.$route.query.teamView;
-    if (this.teamView) {
-      await this.loadAllArchers();
-      await this.loadWeeksArrowsForAllArchers();
+    if (typeof this.teamView !== 'undefined') {
+      this.teamView = parseInt( this.teamView );
+      if (!isNaN( this.teamView )) {
+        await this.loadAllArchers();
+        await this.loadWeeksArrowsForAllArchers();
+      }
     }
 
     // Coach view of an archer
@@ -866,7 +870,7 @@ let app = new Vue({
       catch( err ) {
         alert("Problem getting archer " + Util.sadface + (err.message || err));
       }
-      this.loadingData = false;
+      this.loadingData = false || outsideRequest;
 
       return data;
     },
@@ -994,15 +998,34 @@ let app = new Vue({
       }
     },
 
+    // load archer table for different week
+    async nextTeamWeek() {
+      this.teamView--;
+      await this.loadWeeksArrowsForAllArchers();
+    },
+    async prevTeamWeek() {
+      this.teamView++;
+      await this.loadWeeksArrowsForAllArchers();
+    },
+    async showTeamWeek() {
+      this.teamView=0;
+      await this.loadAllArchers();
+      await this.loadWeeksArrowsForAllArchers();
+    },
+
+
     //----------------------------------------
     // load arrow counts for everyone
     //----------------------------------------
     async loadWeeksArrowsForAllArchers() {
+      this.loadingData = true;
+
       let monday = this.getDayOfThisMonday();
 
       if (this.teamView) {
         monday -= 7 * parseInt( this.teamView );
       }
+      this.teamViewWeek = new Date( this.year, 0, monday+1) ;
 
       this.allArchers.sort( (a,b) => a.name > b.name);
 
@@ -1024,6 +1047,7 @@ let app = new Vue({
           archer.weekArrows[7] = total;
         }
       }
+      this.loadingData = false;
     },
 
   },
