@@ -1000,6 +1000,10 @@ let app = new Vue({
     async loadWeeksArrowsForAllArchers() {
       let monday = this.getDayOfThisMonday();
 
+      if (this.teamView) {
+        monday -= 7 * parseInt( this.teamView );
+      }
+
       this.allArchers.sort( (a,b) => a.name > b.name);
 
       for (let i=0; i < this.allArchers.length; i++) {
