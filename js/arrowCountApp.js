@@ -517,7 +517,7 @@ let app = new Vue({
     // Find this Monday, find index into DB, and populate week
     //----------------------------------------
     populateThisWeek: function() {
-      this.weekArrows = [1,2,3,4,5,6,7];
+      this.weekArrows = [];
 
       let monday = this.getDayOfThisMonday();
       for (let i=0; i < 7; i++) {
