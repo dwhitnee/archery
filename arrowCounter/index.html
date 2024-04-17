@@ -79,7 +79,13 @@
           />
         </div>
       </div>
+      <div class="goals">
+        <label for="notes">Weekly Goals/Notes</label>
+        <input id="notes" size=30 type="text"
+                v-model="weekGoals" />
+      </div>
     </div>
+
 
     <div v-if="false" class="weeklyInput weeklyScoreInput">
       Enter this week's scores here:

@@ -50,6 +50,9 @@ a {
 .appGrid > .weeklyScoreInput { grid-area: weeklyScoreInput; }
 .appGrid > .summaryDisplay { grid-area: summaryDisplay; }
 
+.goals {
+  margin: 1em 0;
+}
 
 .weeklyInput {
   background: #eee;
@@ -70,7 +73,7 @@ a {
   text-align: center;
 }
 
-.weeklyInput input {
+.weeklyInput .days {
   text-align: center;
   user-select: all;
 }

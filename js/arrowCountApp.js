@@ -105,6 +105,7 @@ let app = new Vue({
     weekArrows: [],  // populate this from data.arrows
     weekScores: [300],  // populate this from data.scores?
     weeksFocus: [],  // what to focus on each week
+    weekGoals: "get good",
 
     data: {
       // 365 element list of data points. Need to translate for heatmap
@@ -256,6 +257,7 @@ let app = new Vue({
       await this.getArcher( this.coachView );
       if (this.user.id) {
         await this.getArcherData();
+
       } else {
         this.user.name = "No archer found";
         // no such archer?
@@ -267,6 +269,10 @@ let app = new Vue({
       this.loadLocalArrowDB();
 
       await this.archerLogin( this.user );
+
+      // scroll chart to current week
+      let div = document.getElementById("chart");
+      div.scrollTo( this.getWeekNumber()*10, 0);
 
       // i wich we could tell if a login were in progress
       // currently we show localstorage view, then flash to cloud view
