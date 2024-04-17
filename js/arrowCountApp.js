@@ -272,7 +272,10 @@ let app = new Vue({
 
       // scroll chart to current week
       let div = document.getElementById("chart");
-      div.scrollTo( this.getWeekNumber()*10, 0);
+      let week = this.getWeekNumber();
+      if (div && week > 0) {
+        div.scrollTo( week*20, 0);
+      }
 
       // i wich we could tell if a login were in progress
       // currently we show localstorage view, then flash to cloud view
