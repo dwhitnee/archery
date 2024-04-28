@@ -25,14 +25,14 @@
 //  Calendar View
 //  Heat Map
 
-// TODO: Local Storage
-//   DYnamo
-//  account ID
+// TODO:
+//   weekly focus/notes section
 // revert to previous? Save yesterday/last week's data for revert?
 //  ----------------------------------------------------------------------
 
 // AWS Lambda serverless API deployment endpoint
-let serverURL = "https://317bll5em3.execute-api.us-west-2.amazonaws.com/dev/";
+// let serverURL = "https://317bll5em3.execute-api.us-west-2.amazonaws.com/dev/";
+let serverURL = "https://ox5gprrilk.execute-api.us-west-2.amazonaws.com/prod/";
 
 // Vue-router 3
 var router = new VueRouter({
@@ -103,9 +103,9 @@ let app = new Vue({
 
     days: ["M","T","W","Th","F","Sa","Su"],
     weekArrows: [],  // populate this from data.arrows
-    weekScores: [300],  // populate this from data.scores?
     weeksFocus: [],  // what to focus on each week
-    weekGoals: "get good",
+    weekScores: [300],  // populate this from data.scores?
+    weekGoals: "get good", // populate this from data.notes?
 
     data: {
       // 365 element list of data points. Need to translate for heatmap
