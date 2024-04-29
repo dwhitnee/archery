@@ -111,7 +111,7 @@ let app = new Vue({
     weekArrows: [],  // populate this from data.arrows
     weeksFocus: [],  // what to focus on each week
     weekScores: [300],  // populate this from data.scores?
-    weekGoals: "get good", // populate this from data.notes?
+    weekGoals: "get good (TBD)", // populate this from data.notes?
 
     data: {
       // 365 element list of data points. Need to translate for heatmap
@@ -558,17 +558,22 @@ let app = new Vue({
     //----------------------------------------------------------------------
     // figure out what day of year this monday was
     // for indexing into DB
+    //
+    // Fail:    Mon Apr 29 2024 00:56:44 GMT-0700 (Pacific Daylight Time)
+    // Success: Mon Apr 29 2024 01:01:05 GMT-0700 (Pacific Daylight Time)
+    // Because of f*ing Daylight Savings Time the math is off by an hour
     //----------------------------------------------------------------------
     getDayOfThisMonday: function() {
       let jan1 = new Date("1/1/" + this.year);
       let today = new Date();
       let monday = new Date();
+      let dstOffset = 1000*60 * (jan1.getTimezoneOffset() - today.getTimezoneOffset());
 
       // monday is #1, Sunday is #0 (so Monday is 6 days ago)
       monday.setDate( today.getDate() - ((today.getDay() + 6) % 7)  );
 
       console.log("Monday is " + monday);
-      return Math.floor((monday - jan1) / (24*60*60*1000));
+      return Math.floor((monday - jan1 + dstOffset) / (24*60*60*1000));
     },
     //----------------------------------------
     // given heatmap mouse event data, return [0-365) date index into DB
