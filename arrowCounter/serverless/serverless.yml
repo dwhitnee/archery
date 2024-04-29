@@ -40,14 +40,13 @@ configValidationMode: error
 
 #----------------------------------------
 # Where the service will be deployed and what it can access
-# stage: ${opt:stage}  (useful?)
 #----------------------------------------
 provider:
   name: aws
   region: us-west-2
   runtime: nodejs20.x
   versionFunctions: false
-  stage: ${opt:stage}
+  stage: ${opt:stage,"dev"}
 
   iam:
     role:

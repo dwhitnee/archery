@@ -1,4 +1,4 @@
-/*jslint node: true, esversion: 6 */
+/*jslint node: true, esversion: 8 */
 //----------------------------------------------------------------------
 // Generic Internal DynamoDB functions, not the API
 //
@@ -16,8 +16,15 @@
 // let dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 // AWS SDK 3
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocument } = require('@aws-sdk/lib-dynamodb');
+// import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+// import { DynamoDBDocument, QueryCommand, ScanCommand,
+//          GetCommand, PutCommand, UpdateCommand, DeleteCommand }
+//        from "@aws-sdk/lib-dynamodb";
+
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocument, QueryCommand, ScanCommand,
+         GetCommand, PutCommand, UpdateCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+
 const dynamoDB = DynamoDBDocument.from(new DynamoDBClient());
 
 module.exports = {
@@ -28,13 +35,13 @@ module.exports = {
   // @param tableName - DB tableName
   // @param id - the PK (hash key)
   //----------------------------------------
-  getRecordById: function( tableName, id, callback ) {
+  getRecordById: async function( tableName, id ) {
     let keys = {"id": id };
-    return this.getRecordByKeys( tableName, keys, callback);
+    return await this.getRecordByKeys( tableName, keys);
   },
 
   // return one value given the (possibly compound: Hash key + sort key) keys
-  getRecordByKeys: function( tableName, keys, callback ) {
+  getRecordByKeys: async function( tableName, keys ) {
     console.log("Getting " + tableName + ": " + JSON.stringify( keys ));
 
     let dbRequest = {
@@ -44,21 +51,14 @@ module.exports = {
 
     console.log( dbRequest );
 
-    dynamoDB.get( dbRequest, function( err, data ) {
-      if (err) {
-        console.log("DynamoDB error: " + err );
-        callback( err );
-      } else if (!data.Item) {  // no data returns undefined, not an object
-        callback( null, {} );   // return empty object instead
-      } else {
-        callback( null, data.Item );
-      }
-    });
+    const response = await dynamoDB.send( new GetCommand( dbRequest ));
+    console.log( response );
+    return response.Item || {};    // no data returns undefined, not an empty Item object
   },
 
 
   //----------------------------------------------------------------------
-  // Retrieve a list of records from DB and invoke callback
+  // Retrieve a list of records from DB
   // This is intended to be wrapped and called internally
   //
   // arg ":values" represent variables, without colon is key name (unless reserved)
@@ -67,9 +67,8 @@ module.exports = {
   // @param tableName - DB table
   // @param query - ex: "id = :id and year = :year";
   // @param args for query - ex: { ':id': 'id', ':year': year };
-  // @param callback - node style callback( err, data )
   //----------------------------------------------------------------------
-  getRecordsByQuery: function( tableName, query, args, argNames, callback ) {
+  getRecordsByQuery: async function( tableName, query, args, argNames ) {
     console.log("Querying " + tableName + ": " + JSON.stringify( args ));
 
     let dbRequest = {
@@ -78,24 +77,16 @@ module.exports = {
       ExpressionAttributeValues: args,
       ExpressionAttributeNames: argNames  // only required if an arg is a reserved word (like 'year')
     };
-
     console.log( dbRequest );
 
-    dynamoDB.query( dbRequest, function( err, data ) {
-      if (err) {
-        console.log("DynamoDB error: " + err );
-        callback( err );
-      } else if (!data.Items) {  // no data returns undefined, not an object
-        callback( null, {} );   // return empty object instead
-      } else {
-        callback( null, data.Items );
-      }
-    });
+    const response = await dynamoDB.send( new QueryCommand( dbRequest ));
+    console.log( response );
+    return response.Items || [];   // no data returns undefined, not an empty Item object
   },
 
 
   //----------------------------------------------------------------------
-  // Retrieve a list of records from DB and invoke callback
+  // Retrieve a list of records from DB
   // This is intended to be wrapped and called internally
   // https://dynobase.dev/dynamodb-filterexpression/
   //
@@ -108,9 +99,8 @@ module.exports = {
   // @param filter - ex: "id = :id and year = :year";
   // @param argNames for filter - ex: { "#coach": "coach" }   only needed for filter funcs
   // @param args for filter - ex: { ':id': 'id', ':year': year };
-  // @param callback - node style callback( err, data )
   //----------------------------------------------------------------------
-  getRecordsByFilter: function( tableName, filter, argNames, args, callback ) {
+  getRecordsByFilter: async function( tableName, filter, argNames, args ) {
     console.log("Querying " + tableName + ": " + args);
 
     let dbRequest = {
@@ -122,38 +112,28 @@ module.exports = {
 
     console.log( dbRequest );
 
-    dynamoDB.scan( dbRequest, function( err, data ) {
-      if (err) {
-        console.log("DynamoDB error: " + err );
-        callback( err );
-      } else if (!data.Items) {  // no data returns undefined, not an object
-        callback( null, {} );   // return empty object instead
-      } else {
-        callback( null, data.Items );
-      }
-    });
+    const response = await dynamoDB.send( new ScanCommand( dbRequest ));
+    console.log( response );
+    return response.Items || [];
   },
 
   //----------------------------------------------------------------------
   // Full table scan - SELECT * from tableName
   //----------------------------------------------------------------------
-  getAllRecords: function( tableName, callback ) {
+  getAllRecords: async function( tableName ) {
     console.log("Querying " + tableName );
 
     let dbRequest = {
       TableName: tableName,
     };
 
-    dynamoDB.scan( dbRequest, function( err, data ) {
-      if (err) {
-        console.log("DynamoDB error: " + err );
-        callback( err );
-      } else if (!data.Items) {  // no data returns undefined, not an object
-        callback( null, {} );   // return empty object instead
-      } else {
-        callback( null, data.Items );
-      }
-    });
+    const response = await dynamoDB.send( new ScanCommand( dbRequest ));
+    console.log( response );
+    return response.Items || [];
+
+    // response.Items.forEach(function (pie) {
+    //   console.log(`${pieS}\n`);
+    // });
   },
 
 
@@ -166,9 +146,8 @@ module.exports = {
   // @param tableName - indexName (must be created in Dynamo)
   // @param query - ex: "coach = :coach and year = :year";
   // @param args for query - ex: { ':coach': 'coach', ':year': year };
-  // @param callback( err, results )
   //----------------------------------------------------------------------
-  getRecordsBySecondaryIndex: function( tableName, indexName, query, args, callback ) {
+  getRecordsBySecondaryIndex: async function( tableName, indexName, query, args ) {
 
     // let someTime = new Date();
     // someTime.setDate( someTime.getDate()-1);
@@ -198,14 +177,9 @@ module.exports = {
 
     console.log( dbRequest );
 
-    dynamoDB.query( dbRequest, function( err, data ) {
-      if (err) {
-        console.log("DynamoDB error:" + err );
-        callback( err );
-      } else {
-        callback( null, data.Items );  // no data is an empty list
-      }
-    });
+    const response = await dynamoDB.send( new QueryCommand( dbRequest ));
+    console.log( response );
+    return response.Items || [];   // no data returns undefined, not an empty Item object
   },
 
 
@@ -216,9 +190,8 @@ module.exports = {
   // @param: tableName - DB table
   // @param: id - PK
   // @param: data - blob to save
-  // Params: callback( err, data )  success IFF err==null
   //----------------------------------------
-  saveRecord: function( tableName, data, callback ) {
+  saveRecord: async function( tableName, data ) {
     let now = new Date();
 
     //----------------------------------------
@@ -252,42 +225,29 @@ module.exports = {
     console.log("PUT request: " +  JSON.stringify( dbParams ));
 
     // Put and not Update, we want to clobber old entry
-    dynamoDB.put( dbParams, function( err, data ) {
-      // data is empty in a put, why?
-      if (err) {
-        console.log("DynamoDB error:" + err );
-        callback( err );
-      } else {
-        console.log("Responding with updated data: " +  JSON.stringify( dbParams.Item ));
-        callback( null, dbParams.Item );  // success! Report what was written
-      }
-    });
+    const response = await dynamoDB.send( new PutCommand( dbParams ));
+    console.log("Responding with updated data: " +  JSON.stringify( dbParams.Item ));
+    return dbParams.Item;  // NOT response.Item, response is always empty
   },
 
   //----------------------------------------
   // Wipe record out
   // @params tableName - DB table
   // @params id - PK
-  // @params callback - on completion (no data returned)
   //----------------------------------------
-  deleteRecord: function( tableName, id, callback ) {
+  deleteRecord: async function( tableName, id ) {
     console.log("Permanently Deleting " + id );
 
     let dbRequest = {
       TableName : tableName,
       Key: {"id": id }};
 
-    dynamoDB.delete( dbRequest, function( err, data ) {
-      if (err) {
-        console.log("DynamoDB error:" + err );
-        callback( err );
-      } else {
-        callback( null );
-      }
-    });
+    const response = await dynamoDB.send( new DeleteCommand( dbRequest ));
+    console.log( response );
+    return response;
   },
 
-  deleteRecordByKeys: function( tableName, keys, callback ) {
+  deleteRecordByKeys: async function( tableName, keys ) {
     console.log("Permanently Deleting " + JSON.stringify( keys ) );
 
     let dbRequest = {
@@ -295,14 +255,9 @@ module.exports = {
       Key: keys
     };
 
-    dynamoDB.delete( dbRequest, function( err, data ) {
-      if (err) {
-        console.log("DynamoDB error:" + err );
-        callback( err );
-      } else {
-        callback( null );
-      }
-    });
+    const response = await dynamoDB.send( new DeleteCommand( dbRequest ));
+    console.log( response );
+    return response;
   },
 
   // can I update IFF version = V

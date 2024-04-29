@@ -1,7 +1,10 @@
-/*jslint node: true, esversion: 6 */
+/*jslint node: true, esversion: 8 */
 //----------------------------------------
 //  AWS Lambda Functions to be uploaded.  These are the public API.
-//  All code related to HTTP requests here.
+//
+//  There are two functions for each lambda call:
+//    the (public) http GET/POST wrapper, and the call to the DB layer
+//  All code related to HTTP requests stays here.
 //
 /*
  o getArcher( id )
@@ -22,64 +25,52 @@
   "exercises" : [365],
   "spts":  [365],
   "mental":  [365],
+
+  "goals": [52]  ???
 }
 
 */
+//----------------------------------------------------------------------
 // Async calls, retrieve records from DB and invoke callback
 //----------------------------------------
 
 'use strict';
 
-let archerDB = require('archerDB');  // All the Dynamo stuff
-let message = require('responseHandler');  // HTTP message handling
+// import * as archerDB  from './archerDB.js';  // All the Dynamo stuff
+// import * as message from './responseHandler.js';  // HTTP message handling
+
+let archerDB = require('./archerDB');  // All the Dynamo stuff
+let message = require('./responseHandler');  // HTTP message handling
+
 
 //----------------------------------------
+// The DB calls (without the GET/POST and callback BS)
 //----------------------------------------
-// API server functions go here
-// function names must be placed in serverless.yml to get wired up
-//----------------------------------------
-//----------------------------------------
-
-module.exports = {
-  //----------------------------------------
-  // @param request -  info about the call (URL params, caller, etc)
-  // @param context -  info about AWS (generally uninteresting)
-  // @param callback - function to invoke when we are done
-  //----------------------------------------
+let db = {
 
   //----------------------------------------------------------------------
   // All archers for given coach [optional]
   // @param: coach - optional
   //----------------------------------------------------------------------
-  getArchers: function( request, context, callback ) {
+  getArchers: async function( request ) {
     let query = request.queryStringParameters;
-
     let coach = query ? query.coach : undefined;
-    archerDB.getArchersByCoach( coach, function( err, data ) {
-      message.respond( err, data, callback );
-    });
+    return await archerDB.getArchersByCoach( coach );
   },
-
 
   //----------------------------------------------------------------------
   // Get basic attributes for an archer
   // @param: userId
   //----------------------------------------------------------------------
-  getArcher: function( request, context, callback ) {
+  getArcher: async function( request ) {
+    message.verifyParam( request, "userId");  // throws on error
+
     let query = request.queryStringParameters;
-
-    if (!message.verifyParam( request, callback, "userId")) {
-      return;
-    }
-
     let userId = query.userId;
     userId = userId.replace(/\W/g,'_');    // sanitize ID
 
-    archerDB.getArcherById( userId, function( err, data ) {
-      message.respond( err, data, callback );
-    });
+    return await archerDB.getArcherById( userId );
   },
-
 
   //----------------------------------------------------------------------
   // Update all year's data in DB, this stomps existing data,
@@ -88,16 +79,14 @@ module.exports = {
   // @param all data for archer in request.body
   // @return saved value
   //----------------------------------------------------------------------
-  updateArcher: function( request, context, callback ) {
+  updateArcher: async function( request ) {
     let data = JSON.parse( request.body );
 
     // Remove spaces/specials from Name (if id is user inputted and not from login)
-    data.id = data.id.replace(/\W/g,'_');       // sanitize ID
     // we need to munger on getAecher as well.
+    data.id = data.id.replace(/\W/g,'_');       // sanitize ID
 
-    archerDB.updateArcher( data, function( err, data ) {
-      message.respond( err, data, callback );
-    });
+    return await archerDB.updateArcher( data );
   },
 
   //----------------------------------------------------------------------
@@ -105,48 +94,35 @@ module.exports = {
   // @param userId
   // @return nothing
   //----------------------------------------------------------------------
-  deleteArcher: function( request, context, callback ) {
-    if (!message.verifyParam( request, callback, "userId")) {
-      return;
-    }
+  deleteArcher: async function( request ) {
+    message.verifyParam( request, "userId");
+
     let params = JSON.parse( request.body );
-    archerDB.deleteArcher( params.userId, function( err, data ) {
-      message.respond( err, data, callback );
-    });
+    return await archerDB.deleteArcher( params.userId );
   },
-
 
   //----------------------------------------------------------------------
   // Get array of activites for an archer's year
   // @param: userId
   //----------------------------------------------------------------------
-  getArcherData: function( request, context, callback ) {
+  getArcherData: async function( request ) {
     let query = request.queryStringParameters;
 
-    if (!message.verifyParam( request, callback, "userId") ||
-        !message.verifyParam( request, callback, "year")) {
-      return;
-    }
-    archerDB.getArcherDataByArcherAndYear( query.userId, query.year, function( err, data ) {
-      message.respond( err, data, callback );
-    });
+    message.verifyParam( request, "userId");
+    message.verifyParam( request, "year");
+
+    return await archerDB.getArcherDataByArcherAndYear( query.userId, query.year );
   },
 
-    //----------------------------------------------------------------------
+  //----------------------------------------------------------------------
   // Get array of activites for an archer's year
   // @param: userId
   //----------------------------------------------------------------------
-  getAllArchersData: function( request, context, callback ) {
+  getAllArchersData: async function( request ) {
     let query = request.queryStringParameters;
-
-    if (!message.verifyParam( request, callback, "year")) {
-      return;
-    }
-    archerDB.getAllArcherDataByYear( query.year, function( err, data ) {
-      message.respond( err, data, callback );
-    });
+    message.verifyParam( request, "year");
+    return await archerDB.getAllArcherDataByYear( query.year );
   },
-
 
   //----------------------------------------------------------------------
   // Update all year's data in DB, this stomps existing data of this type.
@@ -160,13 +136,11 @@ module.exports = {
   // @param data blob with DB keys and data type (key) to save
   // @return savedValue
   //----------------------------------------------------------------------
-  updateArcherData: function( request, context, callback ) {
-    if (!message.verifyParam( request, callback, "userId") ||
-        !message.verifyParam( request, callback, "year") ||
-        !message.verifyParam( request, callback, "data") ||
-        !message.verifyParam( request, callback, "dataType")) {
-      return;
-    }
+  updateArcherData: async function( request ) {
+    message.verifyParam( request, "userId");
+    message.verifyParam( request, "year");
+    message.verifyParam( request, "data");
+    message.verifyParam( request, "dataType");
 
     let input = JSON.parse( request.body );
 
@@ -176,11 +150,8 @@ module.exports = {
     data.year = ""+input.year;
     data[input.dataType] = input.data;
 
-    archerDB.updateArcherData( data, function( err, data ) {
-      message.respond( err, data, callback );
-    });
+    return await archerDB.updateArcherData( data );
   },
-
 
   //----------------------------------------------------------------------
   // Wipe all year's data out (should there be a way to wipe just one data type?)
@@ -188,15 +159,76 @@ module.exports = {
   // @param year
   // @return nothing
   //----------------------------------------------------------------------
-  deleteArcherData: function( request, context, callback ) {
-    if (!message.verifyParam( request, callback, "userId") ||
-        !message.verifyParam( request, callback, "year")) {
-      return;
-    }
+  deleteArcherData: async function( request ) {
+    message.verifyParam( request, "userId");
+    message.verifyParam( request, "year");
 
     let params = JSON.parse( request.body );
-    archerDB.deleteArcherData( params.userId, params.year, function( err, data ) {
-      message.respond( err, data, callback );
-    });
+    return await archerDB.deleteArcherData( params.userId, params.year );
   }
+};
+
+
+
+module.exports = {
+  //----------------------------------------
+  // API server functions go here
+  // function names must be placed in serverless.yml to get wired up
+  //----------------------------------------
+  // HTTP GET/POST wrappers (to put in Lambda)
+  // The real async DB calls are in the "db" object
+
+  //----------------------------------------
+  // @param request -  info about the call (URL params, caller, etc)
+  // @param context -  info about AWS (generally uninteresting)
+  // @param callback - function to invoke when we are done
+  //----------------------------------------
+
+  //----------------------------------------
+  //  Archers
+  //----------------------------------------
+  getArchers: function( request, context, callback ) {
+    console.log("Hello! " +  message );
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.getArchers( request ); });
+  },
+
+  getArcher: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.getArcher( request ); });
+  },
+
+  updateArcher: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.updateArcher( request ); });
+  },
+
+  deleteArcher: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.deleteArcher( request ); });
+  },
+
+  //----------------------------------------
+  //  ArcherData
+  //----------------------------------------
+  getArcherData: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.getArcherData( request ); });
+  },
+
+  getAllArchersData: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.getAllArchersData( request ); });
+  },
+
+  updateArcherData: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.updateArcherData( request ); });
+  },
+
+  deleteArcherData: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.deleteArcherData( request ); });
+  }
+
 };
