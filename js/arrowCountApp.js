@@ -31,8 +31,14 @@
 //  ----------------------------------------------------------------------
 
 // AWS Lambda serverless API deployment endpoint
-// let serverURL = "https://317bll5em3.execute-api.us-west-2.amazonaws.com/dev/";
+
+let dev = false;  // if on a desktop (ie, not deployed)
+
 let serverURL = "https://ox5gprrilk.execute-api.us-west-2.amazonaws.com/prod/";
+if (dev) {
+  serverURL = "https://317bll5em3.execute-api.us-west-2.amazonaws.com/dev/";
+}
+
 
 // Vue-router 3
 var router = new VueRouter({

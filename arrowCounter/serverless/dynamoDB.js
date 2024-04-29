@@ -11,8 +11,14 @@
 // Delete and Update require hash keys
 //----------------------------------------------------------------------
 
-let AWS = require('aws-sdk');
-let dynamoDB = new AWS.DynamoDB.DocumentClient();
+// AWS SDK 2
+// let AWS = require('aws-sdk');
+// let dynamoDB = new AWS.DynamoDB.DocumentClient();
+
+// AWS SDK 3
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocument } = require('@aws-sdk/lib-dynamodb');
+const dynamoDB = DynamoDBDocument.from(new DynamoDBClient());
 
 module.exports = {
 

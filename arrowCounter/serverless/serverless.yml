@@ -9,8 +9,8 @@ app: archer
 #
 #    export AWS_PROFILE="serverless-admin"
 #    export AWS_REGION=us-west-2
-#    serverless deploy    # --aws-profile serverless-admin --region us-west-2
-#
+#    serverless deploy    # --aws-profile serverless-admin --region us-west-2 --stage dev
+
 # or for updates of a single function:
 #    serverless deploy function -f getBusEvents
 #
@@ -23,7 +23,14 @@ app: archer
  # https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/joinGame
 
 # serverless logs -f gameList -t
-
+#
+# promote:
+#  serverless deploy -s prod
+#
+# rollback:
+#    sls deploy list
+#    sls rollback -t <timestamp>
+#
 # See also https://serverless.com/blog/quick-tips-for-faster-serverless-development/
 #----------------------------------------
 
@@ -33,12 +40,15 @@ configValidationMode: error
 
 #----------------------------------------
 # Where the service will be deployed and what it can access
+# stage: ${opt:stage}  (useful?)
 #----------------------------------------
 provider:
   name: aws
   region: us-west-2
-  runtime: nodejs16.x
+  runtime: nodejs20.x
   versionFunctions: false
+  stage: ${opt:stage}
+
   iam:
     role:
       statements:
@@ -48,13 +58,6 @@ provider:
           Resource: [
               "arn:aws:dynamodb:us-west-2:*:table/Archer*"
           ]
-
-# needed for Node18 and beyond so aws-sdk is included?
-#custom:
-#  esbuild:
-#    exclude: []
-
-
 
 #----------------------------------------
 # if we put DB config here, then every deploy fails with "Table already exists"
