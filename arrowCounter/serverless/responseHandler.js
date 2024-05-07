@@ -4,10 +4,10 @@
 //----------------------------------------------------------------------
 
 class InvalidRequestError extends Error {
-  constructor(message, code) {
+  constructor(message, status) {
     super(message);
     this.message = message;
-    this.code = code;
+    this.httpStatus = status;
     this.name = 'InvalidRequestError';
   }
 }
@@ -79,6 +79,8 @@ module.exports = {
     if (err) {
       console.error("FAIL: " + JSON.stringify( err ));
       callback( err );
+      // here's where the 400 needs to go
+      // context.fail(JSON.stringify(response));
     } else {
       respondWithSuccess( data, callback );
     }

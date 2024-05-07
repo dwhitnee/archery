@@ -32,7 +32,7 @@
 
 // AWS Lambda serverless API deployment endpoint
 
-let dev = false;  // if on a desktop (ie, not deployed)
+let dev = true;  // if on a desktop (ie, not deployed)
 
 let serverURL = "https://ox5gprrilk.execute-api.us-west-2.amazonaws.com/prod/";
 if (dev) {
@@ -105,7 +105,7 @@ let app = new Vue({
       coach: "KSL",
     },
 
-    coaches: ["KSL", "Josh", "Diane", "Alice", "Joel"],
+    coaches: ["KSL", "Josh", "Diane", "Alice", "Joel", "Maria", "Connor"],
 
     days: ["M","T","W","Th","F","Sa","Su"],
     weekArrows: [],  // populate this from data.arrows
@@ -116,8 +116,17 @@ let app = new Vue({
     data: {
       // 365 element list of data points. Need to translate for heatmap
       arrows: [],
-      exercises: []
+      exercises: [],
+
+      // weekly (52 element arrays)
+      notes: [
+        ["get good", "coach says: get good"]  // eg, week 15
+      ],
+      scores: [
+        [{ score:300, arrows:30 },{ score:550, arrows:72 }]  // eg, week 15
+      ]
     },
+
     dataDisplay: {},
     editing: false,
 
