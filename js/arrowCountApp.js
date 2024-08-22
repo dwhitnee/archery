@@ -119,7 +119,7 @@ let app = new Vue({
     weekArrows: [],  // populate this from data.arrows
     weeksFocus: [],  // what to focus on each week
     weekScores: [300],  // populate this from data.scores?
-    weekGoals: "get good (TBD)", // populate this from data.notes?
+    weekGoals: "",
 
     data: {
       // 365 element list of data points. Need to translate for heatmap
@@ -204,7 +204,8 @@ let app = new Vue({
     },
 
     showCredits: false,
-    version: "0.1"
+    // version: "0.1"  // save arrow heatmap
+    version: "0.2"  // edit notes, versioning works
   },
 
   // https://colorkit.co/palette/2c4875-5b4c82-8a508f-cc0863-ff6361-ff8531-ffa600-8cb357-18bfae-53cbef/
@@ -568,6 +569,8 @@ let app = new Vue({
     // Find this Monday, find index into DB, and populate week
     //----------------------------------------
     populateThisWeek: function() {
+      this.weekGoals = this.data.notes[this.getWeekNumber()];
+
       this.weekArrows = [];
 
       let monday = this.getDayOfThisMonday();
@@ -719,6 +722,15 @@ let app = new Vue({
       console.log("New score: " + this.weekScores[index] );
     },
 
+    endNoteEdit: function() {
+      this.weekGoals = this.data.notes[this.getWeekNumber()];
+    },
+
+    async saveNote( event ) {
+      if (this.coachView) { this.endEdit(); return; }
+      this.data.notes[this.getWeekNumber()] = this.weekGoals;
+      this.updateArcherNotes();
+    },
 
     //----------------------------------------
     // FIXME: hard coded to arrows and dataDisplay.arrows
@@ -912,7 +924,10 @@ let app = new Vue({
         let response = await fetch(serverURL + "archerData?userId=" + id + "&year=" + this.year );
         if (!response.ok) { throw await response.json(); }
         data = await response.json();
+
         data.arrows = data.arrows || [];
+        data.notes = data.notes || [];
+        data.scores = data.scores || [];
 
         if (data.id) {
           if (!outsideRequest) {
