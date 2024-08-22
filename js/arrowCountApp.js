@@ -291,6 +291,7 @@ let app = new Vue({
       if (!this.data.arrows) {
         this.loadLocalArrowDB();  // @deprecated, archerData should win IFF it exists
       }
+      this.handleArrowUpdate();
 
       await this.archerLogin( this.user );
 
@@ -446,6 +447,7 @@ let app = new Vue({
 
       this.updateArcher();   // Just localstorage update since ID is gone
       this.updateArcherArrows();
+      this.handleArrowUpdate();
 
       // hack to rerender google button, F this
       window.setTimeout(function() {
