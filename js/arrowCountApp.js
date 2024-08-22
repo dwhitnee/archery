@@ -122,15 +122,12 @@ let app = new Vue({
     weekGoals: "",
 
     data: {
-      // 365 element list of data points. Need to translate for heatmap
-      arrows: [],
+      arrows: [],      // 365 element list of data points. Need to translate for heatmap
       exercises: [],
-
-      // weekly (52 element arrays)
-      notes: [
+      notes: [         // weekly (52 element arrays)
         ["get good", "coach says: get good"]  // eg, week 15
       ],
-      scores: [
+      scores: [        // weekly (52 element arrays)
         [{ score:300, arrows:30 },{ score:550, arrows:72 }]  // eg, week 15
       ]
     },
@@ -445,8 +442,9 @@ let app = new Vue({
     async logout() {
       let auth = this.user.auth.auth;
       this.user = this.noUser;
+      this.data = { arrows: [], notes: [], scores: [] };
+
       this.updateArcher();   // Just localstorage update since ID is gone
-      this.data.arrows = [];
       this.updateArcherArrows();
 
       // hack to rerender google button, F this
@@ -925,15 +923,12 @@ let app = new Vue({
         if (!response.ok) { throw await response.json(); }
         data = await response.json();
 
-        data.arrows = data.arrows || [];
-        data.notes = data.notes || [];
-        data.scores = data.scores || [];
-
-        if (data.id) {
-          if (!outsideRequest) {
-            this.data = data;
-            this.handleArrowUpdate();
-          }
+        if (!outsideRequest) {        // populate the user
+          data.arrows = data.arrows || [];
+          data.notes = data.notes || [];
+          data.scores = data.scores || [];
+          this.data = data;
+          this.handleArrowUpdate();
         }
       }
       catch( err ) {
