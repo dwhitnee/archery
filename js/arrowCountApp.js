@@ -16,7 +16,7 @@
 //-----------------------------------------------------------------------
 
 
-// TODO:
+// TODO:  MERGE TO MAINLINE, PUSH SERVER TO PROD AT SAME TIME
 // save weekly array of score data, goal data.
 // input/display method for weekly scores. (Score list plus empty score box (arrow count?))
 // move input method for weekly Notes to below heatmap(?)
@@ -1040,12 +1040,12 @@ let app = new Vue({
 
         // refresh our local data with whatever goodness the DB thinks we should have (last updated, version)
 
-        // FIXME - should this be done?
         // archerData sub elements don't have a version, only the overall data record
         let newData = await response.json();
-        // if (newData.year) {
-        //   this.data[dataType] = newData; // { arrows: [], id: 131, year: 2024, version: 2 }
-        // }
+
+        if (newData.version) {
+           this.data = newData;     // { arrows: [], id: 131, year: 2024, version: 27, ... }
+         }
       }
       catch( err ) {
         console.error("Update arrow count: " + JSON.stringify( err ));
