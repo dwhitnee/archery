@@ -22,6 +22,7 @@
 // move input method for weekly Notes to below heatmap(?)
 //   o edit single weekly Note, or list of uneditable Notes?
 // allow coach to add/edit a weekly Note (prefixed by their name)
+// data is lost when you login (if you were saving locally)
 
 //----------------------------------------------------------------------
 //  OVERVIEW
