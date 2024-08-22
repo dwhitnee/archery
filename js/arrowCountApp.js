@@ -1062,7 +1062,7 @@ let app = new Vue({
       }
       catch( err ) {
         console.error("Update arrow count: " + JSON.stringify( err ));
-        alert("Try again. Update failed " +
+        alert("Try again or reload. Update failed " +
               Util.sadface + (err.message || err));
       }
 
