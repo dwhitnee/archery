@@ -199,7 +199,7 @@ module.exports = {
     //----------------------------------------
     let dbParams = {
       TableName : tableName,
-      Item: data
+      Item: data,  // PK in data for PUT
     };
 
     dbParams.Item.updatedDate = now.toISOString();
@@ -219,16 +219,83 @@ module.exports = {
     }
 
     if (!dbParams.Item.createdDate) {
-      dbParams.Item.createdDate = now.toISOString();  // can't update keys
+      dbParams.Item.createdDate = now.toISOString();  // can't update a key
     }
 
     console.log("PUT request: " +  JSON.stringify( dbParams ));
 
-    // Put and not Update, we want to clobber old entry
     const response = await dynamoDB.send( new PutCommand( dbParams ));
-    console.log("Responding with updated data: " +  JSON.stringify( dbParams.Item ));
-    return dbParams.Item;  // NOT response.Item, response is always empty
+
+    // console.log("Responding with updated data: " +  JSON.stringify( response.Attributes ));
+    // return response.Attributes;   // empty without "ReturnValues"
+
+    // with Update (vs Put)
+    return dbParams.Item;  // NOT response.Item, response is always empty (need ReturnValues)
   },
+
+  //----------------------------------------
+  // Some action occured, let's store the effect in DynamoDB
+  // Optimistically lock on a versionId.  Fail if conflict
+  // This doesn't really work, need to pass in UpdateExpression, etc
+  //
+  // @param: tableName - DB table
+  // @param: id - PK
+  // @param: data - blob to save
+  //----------------------------------------
+  updateRecord: async function( tableName, data, dataType ) {
+    let now = new Date();
+
+    //----------------------------------------
+    // Create storage record, add timestamp (add sourceIp?)
+    //----------------------------------------
+    let dbParams = {
+      TableName : tableName,
+      Key: data.id,  // pk for UPDATE
+      ReturnValues: "ALL_NEW",   // allow us to return the newly updated object
+      UpdateExpression: "SET #dataType = :data, updatedDate = :updatedDate",
+      ExpressionAttributeNames: {
+        "#dataType": dataType,
+      },
+      ExpressionAttributeValues: {
+        ":data": data[dataType],
+        ":updatedDate": now.toISOString()
+      }
+    };
+
+    // iterate over all keys in object to update them all
+    // https://dev.to/dvddpl/dynamodb-dynamic-method-to-insert-or-edit-an-item-5fnh
+
+    // console.log("Expecting to update v" + data.version);
+
+    // optimistic locking  TEST ME
+    // Make sure version # has not been incremented since last read
+    if (data.version) {
+      dbParams.ConditionExpression = "version = :oldVersion";
+      dbParams.ExpressionAttributeValues = {
+        ":oldVersion" : data.version
+      };
+      data.version++;   // write new version of data
+    } else {
+      data.version = 1;   // first write
+    }
+
+    // huh?
+    // if (!data.createdDate) {
+    //   dbParams.Item.createdDate = now.toISOString();  // can't update keys
+    // }
+
+    console.log("UPDATE request: " +  JSON.stringify( dbParams ));
+
+    // Put vs Update, we don't want to clobber old entry (do we?). Just add keys
+    const response = await dynamoDB.send( new UpdateCommand( dbParams ));
+
+    console.log("Responding with updated data: " +  JSON.stringify( response ));
+    return response.Attributes;   // empty without "ReturnValues"
+
+    // with Update (vs Put)
+    // return dbParams.Item;  // NOT response.Item, response is always empty (need ReturnValues)
+  },
+
 
   //----------------------------------------
   // Wipe record out

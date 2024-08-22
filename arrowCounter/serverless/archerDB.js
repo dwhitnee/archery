@@ -67,7 +67,7 @@ module.exports = {
 
   updateArcher: async function( data ) {
     // PK (data.id) is presumed to be present
-    return await db.saveRecord( ArcherTableName, data );
+    return await db.saveRecord( ArcherTableName, data );   // really, overwrite archer
   },
   deleteArcher: async function( id ) {
     return await db.deleteRecord( ArcherTableName, id );
@@ -98,9 +98,15 @@ module.exports = {
     return await db.getRecordsByFilter( ArcherDataTableName, filter, argNames, args );
   },
 
-  updateArcherData: async function( data ) {
+  // update either only the given attribute (datatype), or the whole object
+  // OK, update doesn't really work, only save
+  updateArcherData: async function( data, dataType ) {
     // PK (data.id and data.year) is presumed to be present
-    return await db.saveRecord( ArcherDataTableName, data );
+    if (dataType) {
+      return await db.updateRecord( ArcherDataTableName, data, dataType );
+    } else {
+      return await db.saveRecord( ArcherDataTableName, data ); // really, overwrite
+    }
   },
   deleteArcherData: async function( id, year ) {
     let keys = {"id": id, "year": year };

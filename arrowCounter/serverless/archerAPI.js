@@ -125,12 +125,21 @@ let db = {
   },
 
   //----------------------------------------------------------------------
+  // OK OK, we need to pass in ALL data, and somehow only update the interesting data
+  // This would include version, "arrows" (say), and return version at least (updatedDate?)
+  // Maybe it's best to pass the whole kit and kaboodle, or make a new table for all the other
+  // random crap? ArcherArrows, ArcherScores, ArcherWorkouts. Or make ArcherData *everything*
+  // I think it's smarter to send in the whole blob (because versioning)
+  // OR load existing blob, merge the two, ick
+  // Is the worry that one bad update could destroy everything? Does it matter, once damage done?
+  // more important when multiple users, but not so much with a single user.
+  //
+  //
   // Update all year's data in DB, this stomps existing data of this type.
-  // ex: where dataType = "arrows"
   /* {
        id: David1234,
        year: 2024,
-       "arrows": [..data..]
+       data: { arrows: [...], scores: [....]
      }
 */
   // @param data blob with DB keys and data type (key) to save
@@ -140,15 +149,14 @@ let db = {
     message.verifyParam( request, "userId");
     message.verifyParam( request, "year");
     message.verifyParam( request, "data");
-    message.verifyParam( request, "dataType");
+    // message.verifyParam( request, "dataType");
 
     let input = JSON.parse( request.body );
 
     // parse request into a storable data blob
-    let data = {};
+    let data = input.data;
     data.id = input.userId;
     data.year = ""+input.year;
-    data[input.dataType] = input.data;
 
     return await archerDB.updateArcherData( data );
   },

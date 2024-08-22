@@ -15,6 +15,14 @@
 // GNU General Public License for more details.
 //-----------------------------------------------------------------------
 
+
+// TODO:
+// save weekly array of score data, goal data.
+// input/display method for weekly scores. (Score list plus empty score box (arrow count?))
+// move input method for weekly Notes to below heatmap(?)
+//   o edit single weekly Note, or list of uneditable Notes?
+// allow coach to add/edit a weekly Note (prefixed by their name)
+
 //----------------------------------------------------------------------
 //  OVERVIEW
 //----------------------------------------------------------------------
@@ -281,7 +289,10 @@ let app = new Vue({
     } else {   // setup data without login
 
       this.user = Util.loadData("archer") || this.user;    // localstore only
-      this.loadLocalArrowDB();
+      this.loadLocalArcherData();  // new function
+      if (!this.data.arrows) {
+        this.loadLocalArrowDB();  // @deprecated, archerData should win IFF it exists
+      }
 
       await this.archerLogin( this.user );
 
@@ -319,7 +330,7 @@ let app = new Vue({
       "Game Night"
     ];
 
-    this.weeksFocus = [""].concat( focus, focus, focus);
+    this.weeksFocus = [""].concat( focus, focus, focus, focus, focus);
     let thisWeeksFocus = this.weeksFocus[ this.getWeekNumber() ];
     console.log("Week " + this.getWeekNumber() + "'s focus is " + thisWeeksFocus );
     this.setMessage( thisWeeksFocus );
@@ -418,7 +429,8 @@ let app = new Vue({
         await this.getArcherData();
 
         this.saveLocalArcher();
-        this.saveLocalArrowDB();
+        this.saveLocalArrowDB();  // @deprecated: remove this 9/1/2024
+        this.saveLocalArcherData();
       }
       catch( err ) {
         console.error("WTF? " + err );
@@ -513,7 +525,6 @@ let app = new Vue({
     },
 
     getDBKey: function() {
-      // return this.user.id + ":arrows:" + this.year;
       return "arrows:" + this.year;
     },
 
@@ -523,11 +534,23 @@ let app = new Vue({
 
     //----------------------------------------
     // keys: userId, year, arrows
+    // @deprecated: use saveLocalArcherData() so we can save more than just arrowCount
     //----------------------------------------
     saveLocalArrowDB: function() {
       if (this.data.arrows) {
         Util.saveData( this.getDBKey(), this.data.arrows );
       }
+    },
+    //----------------------------------------
+    // key is just "year" because we don't have a reliable userid
+    //----------------------------------------
+    saveLocalArcherData: function() {
+      if (this.data) {
+        Util.saveData("archerData:" + this.year, this.data );
+      }
+    },
+    loadLocalArcherData: function() {
+      this.data = Util.loadData("archerData:" + this.year);
     },
 
     //----------------------------------------
@@ -889,6 +912,8 @@ let app = new Vue({
         let response = await fetch(serverURL + "archerData?userId=" + id + "&year=" + this.year );
         if (!response.ok) { throw await response.json(); }
         data = await response.json();
+        data.arrows = data.arrows || [];
+
         if (data.id) {
           if (!outsideRequest) {
             this.data = data;
@@ -910,6 +935,10 @@ let app = new Vue({
     // (after new login, update name/coach)
     //----------------------------------------
     async updateArcher() {
+      if (this.loadingData) {
+        return;  // don't allow updates while still loading from DB
+      }
+
       this.saveLocalArcher();
 
       if (!this.user.id) {
@@ -952,12 +981,25 @@ let app = new Vue({
     // store this years arrow count (maybe other stuff soon?)
     //----------------------------------------
     async updateArcherArrows() {
-      this.saveLocalArrowDB();
-      this.updateArcherData("arrows", this.data.arrows );
+      this.saveLocalArrowDB();   // @deprecated
+      this.saveLocalArcherData();
+      // this.updateArcherData("arrows", this.data.arrows );
+      this.updateArcherData();
     },
-
+    async updateArcherScores() {
+      this.saveLocalArcherData();
+      // this.updateArcherData("scores", this.data.scores );
+      this.updateArcherData();
+    },
+    async updateArcherNotes() {
+      this.saveLocalArcherData();
+      // this.updateArcherData("notes", this.data.notes );
+      this.updateArcherData();
+    },
     async updateArcherWorkouts() {
-      this.updateArcherData("workouts", this.data.workouts );
+      this.saveLocalArcherData();
+      // this.updateArcherData("workouts", this.data.workouts );
+      this.updateArcherData();
     },
 
     //----------------------------------------
@@ -966,8 +1008,14 @@ let app = new Vue({
     // updateArcherData("arrows", this.data.arrows)  ?
     // POST id=id&year=year&type=arrows&data=...
     //----------------------------------------
-    async updateArcherData( dataType, data ) {
+    async updateArcherData() {
       if (this.coachView) { return; }
+
+      // if (!dataType) {
+      //   console.error("called function wrong, no dataType");
+      //   alert("oops");
+      //   debugger;
+      // }
 
       if (!this.isSignedIn()) {
         console.error("tried to write to DB without a signin id");
@@ -975,7 +1023,7 @@ let app = new Vue({
       }
 
       if (this.saveInProgress) { return; }
-      console.log("updating " + dataType + " count to DB");
+      console.log("updating archer DB");
 
       try {
         this.saveInProgress = true;
@@ -983,8 +1031,7 @@ let app = new Vue({
         let postData = {
           userId: this.user.id,
           year: this.year,
-          data: data,
-          dataType: dataType
+          data: this.data,
         };
 
         let response = await fetch( serverURL + "updateArcherData",
