@@ -4,7 +4,7 @@ Copyright (c) 2023 <a href="http://dwhitnee.s3-website-us-east-1.amazonaws.com/"
 ## About
 This is a collection of Archery apps for tournaments and training.
 
-## Timer
+## Tournament Timer
 https://dwhitnee.github.io/archer/timer
 
 Handles Indoor and Outdoor World Archery formats with variable end length.
