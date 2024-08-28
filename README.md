@@ -12,6 +12,9 @@ Handles Indoor and Outdoor World Archery formats with variable end length.
 ## Tournament Scorekeeper
 TBD
 
+## Training Log
+TBD
+
 ## Credits
 All code written and directed by David Whitney.
 
