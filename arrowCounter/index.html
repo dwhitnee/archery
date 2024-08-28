@@ -82,7 +82,11 @@
       <div class="goals">
         <label for="notes">Weekly Goals/Notes</label>
         <input id="notes" size=30 type="text"
-                v-model="weekGoals" />
+               placeholder="what shall we do this week, Brain?"
+               v-model="weekGoals"
+               @blur="saveNote()"
+               @keydown.esc="endNoteEdit()"
+               @keyup.enter="event.target.blur()"  />
       </div>
     </div>
 

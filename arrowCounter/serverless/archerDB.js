@@ -1,25 +1,25 @@
-/*jslint node: true, esversion: 6 */
+/*jslint node: true, esversion: 8 */
 //----------------------------------------------------------------------
 // Internal DynamoDB functions, not the API
 // DB Key is generated here from API calls.
 //
-// No HTTP here, just Dynamo. Therefore most callbacks just return data
-// and no HTTP response stuff.
+// No HTTP here, just Dynamo.
+// A pretty thin semantic layer to translate from the Archer keys to the DB layer
+// Therefore most callbacks just return data and no HTTP response stuff.
+// Errors are passed on up to be handled by the HTTP response handler.
 
 // Explanation of HASH vs RANGE keys (basically PK is "HASH+RANGE")
 //   https://stackoverflow.com/questions/27329461/what-is-hash-and-range-primary-key
 //
-// All functions are async and invoke the callback function when done
-// All callback functions are Node-style callback( err, data );
-//
-// FIXME: would love to make these async await-style calls, until AWS library
-// supports this probably wont
+// All functions are async/await and might throw an Error for someone else to catch
+// No longer using Node-style callback( err, data );
 //----------------------------------------------------------------------
 
 const ArcherTableName = "Archers";
 const ArcherDataTableName = "ArcherData";
 
-let db  = require('dynamoDB');  // All the Dynamo stuff
+let db = require('./dynamoDB');  // All the Dynamo stuff
+// import db from './dynamoDB.js';  // All the Dynamo stuff
 
 module.exports = {
 
@@ -32,47 +32,45 @@ module.exports = {
   // ARCHER
   // Get static attribues for indiivdual archer (name, coach, etc)
   //----------------------------------------
-  getArcherById: function( id, callback ) {
-    return db.getRecordById( ArcherTableName, id, callback );
+  getArcherById: async function( id ) {
+    return await db.getRecordById( ArcherTableName, id );
   },
-  getAllArchers: function( callback ) {
-    return this.getArchersByCoach( undefined, callback );
+  getAllArchers: async function() {
+    return await this.getArchersByCoach( undefined );
   },
   //----------------------------------------
   // Scan for all archers and remove entries that are not this coach
   // NOTE: does not scale - should make a secondary index on coach name
   // @param coach: name
   //----------------------------------------
-  getArchersByCoach: function( coach, callback ) {
+  getArchersByCoach: async function( coach ) {
     if (!coach) {
-      return db.getAllRecords( ArcherTableName, callback );
+      return await db.getAllRecords( ArcherTableName );
     }
 
     let argNames =  { "#coach": "coach" };
     let filter =  "#coach = :coach";   // could be "contains( #coach )"
     let args = { ":coach": coach };
 
-    return db.getRecordsByFilter( ArcherTableName, filter, argNames, args, callback );
+    return await db.getRecordsByFilter( ArcherTableName, filter, argNames, args );
 
-    // this.getArchers( function( err, data ) {
-    //   if (data.Items) {
-    //     let archers = data.Items;
-    //     for (let i=0; i< archers.length; i++) {
-    //       if (!archers[i].coach != coach) {
-    //         delete archers[i];
-    //       }
+    // brute force way
+    // if (response.Items) {
+    //   let archers = response.Items;
+    //   for (let i=0; i< archers.length; i++) {
+    //     if (!archers[i].coach != coach) {
+    //       delete archers[i];
     //     }
     //   }
-    //   callback( err, data );
-    // });
+    // }
   },
 
-  updateArcher: function( data, callback ) {
+  updateArcher: async function( data ) {
     // PK (data.id) is presumed to be present
-    return db.saveRecord( ArcherTableName, data, callback );
+    return await db.saveRecord( ArcherTableName, data );   // really, overwrite archer
   },
-  deleteArcher: function( id, callback ) {
-    return db.deleteRecord( ArcherTableName, id, callback );
+  deleteArcher: async function( id ) {
+    return await db.deleteRecord( ArcherTableName, id );
   },
 
 
@@ -84,31 +82,35 @@ module.exports = {
   //----------------------------------------
 
   //----------------------------------------
-  getArcherDataByArcherAndYear: function( id, year, callback ) {
+  getArcherDataByArcherAndYear: async function( id, year ) {
     let args = { "id": id, "year": year };
-    return db.getRecordByKeys( ArcherDataTableName, args, callback );
+    return await db.getRecordByKeys( ArcherDataTableName, args );
   },
 
   //----------------------------------------
   // get all data for the year for everyone
   //----------------------------------------
-  getAllArcherDataByYear: function( year, callback ) {
+  getAllArcherDataByYear: async function( year ) {
     let argNames =  { "#year": "year" };  // Naming variables avoids reserved words
     let filter = "#year = :year";
     let args = { ":year": year };
 
-    return db.getRecordsByFilter( ArcherDataTableName, filter, argNames, args, callback );
+    return await db.getRecordsByFilter( ArcherDataTableName, filter, argNames, args );
   },
 
-  updateArcherData: function( data, callback ) {
+  // update either only the given attribute (datatype), or the whole object
+  // OK, update doesn't really work, only save
+  updateArcherData: async function( data, dataType ) {
     // PK (data.id and data.year) is presumed to be present
-    return db.saveRecord( ArcherDataTableName, data, callback );
+    if (dataType) {
+      return await db.updateRecord( ArcherDataTableName, data, dataType );
+    } else {
+      return await db.saveRecord( ArcherDataTableName, data ); // really, overwrite
+    }
   },
-  deleteArcherData: function( id, year, callback ) {
+  deleteArcherData: async function( id, year ) {
     let keys = {"id": id, "year": year };
-    return db.deleteRecordByKeys( ArcherDataTableName, keys, callback );
+    return await db.deleteRecordByKeys( ArcherDataTableName, keys );
   },
-
-
 
 };

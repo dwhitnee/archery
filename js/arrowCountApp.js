@@ -15,6 +15,15 @@
 // GNU General Public License for more details.
 //-----------------------------------------------------------------------
 
+
+// TODO:  MERGE TO MAINLINE, PUSH SERVER TO PROD AT SAME TIME
+// save weekly array of score data, goal data.
+// input/display method for weekly scores. (Score list plus empty score box (arrow count?))
+// move input method for weekly Notes to below heatmap(?)
+//   o edit single weekly Note, or list of uneditable Notes?
+// allow coach to add/edit a weekly Note (prefixed by their name)
+// data is lost when you login (if you were saving locally)
+
 //----------------------------------------------------------------------
 //  OVERVIEW
 //----------------------------------------------------------------------
@@ -32,7 +41,7 @@
 
 // AWS Lambda serverless API deployment endpoint
 
-let dev = false;  // if on a desktop (ie, not deployed)
+let dev = true;  // if on a desktop (ie, not deployed)
 
 let serverURL = "https://ox5gprrilk.execute-api.us-west-2.amazonaws.com/prod/";
 if (dev) {
@@ -105,19 +114,25 @@ let app = new Vue({
       coach: "KSL",
     },
 
-    coaches: ["KSL", "Josh", "Diane", "Alice", "Joel"],
+    coaches: ["KSL", "Josh", "Diane", "Alice", "Joel", "Maria", "Connor"],
 
     days: ["M","T","W","Th","F","Sa","Su"],
     weekArrows: [],  // populate this from data.arrows
     weeksFocus: [],  // what to focus on each week
     weekScores: [300],  // populate this from data.scores?
-    weekGoals: "get good", // populate this from data.notes?
+    weekGoals: "",
 
     data: {
-      // 365 element list of data points. Need to translate for heatmap
-      arrows: [],
-      exercises: []
+      arrows: [],      // 365 element list of data points. Need to translate for heatmap
+      exercises: [],
+      notes: [         // weekly (52 element arrays)
+        ["get good", "coach says: get good"]  // eg, week 15
+      ],
+      scores: [        // weekly (52 element arrays)
+        [{ score:300, arrows:30 },{ score:550, arrows:72 }]  // eg, week 15
+      ]
     },
+
     dataDisplay: {},
     editing: false,
 
@@ -187,7 +202,8 @@ let app = new Vue({
     },
 
     showCredits: false,
-    version: "0.1"
+    // version: "0.1"  // save arrow heatmap
+    version: "0.2"  // edit notes, versioning works
   },
 
   // https://colorkit.co/palette/2c4875-5b4c82-8a508f-cc0863-ff6361-ff8531-ffa600-8cb357-18bfae-53cbef/
@@ -272,7 +288,11 @@ let app = new Vue({
     } else {   // setup data without login
 
       this.user = Util.loadData("archer") || this.user;    // localstore only
-      this.loadLocalArrowDB();
+      this.loadLocalArcherData();  // new function
+      if (!this.data.arrows) {
+        this.loadLocalArrowDB();  // @deprecated, archerData should win IFF it exists
+      }
+      this.handleArrowUpdate();
 
       await this.archerLogin( this.user );
 
@@ -310,7 +330,7 @@ let app = new Vue({
       "Game Night"
     ];
 
-    this.weeksFocus = [""].concat( focus, focus, focus);
+    this.weeksFocus = [""].concat( focus, focus, focus, focus, focus);
     let thisWeeksFocus = this.weeksFocus[ this.getWeekNumber() ];
     console.log("Week " + this.getWeekNumber() + "'s focus is " + thisWeeksFocus );
     this.setMessage( thisWeeksFocus );
@@ -409,7 +429,8 @@ let app = new Vue({
         await this.getArcherData();
 
         this.saveLocalArcher();
-        this.saveLocalArrowDB();
+        this.saveLocalArrowDB();  // @deprecated: remove this 9/1/2024
+        this.saveLocalArcherData();
       }
       catch( err ) {
         console.error("WTF? " + err );
@@ -423,9 +444,11 @@ let app = new Vue({
     async logout() {
       let auth = this.user.auth.auth;
       this.user = this.noUser;
+      this.data = { arrows: [], notes: [], scores: [] };
+
       this.updateArcher();   // Just localstorage update since ID is gone
-      this.data.arrows = [];
       this.updateArcherArrows();
+      this.handleArrowUpdate();
 
       // hack to rerender google button, F this
       window.setTimeout(function() {
@@ -504,7 +527,6 @@ let app = new Vue({
     },
 
     getDBKey: function() {
-      // return this.user.id + ":arrows:" + this.year;
       return "arrows:" + this.year;
     },
 
@@ -514,11 +536,23 @@ let app = new Vue({
 
     //----------------------------------------
     // keys: userId, year, arrows
+    // @deprecated: use saveLocalArcherData() so we can save more than just arrowCount
     //----------------------------------------
     saveLocalArrowDB: function() {
       if (this.data.arrows) {
         Util.saveData( this.getDBKey(), this.data.arrows );
       }
+    },
+    //----------------------------------------
+    // key is just "year" because we don't have a reliable userid
+    //----------------------------------------
+    saveLocalArcherData: function() {
+      if (this.data) {
+        Util.saveData("archerData:" + this.year, this.data );
+      }
+    },
+    loadLocalArcherData: function() {
+      this.data = Util.loadData("archerData:" + this.year);
     },
 
     //----------------------------------------
@@ -536,6 +570,8 @@ let app = new Vue({
     // Find this Monday, find index into DB, and populate week
     //----------------------------------------
     populateThisWeek: function() {
+      this.weekGoals = this.data.notes[this.getWeekNumber()];
+
       this.weekArrows = [];
 
       let monday = this.getDayOfThisMonday();
@@ -558,17 +594,22 @@ let app = new Vue({
     //----------------------------------------------------------------------
     // figure out what day of year this monday was
     // for indexing into DB
+    //
+    // Fail:    Mon Apr 29 2024 00:56:44 GMT-0700 (Pacific Daylight Time)
+    // Success: Mon Apr 29 2024 01:01:05 GMT-0700 (Pacific Daylight Time)
+    // Because of f*ing Daylight Savings Time the math is off by an hour
     //----------------------------------------------------------------------
     getDayOfThisMonday: function() {
       let jan1 = new Date("1/1/" + this.year);
       let today = new Date();
       let monday = new Date();
+      let dstOffset = 1000*60 * (jan1.getTimezoneOffset() - today.getTimezoneOffset());
 
       // monday is #1, Sunday is #0 (so Monday is 6 days ago)
       monday.setDate( today.getDate() - ((today.getDay() + 6) % 7)  );
 
       console.log("Monday is " + monday);
-      return Math.floor((monday - jan1) / (24*60*60*1000));
+      return Math.floor((monday - jan1 + dstOffset) / (24*60*60*1000));
     },
     //----------------------------------------
     // given heatmap mouse event data, return [0-365) date index into DB
@@ -682,6 +723,15 @@ let app = new Vue({
       console.log("New score: " + this.weekScores[index] );
     },
 
+    endNoteEdit: function() {
+      this.weekGoals = this.data.notes[this.getWeekNumber()];
+    },
+
+    async saveNote( event ) {
+      if (this.coachView) { this.endEdit(); return; }
+      this.data.notes[this.getWeekNumber()] = this.weekGoals;
+      this.updateArcherNotes();
+    },
 
     //----------------------------------------
     // FIXME: hard coded to arrows and dataDisplay.arrows
@@ -875,11 +925,13 @@ let app = new Vue({
         let response = await fetch(serverURL + "archerData?userId=" + id + "&year=" + this.year );
         if (!response.ok) { throw await response.json(); }
         data = await response.json();
-        if (data.id) {
-          if (!outsideRequest) {
-            this.data = data;
-            this.handleArrowUpdate();
-          }
+
+        if (!outsideRequest) {        // populate the user
+          data.arrows = data.arrows || [];
+          data.notes = data.notes || [];
+          data.scores = data.scores || [];
+          this.data = data;
+          this.handleArrowUpdate();
         }
       }
       catch( err ) {
@@ -896,6 +948,10 @@ let app = new Vue({
     // (after new login, update name/coach)
     //----------------------------------------
     async updateArcher() {
+      if (this.loadingData) {
+        return;  // don't allow updates while still loading from DB
+      }
+
       this.saveLocalArcher();
 
       if (!this.user.id) {
@@ -938,12 +994,25 @@ let app = new Vue({
     // store this years arrow count (maybe other stuff soon?)
     //----------------------------------------
     async updateArcherArrows() {
-      this.saveLocalArrowDB();
-      this.updateArcherData("arrows", this.data.arrows );
+      this.saveLocalArrowDB();   // @deprecated
+      this.saveLocalArcherData();
+      // this.updateArcherData("arrows", this.data.arrows );
+      this.updateArcherData();
     },
-
+    async updateArcherScores() {
+      this.saveLocalArcherData();
+      // this.updateArcherData("scores", this.data.scores );
+      this.updateArcherData();
+    },
+    async updateArcherNotes() {
+      this.saveLocalArcherData();
+      // this.updateArcherData("notes", this.data.notes );
+      this.updateArcherData();
+    },
     async updateArcherWorkouts() {
-      this.updateArcherData("workouts", this.data.workouts );
+      this.saveLocalArcherData();
+      // this.updateArcherData("workouts", this.data.workouts );
+      this.updateArcherData();
     },
 
     //----------------------------------------
@@ -952,8 +1021,14 @@ let app = new Vue({
     // updateArcherData("arrows", this.data.arrows)  ?
     // POST id=id&year=year&type=arrows&data=...
     //----------------------------------------
-    async updateArcherData( dataType, data ) {
+    async updateArcherData() {
       if (this.coachView) { return; }
+
+      // if (!dataType) {
+      //   console.error("called function wrong, no dataType");
+      //   alert("oops");
+      //   debugger;
+      // }
 
       if (!this.isSignedIn()) {
         console.error("tried to write to DB without a signin id");
@@ -961,7 +1036,7 @@ let app = new Vue({
       }
 
       if (this.saveInProgress) { return; }
-      console.log("updating " + dataType + " count to DB");
+      console.log("updating archer DB");
 
       try {
         this.saveInProgress = true;
@@ -969,8 +1044,7 @@ let app = new Vue({
         let postData = {
           userId: this.user.id,
           year: this.year,
-          data: data,
-          dataType: dataType
+          data: this.data,
         };
 
         let response = await fetch( serverURL + "updateArcherData",
@@ -979,16 +1053,16 @@ let app = new Vue({
 
         // refresh our local data with whatever goodness the DB thinks we should have (last updated, version)
 
-        // FIXME - should this be done?
         // archerData sub elements don't have a version, only the overall data record
         let newData = await response.json();
-        // if (newData.year) {
-        //   this.data[dataType] = newData; // { arrows: [], id: 131, year: 2024, version: 2 }
-        // }
+
+        if (newData.version) {
+           this.data = newData;     // { arrows: [], id: 131, year: 2024, version: 27, ... }
+         }
       }
       catch( err ) {
         console.error("Update arrow count: " + JSON.stringify( err ));
-        alert("Try again. Update failed " +
+        alert("Try again or reload. Update failed " +
               Util.sadface + (err.message || err));
       }
 

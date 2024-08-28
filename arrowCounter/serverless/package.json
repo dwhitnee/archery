@@ -1,0 +1,9 @@
+{
+  "type": "commonjs",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.564.0",
+    "@aws-sdk/lib-dynamodb": "^3.564.0",
+    "jshint": "^2.13.6",
+    "serverless": "^3.38.0"
+  }
+}
