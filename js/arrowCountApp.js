@@ -16,13 +16,16 @@
 //-----------------------------------------------------------------------
 
 
-// TODO:  MERGE TO MAINLINE, PUSH SERVER TO PROD AT SAME TIME
-// save weekly array of score data, goal data.
-// input/display method for weekly scores. (Score list plus empty score box (arrow count?))
+// TODO:
+// Show last goal entered as current goal
+// Fix goals to be array, not single strings (add coach?)
+// o save weekly array of score data, goal data.
+// o input/display method for weekly scores. (Score list plus empty score box (arrow count?))
 // move input method for weekly Notes to below heatmap(?)
 //   o edit single weekly Note, or list of uneditable Notes?
 // allow coach to add/edit a weekly Note (prefixed by their name)
-// data is lost when you login (if you were saving locally)
+
+// - data is lost when you login (if you were saving locally)
 
 //----------------------------------------------------------------------
 //  OVERVIEW
@@ -41,7 +44,7 @@
 
 // AWS Lambda serverless API deployment endpoint
 
-let dev = false;  // if on a desktop (ie, not deployed)
+let dev = true;  // if on a desktop (ie, not deployed)
 
 let serverURL = "https://ox5gprrilk.execute-api.us-west-2.amazonaws.com/prod/";
 if (dev) {
@@ -121,6 +124,7 @@ let app = new Vue({
     weeksFocus: [],  // what to focus on each week
     weekScores: [300],  // populate this from data.scores?
     weekGoals: "",
+    showAllGoals: false,
 
     data: {
       arrows: [],      // 365 element list of data points. Need to translate for heatmap
@@ -955,7 +959,7 @@ let app = new Vue({
       this.saveLocalArcher();
 
       if (!this.user.id) {
-        // we are anonymous, how to save to DB? Use name as ID?  FIXME
+        // we are anonymous, can't to save to remote DB?
         // alert("No archer ID specified. Can't save to cloud without login");
         return;
       }

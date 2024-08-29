@@ -87,6 +87,14 @@
                @blur="saveNote()"
                @keydown.esc="endNoteEdit()"
                @keyup.enter="event.target.blur()"  />
+        <a href="#" @click="showAllGoals = !showAllGoals">Past goals</a>
+
+        <ul v-show="showAllGoals" class="pastGoals">
+          <li v-for="(goal, index) in data.notes" v-show="goal">
+            {{ (getDateFromDayOfYear(7*index)).toLocaleDateString() }}: {{ goal }}
+          </li>
+        </ul>
+
       </div>
     </div>
 
