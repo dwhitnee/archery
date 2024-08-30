@@ -65,7 +65,6 @@
       </div>
     </div>
 
-
     <div class="weeklyInput weeklyArrowInput">
       Enter this week's arrow counts here:
       <div class="days">
@@ -80,13 +79,21 @@
         </div>
       </div>
       <div class="goals">
-        <label for="notes">Weekly Goals/Notes</label>
-        <input id="notes" size=30 type="text"
+        <label for="notes">Weekly Goals/Notes:</label>
+
+        <!-- contenteditable ignores v-model and keypress handlers.  D'oh-->
+        <div v-show="!noteEditMode" class="editable" contenteditable="false" spellcheck="false"
+             placeholder="what shall we do this week, Brain?"
+             title="click to edit note"
+             @click="enterNoteEditMode()">{{ weekGoals }}</div>
+
+        <input v-show="noteEditMode" id="notes" ref="notes" size=30 type="text"
                placeholder="what shall we do this week, Brain?"
                v-model="weekGoals"
                @blur="saveNote()"
-               @keydown.esc="endNoteEdit()"
-               @keyup.enter="event.target.blur()"  />
+               @keydown.esc="abortNoteEdit()"
+               @keypress.enter.prevent="event.target.blur()"  />
+
         <a href="#" @click="showAllGoals = !showAllGoals">Past goals</a>
 
         <ul v-show="showAllGoals" class="pastGoals">

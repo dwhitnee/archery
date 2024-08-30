@@ -125,6 +125,7 @@ let app = new Vue({
     weekScores: [300],  // populate this from data.scores?
     weekGoals: "",
     showAllGoals: false,
+    noteEditMode: false,
 
     data: {
       arrows: [],      // 365 element list of data points. Need to translate for heatmap
@@ -574,7 +575,13 @@ let app = new Vue({
     // Find this Monday, find index into DB, and populate week
     //----------------------------------------
     populateThisWeek: function() {
-      this.weekGoals = this.data.notes[this.getWeekNumber()];
+      let week = this.getWeekNumber();
+      this.weekGoals = this.data.notes[week];
+
+      // go back in time to find the last goal we had
+      for (; week >=0 && !this.weekGoals; week--) {
+        this.weekGoals = this.data.notes[week];
+      }
 
       this.weekArrows = [];
 
@@ -727,14 +734,25 @@ let app = new Vue({
       console.log("New score: " + this.weekScores[index] );
     },
 
-    endNoteEdit: function() {
+    // dislpay <input> element and provide focus
+    enterNoteEditMode: function() {
+      this.noteEditMode = true;
+      setTimeout( () => { this.$refs.notes.focus();}, 1);
+    },
+
+    abortNoteEdit: function() {
       this.weekGoals = this.data.notes[this.getWeekNumber()];
+      this.noteEditMode = false;
     },
 
     async saveNote( event ) {
       if (this.coachView) { this.endEdit(); return; }
+
+      //this.weekGoals = event.target.innerText.trim(); // v-model doesn't work for contenteditable
+
       this.data.notes[this.getWeekNumber()] = this.weekGoals;
       this.updateArcherNotes();
+      this.noteEditMode = false;
     },
 
     //----------------------------------------

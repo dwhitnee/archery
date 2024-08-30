@@ -172,3 +172,22 @@ a {
 .teamView th {
   text-align: center;
 }
+
+.editable {
+  padding: .275em;
+  min-width: 8em;
+  border: 1px solid gray;
+  display: inline;
+  overflow-wrap: break-word;
+  hyphen: auto;
+  background-color: white;
+}
+
+/* fake input="text" placeholder */
+.editable[placeholder]:empty:before {
+  content: attr(placeholder);
+  color: #888;
+}
+.editable[placeholder]:empty:focus:before {
+  content: "";
+}
