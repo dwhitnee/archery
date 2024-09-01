@@ -44,7 +44,7 @@
 
 // AWS Lambda serverless API deployment endpoint
 
-let dev = true;  // if on a desktop (ie, not deployed)
+let dev = false;  // if on a desktop (ie, not deployed)
 
 let serverURL = "https://ox5gprrilk.execute-api.us-west-2.amazonaws.com/prod/";
 if (dev) {
