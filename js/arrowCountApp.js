@@ -130,9 +130,7 @@ let app = new Vue({
     data: {
       arrows: [],      // 365 element list of data points. Need to translate for heatmap
       exercises: [],
-      notes: [         // weekly (52 element arrays)
-        ["get good", "coach says: get good"]  // eg, week 15
-      ],
+      notes: [],         // weekly (52 element arrays)
       scores: [        // weekly (52 element arrays)
         [{ score:300, arrows:30 },{ score:550, arrows:72 }]  // eg, week 15
       ]
@@ -294,7 +292,7 @@ let app = new Vue({
 
       this.user = Util.loadData("archer") || this.user;    // localstore only
       this.loadLocalArcherData();  // new function
-      if (!this.data.arrows) {
+      if (!this.data || !this.data.arrows) {
         this.loadLocalArrowDB();  // @deprecated, archerData should win IFF it exists
       }
       this.handleArrowUpdate();
@@ -557,7 +555,8 @@ let app = new Vue({
       }
     },
     loadLocalArcherData: function() {
-      this.data = Util.loadData("archerData:" + this.year);
+      let localData = Util.loadData("archerData:" + this.year);
+      this.data = localData || this.data;  // if null, skip
     },
 
     //----------------------------------------
@@ -1084,7 +1083,7 @@ let app = new Vue({
       }
       catch( err ) {
         console.error("Update arrow count: " + JSON.stringify( err ));
-        alert("Try again or reload. Update failed " +
+        alert("Reload page or try again. Data may be out of date. Update failed " +
               Util.sadface + (err.message || err));
       }
 
