@@ -175,6 +175,7 @@ a {
 
 .editable {
   padding: .275em;
+  padding-right: 1em;
   min-width: 8em;
   border: 1px solid gray;
   display: inline;
