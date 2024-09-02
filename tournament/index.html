@@ -68,8 +68,24 @@
     </div>
 
     <div v-else class="tournamentBale">
-      <div>Welcome to {{ tournament.name }}</div>
+
+      <div>Welcome to the Tournament: "{{ tournament.name }}"</div>
       <div>Use code  "{{ tournament.id }}" to join</div>
+
+      <div class="archerList">
+        This should be a dialog FIXME
+        <li class="archer" v-for="archer in bale">
+          <div>{{ archer.name }} ({{ archer.bowClass }}-{{ archer.ageGender }})</div>
+        </li>
+      </div>
+
+      <div>
+        <div>Add new archer to your scoring group</div>
+        <label for="archer">Name:</b></label>
+        <input id="archerName" size=20 type="text" placeholder="Brady Ellison...."
+               v-model="newArcher.name" @keyup.enter.prevent="addNewArcher()" />
+        <button class="btn btn-primary btn-sm" @click="addNewArcher()">Add</button>
+      </div>
     </div>
 
     <!-- Settings-->

@@ -55,6 +55,14 @@ a {
   margin: 2em;
 }
 
+.tournamentBale {
+  padding: 3em;
+  background: lightgreen;
+  border: 2px solid black;
+  border-radius: 1em;
+  margin: 2em;
+}
+
 
 .createTournamentGrid {
   display: grid;

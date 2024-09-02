@@ -60,6 +60,9 @@ let app = new Vue({
     foo: "foo",
     joinId: "",  // tournament to join
     tournament: { },
+    bale: [],  // archers in this scoring group
+
+    newArcher: {},
 
     tournamentTypes: [
       {
@@ -125,9 +128,9 @@ let app = new Vue({
       debugger;
     });
 
-    this.tournament.id = this.$route.query.id;
-    if (this.tournament.id) {
-      await this.loadTournament();
+    let id = this.$route.query.id;
+    if (id) {
+      await this.loadTournament( id );
     }
 
     this.handleKeypress = (event) => {
@@ -221,7 +224,18 @@ let app = new Vue({
       this.endEdit();
     },
 
+    addNewArcher: function() {
+      this.newArcher.bowClass = "FSLR";
+      this.newArcher.ageGender = "AF";
 
+      this.bale.push( this.newArcher );
+      this.newArcher = {};
+    },
+
+    removeArcherFromBale: function( archer ) {
+      this.bale.push( archer );
+
+    },
 
 
     //----------------------------------------
