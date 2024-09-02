@@ -7,7 +7,7 @@
         crossorigin="anonymous"/>
   <link rel="stylesheet" type="text/css" href="../styles/icons.css"/>
   <link rel="stylesheet" type="text/css" href="../styles/dialog.css"/>
-  <link rel="stylesheet" type="text/css" href="../styles/training.css"/>
+  <link rel="stylesheet" type="text/css" href="../styles/tournament.css"/>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -58,12 +58,18 @@
       </div>
     </div>
 
-    <div class="joinTournament">
-      <label for="tournyId">Join a tournament:</label>
-      <input id="tournyId" size=8 type="text" placeholder="XYZ..."
-             v-model="tournamentId"
-             @blur="gotoTournament"
-             @keypress.enter.prevent="event.target.blur()"  />
+    <div v-if="!tournament.id" class="joinTournament">
+      <label for="tournamentId"><b>Tournament code:</b></label>
+      <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
+             v-model="joinId" @keyup.enter.prevent="joinTournament()" />
+      <button class="btn btn-primary btn-sm" @click="joinTournament()">
+        Join Tournament
+        </button>
+    </div>
+
+    <div v-else class="tournamentBale">
+      <div>Welcome to {{ tournament.name }}</div>
+      <div>Use code  "{{ tournament.id }}" to join</div>
     </div>
 
     <!-- Settings-->
@@ -74,11 +80,14 @@
       <button class="close" @click="closeDialog( $event )"></button>
 
       <div class="createTournamentGrid">
-        <div>Create New Tournament</div>
-        <label class="form-check-label" for="tournyDesc">Description:</label>
-        <input size="30" type="text" id="tournyDesc"
-               placeholder="Ex: Nock Point Tuesday Mail-in..."
-               v-model="tournament.description"  />
+        <h3>Create New Tournament</h3>
+
+        <div>
+          <label class="form-check-label" for="tournyDesc">Description:</label>
+          <input size="30" type="text" id="tournyDesc"
+                 placeholder="Example: Nock Point Tuesday Mail-in..."
+                 v-model="tournament.name"  />
+        </div>
 
         <div class="tournamentTypes">
           <div>
@@ -89,6 +98,12 @@
               </option>
             </select>
           </div>
+        </div>
+
+        <div>
+          <button class="btn btn-primary btn-sm" @click="createTournament( $event )">
+            Create Tournament
+          </button>
         </div>
 
       </div>

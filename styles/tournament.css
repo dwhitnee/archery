@@ -36,7 +36,6 @@ a {
   /* border-radius: .2em; */
   padding: 0 .5em;
   text-decoration: inherit;
-
 }
 
 .appGrid {
@@ -47,6 +46,21 @@ a {
 /* .appGrid > .weeklyScoreInput { grid-area: weeklyScoreInput; } */
 /* .appGrid > .summaryDisplay { grid-area: summaryDisplay; } */
 
+
+.joinTournament {
+  padding: 3em;
+  background: lightgreen;
+  border: 2px solid black;
+  border-radius: 1em;
+  margin: 2em;
+}
+
+
+.createTournamentGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+}
 
 #settings {
   margin: auto;

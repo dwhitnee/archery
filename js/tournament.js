@@ -58,14 +58,9 @@ let app = new Vue({
     adminView: false,
 
     foo: "foo",
+    joinId: "",  // tournament to join
+    tournament: { },
 
-    tournamentId: "",
-
-    tournament: {
-      name: "Ezell's Chicken invitational",
-      type: 0,
-      id: "XYZ"
-    },
     tournamentTypes: [
       {
         "description": "WA 300",
@@ -130,12 +125,9 @@ let app = new Vue({
       debugger;
     });
 
-    this.tournamentId = this.$route.query.id;
-    if (typeof this.tournamentId !== 'undefined') {
-      this.tournamentId = parseInt( this.tournamentId );
-      if (!isNaN( this.tournamentId )) {
-        await this.loadTournament();
-      }
+    this.tournament.id = this.$route.query.id;
+    if (this.tournament.id) {
+      await this.loadTournament();
     }
 
     this.handleKeypress = (event) => {
@@ -170,13 +162,51 @@ let app = new Vue({
       return this.saveInProgress || this.loadingData;
     },
 
-
-    gotoTournament: function() {
-      alert("Going to tournament " + this.tournamentId );
+    joinTournament: function() {
+      this.joinId = this.joinId.toUpperCase();
+      this.loadTournament( this.joinId );
     },
 
-    saveLocalTournament: function() {
-      Util.saveData("tournament", this.tournament );
+    // save to DB
+    createTournament: function( event ) {
+      if (!this.tournament.name) {
+        alert("Please add a description for your tournament");
+        return;
+      }
+      if (!this.tournament.type) {
+        alert("Please select a tournament type");
+        return;
+      }
+
+      this.tournament.id = this.createNewTournamentId();
+      this.saveTournament( this.tournament );
+
+      // hack to dismiss modal, maybe store dialog element when opening?
+      this.closeDialogElement( event.target.parentElement.parentElement.parentElement );
+
+      this.$forceUpdate();  // deep change to this.tournament does not trigger update
+    },
+
+    createNewTournamentId: function() {
+      return "XYZPDQ";
+    },
+
+    loadTournament: function( id ) {
+      this.loadLocalTournament( id );
+      this.setMessage( this.tournament.name );
+    },
+    saveTournament: function( tournament ) {
+      this.saveLocalTournament( tournament );
+      this.setMessage( this.tournament.name );
+    },
+
+    loadLocalTournament: function( id ) {
+      if (id) {
+        this.tournament = Util.loadData("tournament"+ id) || {};
+      }
+    },
+    saveLocalTournament: function( tournament ) {
+      Util.saveData("tournament"+ tournament.id, tournament );
     },
 
     //----------------------------------------
