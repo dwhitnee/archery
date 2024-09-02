@@ -1,0 +1,96 @@
+html,body {
+  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  margin: 0;
+}
+
+/* [v-cloak] {  display:none !important; } */
+/* [v-cloak]::before { position: absolute; top: 10em; left: 10em; content: "loading..."; } */
+
+a {
+  text-decoration: underline;
+}
+
+
+#tournamentApp {
+  width: 100%;
+  display: grid;
+  /* grid-template-columns: 1fr 10fr 1fr; */
+  grid-template-rows: auto;
+  row-gap: .5em;
+  grid-template-areas:
+    "menuBar";
+}
+
+.menuBar {
+  display: grid;
+  grid-template-columns: 1fr 5fr 1fr;
+  grid-template-rows: auto;
+  background: lightGrey;
+  /* margin: .1em 0; */
+  padding: .25em;
+}
+.menuBar > div {
+  margin: auto;
+  /* border: 2px solid grey; */
+  /* border-radius: .2em; */
+  padding: 0 .5em;
+  text-decoration: inherit;
+
+}
+
+.appGrid {
+}
+
+.appGrid > .menuBar { grid-area: menuBar; }
+/* .appGrid > .weeklyArrowInput { grid-area: weeklyArrowInput; } */
+/* .appGrid > .weeklyScoreInput { grid-area: weeklyScoreInput; } */
+/* .appGrid > .summaryDisplay { grid-area: summaryDisplay; } */
+
+
+#settings {
+  margin: auto;
+}
+
+.watermark {
+  position: absolute;
+  color: black;
+  opacity: 20%;
+  font-weight: bold;
+  font-size: 20vw;
+  transform: rotate(-45deg);
+  top: 0;
+  left: 15vw;
+  z-index: 50
+}
+
+.loading {
+  width: 20vw;
+  height: 20vw;
+  position: absolute;
+  top: 20vh;
+  left: 40vw;
+  z-index: 10;
+  opacity: 60%;
+  background: #FAEF00;
+}
+
+.editable {
+  padding: .275em;
+  padding-right: 1em;
+  min-width: 8em;
+  border: 1px solid gray;
+  display: inline;
+  overflow-wrap: break-word;
+  hyphen: auto;
+  background-color: white;
+}
+
+/* fake input="text" placeholder */
+.editable[placeholder]:empty:before {
+  content: attr(placeholder);
+  color: #888;
+}
+.editable[placeholder]:empty:focus:before {
+  content: "";
+}

@@ -59,6 +59,8 @@ let app = new Vue({
 
     foo: "foo",
 
+    tournamentId: "",
+
     tournament: {
       name: "Ezell's Chicken invitational",
       type: 0,
@@ -66,19 +68,19 @@ let app = new Vue({
     },
     tournamentTypes: [
       {
-        "Description": "WA 300",
+        "description": "WA 300",
         "arrows": 3, "ends": 10
       },
       {
-        "Description": "Blueface 300",
+        "description": "Blueface 300",
         "arrows": 5, "ends": 12
       },
       {
-        "Description": "Outdoor 720",
+        "description": "Outdoor 720",
         "arrows": 6, "ends": 12
       },
       {
-        "Description": "NFAA 900",
+        "description": "NFAA 900",
         "arrows": 5, "ends": 15
       }
     ],

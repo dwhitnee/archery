@@ -38,32 +38,31 @@
 
 <body>
   <div id="tournamentApp" class="appGrid" v-cloak>
-
     <div v-if="loadingData" class="loading spinner-border spinner-border-lg"></div>
 
     <div class="menuBar">
       <div>
-        <div class="settings icon settingsIcon" title="Create New Tournament"
-             @click="openDialog('createTournament)"></div>
+        <div class="settings icon settingsIcon"
+             title="Create new tournament"
+             @click="openDialog('createTournament')"></div>
 
         <div v-if="inProgress()" class="spinner-border spinner-border-sm"></div>
       </div>
 
       <div>
-        <b><div v-if="message "class="message">{{ message }}</div></b>
+        <b><div v-if="message" class="message">{{ message }}</div></b>
       </div>
 
       <div class="loginMenu">
-        <a href="#" @click="openDialog('login')">Foo</a>
+        <a href="#">Foo</a>
       </div>
     </div>
 
     <div class="joinTournament">
-      <label for="tournamentId">Join a tournament:</label>
-      <input id= "tournamentId" size=8 type="text"
-             placeholder="XYZ?"
+      <label for="tournyId">Join a tournament:</label>
+      <input id="tournyId" size=8 type="text" placeholder="XYZ..."
              v-model="tournamentId"
-             @blur="gotoTournament()"
+             @blur="gotoTournament"
              @keypress.enter.prevent="event.target.blur()"  />
     </div>
 
@@ -77,16 +76,16 @@
       <div class="createTournamentGrid">
         <div>Create New Tournament</div>
         <label class="form-check-label" for="tournyDesc">Description:</label>
-        <input size="30" type="text"
+        <input size="30" type="text" id="tournyDesc"
                placeholder="Ex: Nock Point Tuesday Mail-in..."
                v-model="tournament.description"  />
 
         <div class="tournamentTypes">
           <div>
             <label class="form-check-label" for="tournamentType">Type:</label>
-            <select id="coach" v-model="tournament.type">
+            <select id="tournamentType" v-model="tournament.type">
               <option v-for="type in tournamentTypes" :value="type">
-                {{ type.description }} {{ type.arrows}} arrows/{{ type.ends}} ends
+                {{ type.description }} ({{ type.arrows}} arrows/{{ type.ends}} ends)
               </option>
             </select>
           </div>
