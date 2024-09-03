@@ -99,27 +99,26 @@
 
         <div>
           <label class="form-check-label" for="tournyDesc">Description:</label>
-          <input size="30" type="text" id="tournyDesc"
-                 placeholder="Example: Nock Point Tuesday Mail-in..."
+        </div>
+        <div>
+          <input size="30" type="text" id="tournyDesc" placeholder="Example: Nock Point Tuesday Mail-in..."
                  v-model="tournament.name"  />
         </div>
 
-        <div class="tournamentTypes">
-          <div>
-            <label class="form-check-label" for="tournamentType">Type:</label>
-            <select id="tournamentType" v-model="tournament.type">
-              <option v-for="type in tournamentTypes" :value="type">
-                {{ type.description }} ({{ type.arrows}} arrows/{{ type.ends}} ends)
-              </option>
-            </select>
-          </div>
+        <div>
+          <label class="form-check-label" for="tournamentType">Type:</label>
+        </div>
+        <div>
+          <select id="tournamentType" v-model="tournament.type">
+            <option v-for="type in tournamentTypes" :value="type">
+              {{ type.description }} ({{ type.arrows}} arrows/{{ type.ends}} ends)
+            </option>
+          </select>
         </div>
 
-        <div>
-          <button class="btn btn-primary btn-sm" @click="createTournament( $event )">
-            Create Tournament
-          </button>
-        </div>
+        <button class="btn btn-primary btn-sm" @click="createTournament( $event )">
+          Create Tournament
+        </button>
 
       </div>
     </dialog>
@@ -140,7 +139,7 @@
         <div>
           <select id="bow" v-model="newArcher.bowClass">
             <option v-for="bow in bows" :value="bow.abbrev">
-              {{ bow.full }}
+              {{ bow.full }} ({{ bow.abbrev }})
             </option>
           </select>
         </div>

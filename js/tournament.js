@@ -17,10 +17,11 @@
 
 
 // TODO:
-// add archers in a dialog
 // archer list should be kept in a cookie
 // archer data should be in cloud (how to uniquely ID?)
-// esc is different than X  for close dialog
+// Create v Edit Tournament?
+// archer ID is name?  How to avoid dupes at creation? Steal other archer?
+//  Enforce each archer on unique phone? Steal vs overwrite?
 
 //----------------------------------------------------------------------
 //  OVERVIEW
@@ -73,8 +74,12 @@ let app = new Vue({
       {full: "Female", abbrev: "F"}  // nope, not going there.
     ],
     ages: [
-      { full: "Adult fart", abbrev: "A" },
-      { full: "old fart", abbrev: "S" },
+      { full: "Cub (U12)", abbrev: "C" },
+      { full: "Youth (U15)", abbrev: "Y" },
+      { full: "YA (U18)", abbrev: "YA" },
+      { full: "College (U21)", abbrev: "C" },
+      { full: "Adult", abbrev: "A" },
+      { full: "Old Fart (50+)", abbrev: "S" },
     ],
 
     bows: [
@@ -181,6 +186,9 @@ let app = new Vue({
       this.messageCountdown = pause + 1;
     },
 
+    // [0, n)
+    random: function( max ) { return Math.floor(max * Math.random());  },
+
     inProgress: function() {
       return this.saveInProgress || this.loadingData;
     },
@@ -211,8 +219,14 @@ let app = new Vue({
       this.$forceUpdate();  // deep change to this.tournament does not trigger update
     },
 
+    // Generate random 4 letter code
     createNewTournamentId: function() {
-      return "XYZPDQ";
+      let randomId = "";
+      for (let i=0; i<4; i++) {
+        randomId += String.fromCharCode(65+this.random(26));
+      }
+      // randomId = "XYZPDQ";
+      return randomId;
     },
 
     loadTournament: function( id ) {
