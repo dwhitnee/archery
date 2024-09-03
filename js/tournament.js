@@ -17,7 +17,10 @@
 
 
 // TODO:
-  // All the things
+// add archers in a dialog
+// archer list should be kept in a cookie
+// archer data should be in cloud (how to uniquely ID?)
+// esc is different than X  for close dialog
 
 //----------------------------------------------------------------------
 //  OVERVIEW
@@ -63,6 +66,22 @@ let app = new Vue({
     bale: [],  // archers in this scoring group
 
     newArcher: {},
+
+    genders: [
+      {full: "Male", abbrev: "M"},
+      {full: "Female", abbrev: "F"}  // nope, not going there.
+    ],
+    ages: [
+      { full: "Adult fart", abbrev: "A" },
+      { full: "old fart", abbrev: "S" },
+    ],
+
+    bows: [
+      { full: "Barebow", abbrev: "BBR" },
+      { full: "Recurve", abbrev: "FSLR" },
+      { full: "Compound", abbrev: "FS" },
+      { full: "Fixed Pins", abbrev: "BHFS" }
+    ],
 
     tournamentTypes: [
       {
@@ -181,6 +200,7 @@ let app = new Vue({
         return;
       }
 
+      this.tournament.date = (new Date()).toLocaleDateString();
       this.tournament.id = this.createNewTournamentId();
       this.saveTournament( this.tournament );
 
@@ -224,10 +244,9 @@ let app = new Vue({
       this.endEdit();
     },
 
+    // this list should be kept in a cookie
+    // archer data should be in cloud
     addNewArcher: function() {
-      this.newArcher.bowClass = "FSLR";
-      this.newArcher.ageGender = "AF";
-
       this.bale.push( this.newArcher );
       this.newArcher = {};
     },

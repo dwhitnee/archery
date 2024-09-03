@@ -73,18 +73,13 @@
       <div>Use code  "{{ tournament.id }}" to join</div>
 
       <div class="archerList">
-        This should be a dialog FIXME
         <li class="archer" v-for="archer in bale">
-          <div>{{ archer.name }} ({{ archer.bowClass }}-{{ archer.ageGender }})</div>
+          <div>{{ archer.name }} ({{ archer.bowClass }}-{{ archer.age}}{{archer.gender }})</div>
         </li>
       </div>
 
       <div>
-        <div>Add new archer to your scoring group</div>
-        <label for="archer">Name:</b></label>
-        <input id="archerName" size=20 type="text" placeholder="Brady Ellison...."
-               v-model="newArcher.name" @keyup.enter.prevent="addNewArcher()" />
-        <button class="btn btn-primary btn-sm" @click="addNewArcher()">Add</button>
+         <a href="#" @click="openDialog('addArcher')">Add archer to scoring group</a>
       </div>
     </div>
 
@@ -123,8 +118,50 @@
         </div>
 
       </div>
-
     </dialog>
+
+
+    <dialog id="addArcher">
+      <button class="close" @click="closeDialog( $event )"></button>
+
+      <div class="addArcherGrid">
+        <h3>Add archer to your scoring group</h3>
+
+        <div><label for="archer">Name:</b></label></div>
+        <div><input id="archerName" size=20 type="text" placeholder="Brady Ellison...."
+                 v-model="newArcher.name"
+                 @keyup.enter.prevent="addNewArcher()" />
+        </div>
+
+        <div>Bow</div>
+        <div>
+          <select id="bow" v-model="newArcher.bowClass">
+            <option v-for="bow in bows" :value="bow.abbrev">
+              {{ bow.full }}
+            </option>
+          </select>
+        </div>
+
+        <div>Gender/Age</div>
+        <div>
+          <select id="gender" v-model="newArcher.gender">
+            <option v-for="gender in genders" :value="gender.abbrev">
+              {{ gender.full }}
+            </option>
+          </select>
+          <select id="age" v-model="newArcher.age">
+            <option v-for="age in ages" :value="age.abbrev">
+              {{ age.full }}
+            </option>
+          </select>
+
+        </div>
+        <button class="btn btn-primary btn-med" @click="addNewArcher()">Add Archer</button>
+
+      </div>
+    </dialog>
+
+
 
     <dialog id="settings">
       <button class="close" @click="closeDialog( $event )"></button>
