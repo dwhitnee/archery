@@ -66,6 +66,7 @@ let app = new Vue({
     bale: [],  // archers in this scoring group
 
     newArcher: {},
+    nextArcherId: 0,
 
     genders: [
       {full: "Male", abbrev: "M"},
@@ -244,11 +245,19 @@ let app = new Vue({
       this.endEdit();
     },
 
+    selectArcher: function( archer ) {
+      console.log("Here we go! " + archer.name);
+    },
+
     // this list should be kept in a cookie
     // archer data should be in cloud
-    addNewArcher: function() {
+    addNewArcher: function( event ) {
+      this.newArcher.id = this.nextArcherId++;
       this.bale.push( this.newArcher );
       this.newArcher = {};
+
+      // hack to dismiss modal, maybe store dialog element when opening?
+      this.closeDialogElement( event.target.parentElement.parentElement );
     },
 
     removeArcherFromBale: function( archer ) {

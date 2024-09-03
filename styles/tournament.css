@@ -56,7 +56,26 @@ a {
 }
 
 .archerList {
-  padding: 2em;
+  padding: 1em;
+}
+
+.archerList > div {
+  background-color: #ccc;
+  padding: .5em;
+}
+.archerList > div:nth-child(even) {
+  background-color: #ddd;
+}
+.archerList .icon {
+  display: inline-block;
+  cursor: grab;
+  margin-right: .5em;
+  filter: invert(0);  /* maybe? */
+}
+
+.sort-ghost {
+  opacity: 0.3;
+  transition: all 0.7s ease-out;
 }
 
 /* span all columns */
