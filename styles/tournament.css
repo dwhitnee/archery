@@ -80,12 +80,23 @@ a {
   transition: all 0.7s ease-out;
 }
 
-.tournamentBale {
-  padding: 3em;
+.invisible {
+  visibility: hidden;  /* but still in DOM */
+}
+
+.scoringGroup {
+  padding: 2em;
   background: lightgreen;
   border: 2px solid black;
   border-radius: 1em;
   margin: 2em;
+}
+
+.scoringGroup > div {
+  margin-bottom: 1em;   /* FIXME make a grid */
+}
+#scoringGroupStartButton {
+  margin-top: 2em;
 }
 
 /* span all columns */

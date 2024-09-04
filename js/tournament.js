@@ -28,6 +28,28 @@
 //----------------------------------------------------------------------
 //  A VueJS 2.1 app for entering and viewing archery tournament results
 //
+/*  Data model example
+
+    tournament {
+      id: "XYZ",   // PK (how to enforce this unique each day?
+      date: 1/1/2024,  // RK (PK could be duplicated someday I guess?)
+      description: "Peanut Farmer 1000",
+      type: { "WA 300", ends: 10, arrows: 3, rounds: 1 }
+      //  archers: [id, id, id, ...]
+      //  bales: { name: "14", archers: [...] }
+
+    archerTournament: {
+      tournamentId: "XYZ",   // PK
+      archer: {
+        id: "bradyellison",    // RK
+        name: "Brandy Allison",
+        bow: "FSLR",
+        ageGender: "AM",
+      }
+      scoringGroup: "14",    // bale? could be two bales  // RK?
+      ends: [["9","9","9"], ["X","8","7",.]
+ }
+*/
 //  ----------------------------------------------------------------------
 
 // AWS Lambda serverless API deployment endpoint
@@ -61,10 +83,17 @@ let app = new Vue({
     loadingData: false,    // prevent other actions while this is going on
     adminView: false,
 
-    foo: "foo",
+    foo: "foo",  // to be removed
+
     joinId: "",  // tournament to join
+
+    // a tournament is a set of rounds and a set of archer scoring groups (e.g., bales)
+    // if scoring groups re-order, you need a new tournament object
     tournament: { },
-    bale: [],  // archers in this scoring group
+    archers: [],  // on a particular bale (or all archers in the tournament?
+
+    newGroupName: "",  // temp for data entry
+    groupName: "",
 
     newArcher: {},
     nextArcherId: 0,
@@ -74,15 +103,17 @@ let app = new Vue({
       {full: "Female", abbrev: "F"}  // nope, not going there.
     ],
     ages: [
-      { full: "Cub (U12)", abbrev: "C" },
-      { full: "Youth (U15)", abbrev: "Y" },
-      { full: "YA (U18)", abbrev: "YA" },
-      { full: "College (U21)", abbrev: "C" },
+      { full: "Cub (U12)", abbrev: "U12" },
+      { full: "Youth (U15)", abbrev: "U15" },
+      { full: "YA (U18)", abbrev: "U18" },
+      { full: "College  (U21)", abbrev: "U21" },
       { full: "Adult", abbrev: "A" },
       { full: "Old Fart (50+)", abbrev: "S" },
+      { full: "Very Old Fart (60+)", abbrev: "SS" },
+      { full: "Super Old Fart (70+)", abbrev: "MS" },
     ],
 
-    bows: [
+    bows: [  // Also Trad, Longbow, FS-L,
       { full: "Barebow", abbrev: "BBR" },
       { full: "Recurve", abbrev: "FSLR" },
       { full: "Compound", abbrev: "FS" },
@@ -94,6 +125,10 @@ let app = new Vue({
         "description": "WA 300",
         "arrows": 3, "ends": 10
       },
+      // {
+      //   "description": "WA 600",
+      //   "arrows": 3, "ends": 10, rounds: 2
+      // },
       {
         "description": "Blueface 300",
         "arrows": 5, "ends": 12
@@ -104,7 +139,7 @@ let app = new Vue({
       },
       {
         "description": "NFAA 900",
-        "arrows": 5, "ends": 15
+        "arrows": 5, "ends": 5, rounds: 3
       }
     ],
 
@@ -186,6 +221,10 @@ let app = new Vue({
       this.messageCountdown = pause + 1;
     },
 
+    setGroupName: function() {
+      this.groupName = this.newGroupName;
+    },
+
     // [0, n)
     random: function( max ) { return Math.floor(max * Math.random());  },
 
@@ -261,13 +300,21 @@ let app = new Vue({
 
     selectArcher: function( archer ) {
       console.log("Here we go! " + archer.name);
+      // open a scoring page for this archer
     },
 
     // this list should be kept in a cookie
     // archer data should be in cloud
     addNewArcher: function( event ) {
       this.newArcher.id = this.nextArcherId++;
-      this.bale.push( this.newArcher );
+      this.archers.push( this.newArcher );
+      // TODO: add to list of archers on this bale in local storage
+      // TODO: add archer to tournament DB
+
+
+          // Archer is created per tournament, there is no unique overall archer PK
+
+
       this.newArcher = {};
 
       // hack to dismiss modal, maybe store dialog element when opening?
@@ -275,8 +322,7 @@ let app = new Vue({
     },
 
     removeArcherFromBale: function( archer ) {
-      this.bale.push( archer );
-
+      // this.bale.push( archer );
     },
 
 
@@ -360,7 +406,7 @@ let app = new Vue({
     //----------------------------------------------------------------------
 
     //----------------------------------------
-    // on login, get what we know about this archer
+    // get description of this tournament
     //----------------------------------------
     async getTournament( id ) {
       if (!id) {
@@ -383,15 +429,38 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // get all archers and arrow counts on this bale or scoring group
+    //----------------------------------------
+    async getArcherGroup( tournamentId, groupName ) {
+      try {
+        this.loadingData = true;
+        let response = await fetch(serverURL + "tournamentArchers" +
+                                   "?tournamentId=" + tournamentId +
+                                   "&groupName=" + groupName );
+        if (!response.ok) { throw await response.json(); }
+        let archers = await response.json();
+        if (archers) {
+          this.archers = archers;
+        }
+      }
+      catch( err ) {
+        alert("Problem getting tournament archer group " + Util.sadface + (err.message || err));
+      }
+      this.loadingData = false;
+
+
+    },
+
+    //----------------------------------------
     // save attributes
     // archer/end, tournament,
     //----------------------------------------
-    async updateFoo() {
+    async updateTournament() {
       if (this.loadingData) {
         return;  // don't allow updates while still loading from DB
       }
 
-      this.saveLocalArcher();
+      this.saveLocalTournament( this.tournament );
 
       if (!this.id) {
         // we are anonymous, can't to save to remote DB?

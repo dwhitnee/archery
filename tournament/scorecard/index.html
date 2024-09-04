@@ -24,47 +24,48 @@
 </head>
 
 <body>
-  <div id="tournamentApp" class="appGrid" v-cloak>
+  <div id="tournamentApp" class="appGrid" v-cloak="">
     <div v-if="loadingData" class="loading spinner-border spinner-border-lg"></div>
 
     <div class="menuBar">
       <div>
-        <div class="settings icon settingsIcon"
-             title="Create new tournament"
-             @click="openDialog('createTournament')"></div>
-
         <div v-if="inProgress()" class="spinner-border spinner-border-sm"></div>
       </div>
-
       <div>
         <b><div v-if="message" class="message">{{ message }}</div></b>
       </div>
-
       <div class="loginMenu">
-        <a href="#">Foo</a>
+        <a href="#">WTF?</a>
       </div>
     </div>
 
-    <div class="results">
-      Live Tournament Results - what goes here, everyone?
-
+    <div class="scorecard">
       <h3>{{ archer.name }}</h3>
-      <div v-for="archer in archers">
-        {{ archer.score }}
+      <div v-for="(end, endNumber) in archer.ends">
+        <div>{{ index }}</div>
+        <div v-for="arrow in end">
+          {{ arrow }}
+        </div>
+        <div>{{ endTotal( endNumber ) }}</div>
+        <div>{{ xCount( endNumber) }}</div>
+        <div>{{ runningTota( endNumberl }}</div>
+      </div>
+
+     ( Each row clickable to be edited. )
+     Is end editor a dialog or a new state?
+
+      <div>
+        Totals: 300
       </div>
     </div>
   </div>
 
 
-  <script src="../js/vue-2.7.15.min.js"></script>
-  <script src="../js/vue-router-3.1.3.min.js"></script>
+  <script src="../../js/vue-2.7.15.min.js"></script>
+  <script src="../../js/vue-router-3.1.3.min.js"></script>
 
-  <script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
-
-  <script src="../js/util.js"></script>
-  <script src="../js/tournament.js"></script>
-
+  <script src="../../js/util.js"></script>
+  <script src="../../js/tournament.js"></script>
 
 </body>
 </html>

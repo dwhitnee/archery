@@ -61,31 +61,50 @@
     <div v-if="!tournament.id" class="joinTournament">
       <label for="tournamentId"><b>Tournament code:</b></label>
       <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
-             v-model="joinId" @keyup.enter.prevent="joinTournament()" />
+             v-model.trim="joinId" @keyup.enter.prevent="joinTournament()" />
       <button class="btn btn-primary btn-sm" @click="joinTournament()">
         Join Tournament
         </button>
     </div>
 
-    <div v-else class="tournamentBale">
+    <div v-else class="scoringGroup">
 
-      <div>Welcome to the Tournament: "<b>{{ tournament.name }}</b>"</div>
+      <div>Welcome to the {{ tournament.name }}!</div>
       <div>Use code  "{{ tournament.id }}" to join</div>
 
-      <draggable v-model="bale" class="archerList" ghost-class="sort-ghost"
+      <div v-if="!groupName">
+        Name your scoring group: <input size="10" type="text" id="groupName" placeholder="Bale 6"
+               v-model.trim="newGroupName"
+               @keyup.enter.prevent="setGroupName( )" />
+        <button class="btn btn-primary btn-sm" @click="setGroupName()">Save</button>
+      </div>
+      <div  v-else>
+        <b>Scoring group: {{ groupName }}</b>
+
+        <draggable v-model="archers" class="archerList" ghost-class="sort-ghost"
                  group="people" @start="drag=true" @end="drag=false">
-        <div v-for="archer in bale" :key="archer.id"
+        <div v-for="archer in archers" :key="archer.id"
              @touchstart="selectArcher( archer )" @click="selectArcher( archer)">
           <div class="icon reorderIcon"></div>
           {{ archer.name }} ({{ archer.bowClass }}-{{ archer.age}}{{archer.gender }})
         </div>
       </draggable>
 
+      <div>
+         <a href="#" @click="openDialog('addArcher')">&#65291; Add archer to scoring group</a>
+      </div>
 
       <div>
-         <a href="#" @click="openDialog('addArcher')">Add archer to scoring group</a>
+        <button :disabled="archers.length < 2" class="btn btn-primary btn-lg" id="scoringGroupStartButton">
+          Start Scoring?
+        </button>
+        <div>
+          (save this group to database and begin!)
+        </div>
+
       </div>
     </div>
+
 
     <!-- Settings-->
 
@@ -102,7 +121,7 @@
         </div>
         <div>
           <input size="30" type="text" id="tournyDesc" placeholder="Example: Nock Point Tuesday Mail-in..."
-                 v-model="tournament.name"  />
+                 v-model.trim="tournament.name"  />
         </div>
 
         <div>
@@ -110,6 +129,7 @@
         </div>
         <div>
           <select id="tournamentType" v-model="tournament.type">
+            <option disabled value="">select one</option>
             <option v-for="type in tournamentTypes" :value="type">
               {{ type.description }} ({{ type.arrows}} arrows/{{ type.ends}} ends)
             </option>
@@ -132,12 +152,13 @@
 
         <div><label for="archer">Name:</b></label></div>
         <div><input id="archerName" size=20 type="text" placeholder="Brady Ellison...."
-                 v-model="newArcher.name" />
+                 v-model.trim="newArcher.name" />
         </div>
 
         <div>Bow</div>
         <div>
           <select id="bow" v-model="newArcher.bowClass">
+            <option disabled value="">select one</option>
             <option v-for="bow in bows" :value="bow.abbrev">
               {{ bow.full }} ({{ bow.abbrev }})
             </option>
@@ -147,18 +168,24 @@
         <div>Gender/Age</div>
         <div>
           <select id="gender" v-model="newArcher.gender">
+            <option disabled value="">select one</option>
             <option v-for="gender in genders" :value="gender.abbrev">
               {{ gender.full }}
             </option>
           </select>
           <select id="age" v-model="newArcher.age">
+            <option disabled value="">select one</option>
             <option v-for="age in ages" :value="age.abbrev">
               {{ age.full }}
             </option>
           </select>
 
         </div>
-        <button class="btn btn-primary btn-med" @click="addNewArcher( event )">Add Archer</button>
+        <button
+            :disabled=" !newArcher.name || !newArcher.bowClass || !newArcher.gender ||! newArcher.age"
+            class="btn btn-primary btn-med" @click="addNewArcher(event )">
+          Add Archer
+        </button>
 
       </div>
     </dialog>
