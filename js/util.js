@@ -10,8 +10,13 @@ Array.prototype.rotate = function(n) {
 var Util = {
 
   sadface: "(╯°□°)╯︵ ┻━┻  ",
+  namespace: "",  // namespace added to all saveData/loadData calls
 
   random: function( max ) { return Math.floor(max * Math.random());  },
+
+  setNamespace: function( ns ) {
+    this.namespace = ns;
+  },
 
   //----------------------------------------
   // Do HTTP whizbangery to post a JSON blob
@@ -33,21 +38,21 @@ var Util = {
   // @return null if no value is stored (or an error)
   //----------------------------------------------------------------------
   loadData( key ) {
-    let json = window.localStorage.getItem( key );
+    let json = window.localStorage.getItem( Util.namespace + key );
     try {
       return JSON.parse( json );
     }
     catch (e) {
-      console.error("Loading data " + key + ": " + e );
+      console.error("Loading data " + Util.namespace + key + ": " + e );
     }
     return null;
   },
   saveData( key, value ) {
     try {
-      window.localStorage.setItem( key, JSON.stringify( value ));
+      window.localStorage.setItem( Util.namespace + key, JSON.stringify( value ));
     }
     catch (e) {
-      console.error("Saving data " + key + ": " + e );
+      console.error("Saving data " + Util.namespace + key + ": " + e );
     }
   },
 

@@ -59,49 +59,55 @@
     </div>
 
     <div v-if="!tournament.id" class="joinTournament">
+
       <label for="tournamentId"><b>Tournament code:</b></label>
       <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
              v-model.trim="joinId" @keyup.enter.prevent="joinTournament()" />
       <button class="btn btn-primary btn-sm" @click="joinTournament()">
         Join Tournament
-        </button>
-    </div>
+      </button>
 
+    </div>
     <div v-else class="scoringGroup">
 
       <div>Welcome to the {{ tournament.name }}!</div>
       <div>Use code  "{{ tournament.id }}" to join</div>
 
       <div v-if="!groupName">
-        Name your scoring group: <input size="10" type="text" id="groupName" placeholder="Bale 6"
-               v-model.trim="newGroupName"
+
+        Name your scoring group:
+        <input size="10" type="text" id="groupName"
+               placeholder="Bale 6" v-model.trim="newGroupName"
                @keyup.enter.prevent="setGroupName( )" />
         <button class="btn btn-primary btn-sm" @click="setGroupName()">Save</button>
+
       </div>
       <div  v-else>
+
         <b>Scoring group: {{ groupName }}</b>
 
         <draggable v-model="archers" class="archerList" ghost-class="sort-ghost"
-                 group="people" @start="drag=true" @end="drag=false">
-        <div v-for="archer in archers" :key="archer.id"
-             @touchstart="selectArcher( archer )" @click="selectArcher( archer)">
-          <div class="icon reorderIcon"></div>
-          {{ archer.name }} ({{ archer.bowClass }}-{{ archer.age}}{{archer.gender }})
-        </div>
-      </draggable>
+                   group="people" @start="drag=true" @end="drag=false">
+          <div v-for="archer in archers" :key="archer.id"
+               @touchstart="selectArcher( archer )" @click="selectArcher( archer)">
+            <div class="icon reorderIcon"></div>
+            {{ archer.name }} ({{ archer.bowClass }}-{{ archer.age}}{{archer.gender }})
+          </div>
+        </draggable>
 
-      <div>
-         <a href="#" @click="openDialog('addArcher')">&#65291; Add archer to scoring group</a>
-      </div>
-
-      <div>
-        <button :disabled="archers.length < 2" class="btn btn-primary btn-lg" id="scoringGroupStartButton">
-          Start Scoring?
-        </button>
         <div>
-          (save this group to database and begin!)
+          <a href="#" @click="openDialog('addArcher')">&#65291; Add archer to scoring group</a>
         </div>
 
+        <div>
+          <button :disabled="!archers.length" class="btn btn-primary btn-lg" id="scoringGroupStartButton">
+            Start Scoring?
+          </button>
+          <div>
+            (save this group to database and begin!)
+          </div>
+
+        </div>
       </div>
     </div>
 
@@ -136,7 +142,8 @@
           </select>
         </div>
 
-        <button class="btn btn-primary btn-sm" @click="createTournament( $event )">
+        <button class="btn btn-primary btn-sm" @click="createTournament( $event )"
+                :disabled=" !tournament.name ||! tournament.type">
           Create Tournament
         </button>
 
@@ -236,8 +243,11 @@
   <script src="../js/vue-2.7.15.min.js"></script>
   <script src="../js/vue-router-3.1.3.min.js"></script>
 
-  <script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
+  <script src="../js/Sortable-1.8.4.min.js"></script>
+  <script src="../js/vue-draggable-2.20.0.min.js"></script>
+
+  <!-- <script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script> -->
+  <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script> -->
 
   <script src="../js/util.js"></script>
   <script src="../js/tournament.js"></script>

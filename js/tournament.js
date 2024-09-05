@@ -55,6 +55,7 @@
 // AWS Lambda serverless API deployment endpoint
 
 let dev = true;  // if on a desktop (ie, not deployed)
+let localMode = true;
 
 // FIXME: new lambda?
 let serverURL = "https://ox5gprrilk.execute-api.us-west-2.amazonaws.com/prod/";
@@ -188,20 +189,21 @@ let app = new Vue({
       debugger;
     });
 
+    Util.setNamespace("TS");
+
     let id = this.$route.query.id;
     if (id) {
       await this.loadTournament( id );
     }
 
+    let foo = this;
     this.handleKeypress = (event) => {
-      if (event.shiftKey && (event.key === "C")) {
-        console.log("Coach view!");
-        this.openDialog("coachView");
+      if (event.shiftKey && (event.key === "Z")) {
+        console.error( foo );
+        debugger;
       }
     };
     document.body.addEventListener("keydown", this.handleKeypress );
-
-    // this.setMessage( thisWeeksFocus );
   },
 
   // synchronous app setup before event handling starts
@@ -239,55 +241,22 @@ let app = new Vue({
 
     // save to DB
     createTournament: function( event ) {
-      if (!this.tournament.name) {
-        alert("Please add a description for your tournament");
+      if (this.tournament.id) {
+        alert("Cannot modify an existing tournament. You must make a new one");
         return;
       }
-      if (!this.tournament.type) {
-        alert("Please select a tournament type");
-        return;
-      }
-
-      this.tournament.date = (new Date()).toLocaleDateString();
-      this.tournament.id = this.createNewTournamentId();
       this.saveTournament( this.tournament );
 
       // hack to dismiss modal, maybe store dialog element when opening?
-      this.closeDialogElement( event.target.parentElement.parentElement.parentElement );
+      this.closeDialogElement( event.target.parentElement.parentElement );
 
       this.$forceUpdate();  // deep change to this.tournament does not trigger update
-    },
 
-    // Generate random 4 letter code
-    createNewTournamentId: function() {
-      let randomId = "";
-      for (let i=0; i<4; i++) {
-        randomId += String.fromCharCode(65+this.random(26));
-      }
-      // randomId = "XYZPDQ";
-      return randomId;
-    },
-
-    loadTournament: function( id ) {
-      this.loadLocalTournament( id );
-      this.setMessage( this.tournament.name );
-    },
-    saveTournament: function( tournament ) {
-      this.saveLocalTournament( tournament );
-      this.setMessage( this.tournament.name );
-    },
-
-    loadLocalTournament: function( id ) {
-      if (id) {
-        this.tournament = Util.loadData("tournament"+ id) || {};
-      }
-    },
-    saveLocalTournament: function( tournament ) {
-      Util.saveData("tournament"+ tournament.id, tournament );
+      console.log("tournament created " + JSON.stringify( this.tournament ));
     },
 
     //----------------------------------------
-    async editArrows( event, index ) {
+    async editArrowsXXX( event, index ) {
       if (this.coachView) { this.endEdit(); return; }
 
       this.handleArrowUpdate();
@@ -297,6 +266,7 @@ let app = new Vue({
 
       this.endEdit();
     },
+
 
     selectArcher: function( archer ) {
       console.log("Here we go! " + archer.name);
@@ -311,9 +281,7 @@ let app = new Vue({
       // TODO: add to list of archers on this bale in local storage
       // TODO: add archer to tournament DB
 
-
-          // Archer is created per tournament, there is no unique overall archer PK
-
+      // Archer is created per tournament, there is no unique overall archer PK
 
       this.newArcher = {};
 
@@ -341,7 +309,7 @@ let app = new Vue({
     },
     // @input dialog element itself
     openDialogElement( dialog ) {
-      if (this.dialogIsOpen) {  // can't open two dialogs at once
+      if (!dialog || this.dialogIsOpen) {  // can't open two dialogs at once
         return;
       }
       // grey out game
@@ -448,23 +416,100 @@ let app = new Vue({
       }
       this.loadingData = false;
 
+    },
 
+
+
+    //----------------------------------------
+    //----------------------------------------
+    // Tournament persistence
+    //----------------------------------------
+    //----------------------------------------
+    async loadTournament( tournamentId ) {
+      if (!tournamentId) {
+        console.error("Tried to get null tournament");
+        debugger
+        return;
+      }
+      if (localMode) {
+        this.tournament = Util.loadData("tournament"+ tournamentId) || {};
+      } else {
+        this.loadTournamentFromDB( tournamentId );
+      }
+      if (this.tournament) {
+        this.setMessage( this.tournament.name || "Tournament") ;
+      }
+    },
+
+
+    //----------------------------------------
+    // Generate random 4 letter code
+    // verify this ID doesn't exist already? TODO
+    // This should take place server side to ensure uniqueness
+    //----------------------------------------
+    generateTournamentId: function() {
+      let randomId = "";
+      for (let i=0; i<4; i++) {
+        randomId += String.fromCharCode(65+this.random(26));
+      }
+      return randomId;
     },
 
     //----------------------------------------
-    // save attributes
-    // archer/end, tournament,
+    async saveTournament( tournament ) {
+      if (!tournament || !tournament.name) {
+        return;
+      }
+      this.setMessage( this.tournament.name );
+
+      // this should take place server-side
+      this.tournament.date = (new Date()).toLocaleDateString();
+      this.tournament.id = this.generateTournamentId();
+
+      if (localMode) {
+        Util.saveData("tournament"+ tournament.id, tournament );
+      } else {
+        this.saveTournamentToDB( tournament );
+      }
+    },
+
+
+
     //----------------------------------------
-    async updateTournament() {
+    //----------------------------------------
+    // Archer scorecard persistence
+    //----------------------------------------
+    async getArcher( tournamentId, archerId ) {
+      if (localMode) {
+        return Util.loadData("archer"+archerId+":"+tournamentId);
+      } else {
+        return this.loadArcherFromDB( tournamentId, archerId );
+      }
+    },
+
+    async updateArcher( archer ) {
+      if (localMode) {
+        Util.saveData("archer"+archer.id+":"+archer.tournamentId);
+      } else {
+        this.saveArcherToDB( archer );
+      }
+    },
+
+
+
+
+    //----------------------------------------
+    // save descriptor for tournament with scoring groups
+    // Should ID be generated remotely? Probably.
+    //----------------------------------------
+    async saveTournamentToDB( tournament ) {
       if (this.loadingData) {
         return;  // don't allow updates while still loading from DB
       }
 
-      this.saveLocalTournament( this.tournament );
-
-      if (!this.id) {
-        // we are anonymous, can't to save to remote DB?
-        // alert("No archer ID specified. Can't save to cloud without login");
+      if (!tournament.id) {
+        alert("No tournament ID specified. Can't save");
+        // or do we let the DB generate the ID? Tournaments are immutable
         return;
       }
 
@@ -472,18 +517,19 @@ let app = new Vue({
 
       try {
         this.saveInProgress = true;
-        let postData = this.foo;
+        let postData = tournament;
 
         let response = await fetch( serverURL + "updateTournament",
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
 
         // refresh our local data with whatever goodness the DB thinks we should have (last updated, version)
-        let archer = await response.json();
-        console.log("update resulted in " + JSON.stringify( archer ));
-        if (archer.id) {
-          this.foo = archer;
-        }
+        let result = await response.json();
+        console.log("update resulted in " + JSON.stringify( result ));
+        // only need this for versioning or DB generated ID.  hmmm  FIXME
+        // if (result.id) {
+        //   this.tournament = result;
+        // }
       }
       catch( err ) {
         console.error("Change name: " + JSON.stringify( err ));
@@ -499,17 +545,18 @@ let app = new Vue({
     //----------------------------------------
     // load all names
     //----------------------------------------
-    async loadAllTournaments() {
-      // go get all archers for coach view
+    async loadTournamentsIGuess( tournamentId ) {
       try {
-        let response = await fetch(serverURL + "archers");
+        let response = await fetch(serverURL + "tournament?id" + tournamentId );
         if (!response.ok) { throw await response.json(); }
-        this.allArchers = await response.json();
+        this.tournament = await response.json();
 
-        this.allArchers.sort((a, b) => (a.coach > b.coach));
+        if (response.id) {
+          this.tournament = response;
+        }
       }
       catch (err) {
-        console.err( err );
+        console.error( err );
       }
     },
 
