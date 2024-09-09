@@ -31,13 +31,19 @@
 
     // PK,HK,RK (Primary key or hash key, range key) pick two
 
+    tournamentCodes {
+      code: "XYZ"   // HK
+      date: "1/1/2024"  // RK  (allows querying all of a day's tournaments...why?)
+      id: 42069
+    }
+
     // how to select by code? (ie, join a tournament)
     tournament {
-      id: 69,        // PK
-      code: "XYZ",   // HK (how to enforce this unique each day? PK is code+date?
-      date: 1/1/2024,  // RK (code could be duplicated someday I guess?)
+      id: 42069,     // PK
+      date: "1/1/2024",
       description: "Peanut Farmer 1000",
       type: { "WA 300", ends: 10, arrows: 3, rounds: 1 }
+
       //  archers: [id, id, id, ...]
       //  bales: { name: "14", archers: [...] }
     }
@@ -52,23 +58,23 @@
     // would have to delete archers if groups get messed up (ie, app starts over)
     //   admin control here?
 
-    // I just dont like this table
+    // I just dont like this table - THIS SHOULD NOT EXIST
     scoringGroup {
-      id: 4225,             // in archer
-      tournamentId: 69,     // in tournament and archer
-      name: "42",           // anywhere? (add to archer)
+      tournamentId: 42069,  // in tournament and archer  (HK)
+      id: 42,               // in archer (only needs to be unique to tournament (1-200) RK
+      name: "Bale 42",      // anywhere? (add to archer)
     }
 
 
     // SELECT * WHERE tournament="XYZ" and group="14" ORDER BY scoringGroupOrder
     archerTournament: {
-      tournamentId: 69,   // PK
-      id: "bradyellison" or "433132",   // not an RK?
+      tournamentId: 42069,   // HK
 
-      scoringGroup: "14",    // bale, but could be 2-3 bales  // RK
-      scoringGroupOrder: 2,  // (1-4) priority of archers in group  (RK? no)
+      scoringGroup: 14,      // RK   bale #, could represent several bales
+      scoringGroupOrder: 2,  // (1-4) priority of archers in group
 
-      name: "Brandy Allison",
+      // id: 69,   // (1-999) or "bradyellison"?  unique only to tournament, not globally
+      name: "Brandy Allison",   // secondary HK for stats?
       bow: "FSLR",
       ageGender: "AM",
       ends: [["9","9","9"], ["X","8","7",.]
@@ -396,7 +402,6 @@ let app = new Vue({
         colorLight : "#ffffff",
         correctLevel : QRCode.CorrectLevel.H  // high (L,M,H)
       });
-
 
       qrcode.clear();
       qrcode.makeCode("http://naver.com");
