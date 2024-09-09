@@ -17,9 +17,8 @@
 
 
 // TODO:
-// archer list should be kept in a cookie
 // archer data should be in cloud (how to uniquely ID?)
-// Create v Edit Tournament?
+
 // archer ID is name?  How to avoid dupes at creation? Steal other archer?
 //  Enforce each archer on unique phone? Steal vs overwrite?
 
@@ -30,23 +29,48 @@
 //
 /*  Data model example
 
+    // PK,HK,RK (Primary key or hash key, range key) pick two
+
+    // how to select by code? (ie, join a tournament)
     tournament {
-      id: "XYZ",   // PK (how to enforce this unique each day?
-      date: 1/1/2024,  // RK (PK could be duplicated someday I guess?)
+      id: 69,        // PK
+      code: "XYZ",   // HK (how to enforce this unique each day? PK is code+date?
+      date: 1/1/2024,  // RK (code could be duplicated someday I guess?)
       description: "Peanut Farmer 1000",
       type: { "WA 300", ends: 10, arrows: 3, rounds: 1 }
       //  archers: [id, id, id, ...]
       //  bales: { name: "14", archers: [...] }
+    }
 
+    // DESIGN TODO: scoringGroup is really just a list of archers,
+    // can bale be kept in each archer? can't edit group name then.
+    // id could be name, but how to ensure uniqueness in a tournament? I guess I can't,
+    // if one group has same name, then both bales/archers get merged.
+    // group name lives only in the app to start with (unless created ahead of time)
+    // archer menu (join different group) - need a list of
+    //     groups then (just UNIQUE archer.scoringGroup?)
+    // would have to delete archers if groups get messed up (ie, app starts over)
+    //   admin control here?
+
+    // I just dont like this table
+    scoringGroup {
+      id: 4225,             // in archer
+      tournamentId: 69,     // in tournament and archer
+      name: "42",           // anywhere? (add to archer)
+    }
+
+
+    // SELECT * WHERE tournament="XYZ" and group="14" ORDER BY scoringGroupOrder
     archerTournament: {
-      tournamentId: "XYZ",   // PK
-      archer: {
-        id: "bradyellison",    // RK
-        name: "Brandy Allison",
-        bow: "FSLR",
-        ageGender: "AM",
-      }
-      scoringGroup: "14",    // bale? could be two bales  // RK?
+      tournamentId: 69,   // PK
+      id: "bradyellison" or "433132",   // not an RK?
+
+      scoringGroup: "14",    // bale, but could be 2-3 bales  // RK
+      scoringGroupOrder: 2,  // (1-4) priority of archers in group  (RK? no)
+
+      name: "Brandy Allison",
+      bow: "FSLR",
+      ageGender: "AM",
       ends: [["9","9","9"], ["X","8","7",.]
  }
 */
@@ -91,13 +115,14 @@ let app = new Vue({
     // a tournament is a set of rounds and a set of archer scoring groups (e.g., bales)
     // if scoring groups re-order, you need a new tournament object
     tournament: { },
-    archers: [],  // on a particular bale (or all archers in the tournament?
+    archers: [],           // on a particular bale (scoring group)
+    scoringArcher: null,   // which archer we are currenty editing
 
     newGroupName: "",  // temp for data entry
-    groupName: "",
+    groupName: "",     // immutable key for this scoring group
 
-    newArcher: {},
-    nextArcherId: 0,
+    newArcher: {},     // candidate new archer data model for UI before saving
+    nextArcherId: 0,   // using name as Id. Not great, but numbers are not unique.
 
     genders: [
       {full: "Male", abbrev: "M"},
@@ -191,9 +216,13 @@ let app = new Vue({
 
     Util.setNamespace("TS");
 
-    let id = this.$route.query.id;
-    if (id) {
-      await this.loadTournament( id );
+    let tournamentId = this.$route.query.id;
+    if (tournamentId) {
+      this.tournament = await this.loadTournament( tournamentId );
+      let groupId = this.$route.query.groupId;  // scoring bale
+      if (groupId) {
+        this.archers = await this.loadArchers( tournamentId, groupId );
+      }
     }
 
     let foo = this;
@@ -230,7 +259,7 @@ let app = new Vue({
     // [0, n)
     random: function( max ) { return Math.floor(max * Math.random());  },
 
-    inProgress: function() {
+    updateInProgress: function() {
       return this.saveInProgress || this.loadingData;
     },
 
@@ -255,31 +284,17 @@ let app = new Vue({
       console.log("tournament created " + JSON.stringify( this.tournament ));
     },
 
-    //----------------------------------------
-    async editArrowsXXX( event, index ) {
-      if (this.coachView) { this.endEdit(); return; }
-
-      this.handleArrowUpdate();
-
-      // SAVE TO DB (cloud or local)
-      await this.updateArcherArrows();
-
-      this.endEdit();
-    },
-
-
+    // open scoring page for this archer  TODO
     selectArcher: function( archer ) {
       console.log("Here we go! " + archer.name);
-      // open a scoring page for this archer
+      this.scoringArcher = archer;
     },
 
-    // this list should be kept in a cookie
-    // archer data should be in cloud
     addNewArcher: function( event ) {
-      this.newArcher.id = this.nextArcherId++;
+      this.newArcher.tournamentId = this.tournament.id;
+
       this.archers.push( this.newArcher );
-      // TODO: add to list of archers on this bale in local storage
-      // TODO: add archer to tournament DB
+      this.updateArcher( this.newArcher );
 
       // Archer is created per tournament, there is no unique overall archer PK
 
@@ -425,7 +440,24 @@ let app = new Vue({
     // Tournament persistence
     //----------------------------------------
     //----------------------------------------
-    async loadTournament( tournamentId ) {
+    async loadTournamentByCode( tournamentCode ) {
+      if (!tournamentCode) {
+        console.error("Tried to get null tournament");
+        debugger
+        return;
+      }
+      if (localMode) {
+        this.tournament = Util.loadData("tournament"+ tournamentCode) || {};
+      } else {
+        this.tournament = this.loadTournamentByCodeFromDB( tournamentCode );
+      }
+      if (this.tournament) {
+        this.setMessage( this.tournament.name || "Tournament") ;
+      }
+    },
+
+    //----------------------------------------
+    async loadTournamentById( tournamentId ) {
       if (!tournamentId) {
         console.error("Tried to get null tournament");
         debugger
@@ -434,13 +466,72 @@ let app = new Vue({
       if (localMode) {
         this.tournament = Util.loadData("tournament"+ tournamentId) || {};
       } else {
-        this.loadTournamentFromDB( tournamentId );
+        this.tournament = this.loadTournamentByIdFromDB( tournamentId );
       }
       if (this.tournament) {
         this.setMessage( this.tournament.name || "Tournament") ;
       }
     },
 
+
+    //----------------------------------------
+    // load tournament from 4 letter code that is valid today only, use ID from here on out
+    // code should only be ised for ad-hoc tournaments, not ones set up in advance.
+    //----------------------------------------
+    async loadTournamentByCodeFromDB( tournamentCode ) {
+      if (this.updateInProgress()) {    // one thing at a time...
+        alert("Another action was in progress. Try again.");
+        return null;
+      }
+
+      // server side will use date and short term code to get the persistent ID
+      let date = (new Date()).toLocaleDateString();
+
+      this.loadingData = true;
+      try {
+        let response = await fetch(serverURL +
+                                   "tournaments?code=" + tournamentCode +
+                                   "&date=" + date);
+        if (!response.ok) { throw await response.json(); }
+        let tournament = await response.json();
+        return tournament;
+      }
+      catch (err) {
+        console.error( err );
+        return null;
+      }
+      finally {
+        this.loadingData = false;
+      }
+    },
+
+    //----------------------------------------
+    // load tournament by direct ID (when would this get used?)
+    // in an ad-hoc tournament you'd only have the tournament code (XYZQ).
+    // in an organized tournament you'd have the tournament and bale ID's
+    // .../tournament?tournamentId=69&scoringGroup=42
+    //----------------------------------------
+    async loadTournamentByIdFromDB( tournamentId ) {
+      if (this.updateInProgress()) {    // one thing at a time...
+        alert("Another action was in progress. Try again.");
+        return null;
+      }
+
+      this.loadingData = true;
+      try {
+        let response = await fetch(serverURL + "tournaments?id=" + tournamentId );
+        if (!response.ok) { throw await response.json(); }
+        let tournament = await response.json();
+        return tournament;
+      }
+      catch (err) {
+        console.error( err );
+        return null;
+      }
+      finally {
+        this.loadingData = false;
+      }
+    },
 
     //----------------------------------------
     // Generate random 4 letter code
@@ -464,38 +555,14 @@ let app = new Vue({
 
       // this should take place server-side
       this.tournament.date = (new Date()).toLocaleDateString();
-      this.tournament.id = this.generateTournamentId();
 
       if (localMode) {
+        this.tournament.id = this.generateTournamentId();
         Util.saveData("tournament"+ tournament.id, tournament );
       } else {
-        this.saveTournamentToDB( tournament );
+        this.saveTournamentToDB( tournament );  // ID created in DB
       }
     },
-
-
-
-    //----------------------------------------
-    //----------------------------------------
-    // Archer scorecard persistence
-    //----------------------------------------
-    async getArcher( tournamentId, archerId ) {
-      if (localMode) {
-        return Util.loadData("archer"+archerId+":"+tournamentId);
-      } else {
-        return this.loadArcherFromDB( tournamentId, archerId );
-      }
-    },
-
-    async updateArcher( archer ) {
-      if (localMode) {
-        Util.saveData("archer"+archer.id+":"+archer.tournamentId);
-      } else {
-        this.saveArcherToDB( archer );
-      }
-    },
-
-
 
 
     //----------------------------------------
@@ -503,8 +570,9 @@ let app = new Vue({
     // Should ID be generated remotely? Probably.
     //----------------------------------------
     async saveTournamentToDB( tournament ) {
-      if (this.loadingData) {
-        return;  // don't allow updates while still loading from DB
+      if (this.updateInProgress()) {    // one thing at a time...
+        alert("Another action was in progress. Try again.");
+        return;
       }
 
       if (!tournament.id) {
@@ -513,50 +581,132 @@ let app = new Vue({
         return;
       }
 
-      if (this.saveInProgress) { return; }
-
       try {
         this.saveInProgress = true;
-        let postData = tournament;
 
         let response = await fetch( serverURL + "updateTournament",
-                                    Util.makeJsonPostParams( postData ));
+                                    Util.makeJsonPostParams( tournament ));
         if (!response.ok) { throw await response.json(); }
 
-        // refresh our local data with whatever goodness the DB thinks we should have (last updated, version)
         let result = await response.json();
         console.log("update resulted in " + JSON.stringify( result ));
-        // only need this for versioning or DB generated ID.  hmmm  FIXME
-        // if (result.id) {
-        //   this.tournament = result;
-        // }
+        // no return here because tournament should never be updated only created
       }
       catch( err ) {
         console.error("Change name: " + JSON.stringify( err ));
         alert("Try again. Change name failed " +
               Util.sadface + (err.message || err));
       }
-
-      this.saveInProgress = false;
+      finally {
+        this.saveInProgress = false;
+      }
     },
 
 
 
-    //----------------------------------------
-    // load all names
-    //----------------------------------------
-    async loadTournamentsIGuess( tournamentId ) {
-      try {
-        let response = await fetch(serverURL + "tournament?id" + tournamentId );
-        if (!response.ok) { throw await response.json(); }
-        this.tournament = await response.json();
 
-        if (response.id) {
-          this.tournament = response;
-        }
+
+
+    //----------------------------------------
+    //----------------------------------------
+    // Archer scorecard persistence
+    //----------------------------------------
+    // getArcher is dumb. Is it needed when two people might be scoring the same archer?
+    // Just reload all archers in that case?  What about versioning.
+    // Versioning should be on a single archer...  DB load would be on a single archer
+    // level. Reload whol bale after each save? No, versioning takes care of that.
+    // Versioning is just to prevent a conflict, optimistic locking should do most of the
+    // time. Only an error if two people are updating the same archer, which is an error anyway
+    async getArcher( tournamentId, archerId ) {
+      return this.archers[ archerId ];
+      // there is no DB version of this, use loadTournamentArchers instead
+    },
+
+    //----------------------------------------
+    // load all archers in this tournament and/or on a given bale (scoring group)a
+    // Called only at the beginning of scoring and if there is a versioning error
+    //----------------------------------------
+    async loadArchers( tournamentId, groupId ) {
+      if (localMode) {
+        return Util.loadData("archers:"+tournamentId+"-"+groupId);
+      } else {
+        return this.loadArchersFromDB( tournamentId, groupId );
+      }
+    },
+
+    async updateArcher( archer ) {
+      if (localMode) {
+        archer.id = this.nextArcherId++;    // this needs to come from Tournament or DB
+        Util.saveData("archers:"+archer.tournamentId+"-"+archer.groupId,
+                      this.archers);
+      } else {
+        // save and update local copy with DB versioning and ID creation (if necessary)
+        archer = this.saveArcherToDB( archer ) || archer;
+      }
+    },
+
+
+    //----------------------------------------
+    // save descriptor for tournament with scoring groups
+    // Should ID be generated remotely? Probably.
+    //----------------------------------------
+    async saveArcherToDB( archer ) {
+      if (this.updateInProgress()) {    // one thing at a time...
+        alert("Another action was in progress. Try again.");
+        return null;
+      }
+
+      try {
+        this.saveInProgress = true;
+
+        let response = await fetch( serverURL + "updateTournament",
+                                    Util.makeJsonPostParams( archer ));
+        if (!response.ok) { throw await response.json(); }
+
+        // refresh our local data with whatever goodness the DB thinks
+        // we should have (last updated, version)
+        let result = await response.json();
+        console.log("update resulted in " + JSON.stringify( result ));
+
+        // return updated object (with versioning data, etc)
+        return archer;
+      }
+      catch( err ) {
+        console.error("Change name: " + JSON.stringify( err ));
+        alert("Try again. Change name failed " +
+              Util.sadface + (err.message || err));
+        return null;
+      }
+      finally {
+        this.saveInProgress = false;
+      }
+    },
+
+
+    // async loadArcher() Not needed
+
+    //----------------------------------------
+    // load all archers in this tournament and/or on a given bale (scoring group)
+    //----------------------------------------
+    async loadArchersFromDB( tournamentId, groupId ) {
+      if (this.updateInProgress()) {    // one thing at a time...
+        alert("Another action was in progress. Try again.");
+        return null;
+      }
+
+      try {
+        this.loadingData = true;
+        let response = await fetch(serverURL + "archers?tournamentId" + tournamentId +
+                                   "&groupId = " + groupId );
+        if (!response.ok) { throw await response.json(); }
+        return await response.json();
       }
       catch (err) {
         console.error( err );
+        return null;
+      }
+      finally {
+        this.loadingData = false;
       }
     },
 

@@ -46,7 +46,7 @@
              title="Create new tournament"
              @click="openDialog('createTournament')"></div>
 
-        <div v-if="inProgress()" class="spinner-border spinner-border-sm"></div>
+        <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
       </div>
 
       <div>
