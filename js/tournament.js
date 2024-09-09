@@ -1,4 +1,4 @@
-/*global fetch, Vue, VueRouter, Util */
+/*global fetch, Vue, VueRouter, Util, QRCode */
 /*jslint esversion: 8 */
 //-----------------------------------------------------------------------
 //  Copyright 2024, David Whitney
@@ -381,6 +381,25 @@ let app = new Vue({
       let backdrop = document.getElementById("dialogBackdrop");
       backdrop.addEventListener('click', this.closeDialogOnOutsideClick );
       document.body.addEventListener("keydown", this.closeDialogOnESC );
+    },
+
+    qrcode: function() {
+      let qrcode = new QRCode( document.getElementById("qrcode"),
+                               "http://jindo.dev.naver.com/collie");
+
+      let qrcode2 = new QRCode( document.getElementById("qrcode"), {
+        text: "http://jindo.dev.naver.com/collie",
+        width: 256,
+        height: 256,
+        // typeNumber : 4,   // https://www.qrcode.com/en/codes/
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H  // high (L,M,H)
+      });
+
+
+      qrcode.clear();
+      qrcode.makeCode("http://naver.com");
     },
 
 
