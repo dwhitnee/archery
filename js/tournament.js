@@ -41,6 +41,10 @@
     tournament {
       id: 42069,     // PK
       date: "1/1/2024",
+
+      // code: "XYZ",   // secondary Index on code and date (to replace tournamentCodes)
+      // code: "XYZ1/1/2024",
+
       description: "Peanut Farmer 1000",
       type: { "WA 300", ends: 10, arrows: 3, rounds: 1 }
 
@@ -500,7 +504,7 @@ let app = new Vue({
 
     //----------------------------------------
     // load tournament from 4 letter code that is valid today only, use ID from here on out
-    // code should only be ised for ad-hoc tournaments, not ones set up in advance.
+    // code should only be used for ad-hoc tournaments, not ones set up in advance.
     //----------------------------------------
     async loadTournamentByCodeFromDB( tournamentCode ) {
       if (this.updateInProgress()) {    // one thing at a time...
@@ -584,25 +588,19 @@ let app = new Vue({
         this.tournament.id = this.generateTournamentId();
         Util.saveData("tournament"+ tournament.id, tournament );
       } else {
-        this.saveTournamentToDB( tournament );  // ID created in DB
+        this.tournament = this.saveTournamentToDB( tournament );  // ID created in DB
       }
     },
 
 
     //----------------------------------------
     // save descriptor for tournament with scoring groups
-    // Should ID be generated remotely? Probably.
+    // ID to be generated remotely.
     //----------------------------------------
     async saveTournamentToDB( tournament ) {
       if (this.updateInProgress()) {    // one thing at a time...
         alert("Another action was in progress. Try again.");
-        return;
-      }
-
-      if (!tournament.id) {
-        alert("No tournament ID specified. Can't save");
-        // or do we let the DB generate the ID? Tournaments are immutable
-        return;
+        return null;
       }
 
       try {
@@ -614,12 +612,13 @@ let app = new Vue({
 
         let result = await response.json();
         console.log("update resulted in " + JSON.stringify( result ));
-        // no return here because tournament should never be updated only created
+        return result;  // now with ID and code(?)
       }
       catch( err ) {
         console.error("Change name: " + JSON.stringify( err ));
         alert("Try again. Change name failed " +
               Util.sadface + (err.message || err));
+        return null;
       }
       finally {
         this.saveInProgress = false;
@@ -683,7 +682,7 @@ let app = new Vue({
       try {
         this.saveInProgress = true;
 
-        let response = await fetch( serverURL + "updateTournament",
+        let response = await fetch( serverURL + "updateArcher",
                                     Util.makeJsonPostParams( archer ));
         if (!response.ok) { throw await response.json(); }
 
