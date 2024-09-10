@@ -23,7 +23,7 @@ module.exports = {
   getNextValueInSequence: async function( sequenceName ) {
     let dbParams = {
       TableName: "AtomicCounters",
-      Key: sequenceName, // ex: "TournamentArchers"
+      Key: sequenceName,        // ex: "Tournaments"
       UpdateExpression: "ADD count :inc",
       // UpdateExpression: 'SET count = count + :inc',
       ExpressionAttributeValues: {':val': 1},

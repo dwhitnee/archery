@@ -24,6 +24,7 @@ const TournamentSequence = "AT_Tournaments";  // row in AtomicCounters
 
 // let db = require('./dynamoDB');  // All the Dynamo stuff
 import db from './dynamoDB.js';  // All the Dynamo stuff
+import atomicCounter from './atomicCounter.js';  // Sequence generator
 
 module.exports = {
 
@@ -37,25 +38,28 @@ module.exports = {
   //----------------------------------------
 
   //----------------------------------------
-  getArcherAllResults: async function( name ) {
+  getArcherAllResults: async function( archerName ) {
     let argNames =  { "#name": "name" };
     let filter =  "#name = :name";   // could be "contains( #name )"
-    let args = { ":name": name };
+    let args = { ":name": archerName };
 
     return await db.getRecordsByFilter( ArcherTableName, filter, argNames, args );
   },
+
   //----------------------------------------
-  // Scan for all archers and remove entries that are not this coach
-  // NOTE: does not scale - should make a secondary index on coach name
-  // @param coach: name
+  // @param tournamentId
+  // @param groupId: bale or scoring group
   //----------------------------------------
   getArchersByScoringGroup: async function( tournamentId, groupId ) {
     if (!groupId) {
       return await db.getAllRecords( ArcherTableName );
     }
-
-    let args = { "tournamentId": tournamentId, "groupId": groupId };
-    return await db.getRecordByKeys( ArcherTableName, args );
+    let args = {
+      ':tournamentId': 'tournamentId',
+      ':groupId': groupId
+    };
+    let query = "tournamentId = :tournamentId and scoringGroup = :groupId";
+    return await db.getRecordsByQuery( ArcherTableName, query, args );
   },
 
   // Keys (archer.tournamentId, archer.name) are presumed to be present
@@ -63,10 +67,12 @@ module.exports = {
     return await db.saveRecord( ArcherTableName, archer );   // really, overwrite archer
   },
   deleteArcher: async function( tournamentId, archerName ) {
-    throw new Error("deleting Archer unsupported without PK");
-    // return await db.deleteRecord( ArcherTableName, ?? );
+    let keys = {
+      "tournamentId": tournamentId,
+      "name": archerName
+    };
+    return await db.deleteRecordByKeys( ArcherTableName, keys );
   },
-
 
 
   //----------------------------------------
@@ -76,20 +82,19 @@ module.exports = {
 
   //----------------------------------------
   getTournament: async function( id ) {
-    let args = { "id": id };
-    return await db.getRecordByKeys( TournamentTableName, args );
+    return await db.getRecordById( TournamentTableName, id );
   },
 
-  //----------------------------------------
-  getTournamentByCode: async function( code, date ) {
-    let args = { "code": code, "date": date };
-    let tournament = await db.getRecordByKeys( TournamentCodesTableName, args );
-    if (tournament) {
-      return this.getTournamentById( tournament.id );
-    }
-    console.error("No tournament found for " + code + " on " + date);
-    return null;
-  },
+  // //----------------------------------------
+  // getTournamentByCode: async function( code, date ) {
+  //   let args = { "code": code, "date": date };
+  //   let tournament = await db.getRecordByKeys( TournamentCodesTableName, args );
+  //   if (tournament) {
+  //     return this.getTournamentById( tournament.id );
+  //   }
+  //   console.error("No tournament found for " + code + " on " + date);
+  //   return null;
+  // },
 
   //----------------------------------------
   // get all tournaments after given date. If null, then all tournaments ever
@@ -106,15 +111,19 @@ module.exports = {
     }
   },
 
-  // update either only the given attribute (datatype), or the whole object
-  // OK, update doesn't really work, only save
+  //----------------------------------------
+  // overwrite tournament data
+  // if new, go get a unique ID
+  //----------------------------------------
   updateTournament: async function( data ) {
-    // PK (data.id) is presumed to be present
+    if (!data.id) {
+      data.id = atomicCounter.getNextValueInSequence( TournamentSequence );
+    }
     return await db.saveRecord( TournamentTableName, data ); // really, overwrite
   },
+
   deleteTournament: async function( id ) {
-    let keys = {"id": id };
-    return await db.deleteRecordByKeys( TournamentTableName, keys );
+    return await db.deleteRecord( TournamentTableName, id );
   },
 
 };
