@@ -29,7 +29,8 @@
 _Tournament_
 {
   "id",    PK
-  "date",
+  "date",  //  index HK
+  "code",  //  index RK   "XYZQ"
   "description",
   "type" { desc, ends, arrows, rounds }
 }
@@ -41,7 +42,7 @@ _Archer_
   "scoringGroup"      // RK   bale #, could represent several bales
   "scoringGroupOrder" // (1-4) priority of archers in group
 
-  "name"             // GSI secondary HK for stats?
+  "name"             // index HK for stats
   "bow" "FSLR",
   "ageGender"        // AM, SF, YF, ...
   "ends"             // [["9","9","9"], ["X","8","7",.]
@@ -57,7 +58,7 @@ _Archer_
 // import * as archerDB  from './tournamentDB.js';  // All the Dynamo stuff
 // import * as message from './responseHandler.js';  // HTTP message handling
 
-let archerDB = require('./tournamentDB');  // All the Dynamo stuff
+let tournamentDB = require('./tournamentDB');  // All the Dynamo stuff
 let message = require('./responseHandler');  // HTTP message handling
 
 
@@ -68,129 +69,107 @@ let db = {
 
   //----------------------------------------------------------------------
   // All archers for given coach [optional]
-  // @param: coach - optional
+  // @param: tournamentId
+  // @param: groupId - scoring bale
   //----------------------------------------------------------------------
   getArchers: async function( request ) {
+    message.verifyParam( request, "tournamentId");  // throws on error
+    message.verifyParam( request, "groupId");
+
     let query = request.queryStringParameters;
-    let coach = query ? query.coach : undefined;
-    return await archerDB.getArchersByCoach( coach );
+    return await tournamentDB.getArchersByScoringGroup(  query.tournamentId, query.groupId );
   },
 
   //----------------------------------------------------------------------
-  // Get basic attributes for an archer
-  // @param: userId
+  // Get results for an archer in all tournaments they participated in
+  // @param: archerName
   //----------------------------------------------------------------------
-  getArcher: async function( request ) {
-    message.verifyParam( request, "userId");  // throws on error
+  getArcherAllResults: async function( request ) {
+    message.verifyParam( request, "name");  // throws on error
 
     let query = request.queryStringParameters;
-    let userId = query.userId;
-    userId = userId.replace(/\W/g,'_');    // sanitize ID
-
-    return await archerDB.getArcherById( userId );
+    return await tournamentDB.getArcherAllResults( query.name );
   },
 
   //----------------------------------------------------------------------
-  // Update all year's data in DB, this stomps existing data,
-  //  should there be subcalls?  UpdateArrows? UpdateCoach?
+  // Update scores for one archer
   //
   // @param all data for archer in request.body
   // @return saved value
   //----------------------------------------------------------------------
   updateArcher: async function( request ) {
     let data = JSON.parse( request.body );
-
-    // Remove spaces/specials from Name (if id is user inputted and not from login)
-    // we need to munger on getAecher as well.
-    data.id = data.id.replace(/\W/g,'_');       // sanitize ID
-
-    return await archerDB.updateArcher( data );
+    return await tournamentDB.updateArcher( data );
   },
 
   //----------------------------------------------------------------------
-  // Wipe archer out (delete data, too?)
-  // @param userId
+  // Remove archer from tournament
+  //
+  // @param tournament
+  // @param archerName
   // @return nothing
   //----------------------------------------------------------------------
   deleteArcher: async function( request ) {
-    message.verifyParam( request, "userId");
+    message.verifyParam( request, "tournamentId");
+    message.verifyParam( request, "archerName");
 
     let params = JSON.parse( request.body );
-    return await archerDB.deleteArcher( params.userId );
+    return await tournamentDB.deleteArcher( params.tournamentId, params.archerName );
   },
 
-  //----------------------------------------------------------------------
-  // Get array of activites for an archer's year
-  // @param: userId
-  //----------------------------------------------------------------------
-  getArcherData: async function( request ) {
-    let query = request.queryStringParameters;
-
-    message.verifyParam( request, "userId");
-    message.verifyParam( request, "year");
-
-    return await archerDB.getArcherDataByArcherAndYear( query.userId, query.year );
-  },
 
   //----------------------------------------------------------------------
-  // Get array of activites for an archer's year
-  // @param: userId
-  //----------------------------------------------------------------------
-  getAllArchersData: async function( request ) {
-    let query = request.queryStringParameters;
-    message.verifyParam( request, "year");
-    return await archerDB.getAllArcherDataByYear( query.year );
-  },
-
-  //----------------------------------------------------------------------
-  // Pass in ALL data
-  // This would include version, "arrows" (say), and return version at least (updatedDate?)
-  // Maybe it's best to pass the whole kit and kaboodle, or make a new table for all the other
-  // random crap? ArcherArrows, ArcherScores, ArcherWorkouts. Or make ArcherData *everything*
-  // I think it's smarter to send in the whole blob (because versioning)
-  // OR load existing blob, merge the two, ick
-  // Is the worry that one bad update could destroy everything? Does it matter, once damage done?
-  // more important when multiple users, but not so much with a single user.
+  // Metadata for a tournament. Query by unique ID or by 4 letter code + date
+  //  code+date could be considered unique, but that's not certain
   //
+  // @param: id - tournament ID
+  //  OR
+  // @param: code - random 4 letter identifier
+  // @param: date - of tournament (so code does not beed to be univerally unique)
+  //----------------------------------------------------------------------
+  getTournament: async function( request ) {
+    let query = request.queryStringParameters;
+    if (query.id) {
+      return await tournamentDB.getTournamentById( query.id );
+    } else {
+      message.verifyParam( request, "code");
+      message.verifyParam( request, "date");
+      return await tournamentDB.getTournamentByCodeAndDate( query.code, query.date );
+    }
+  },
+
+  //----------------------------------------------------------------------
+  // Get all tournaments since given date ("1/1/2024")  2024/01/01 better
+  // @param: date
+  //----------------------------------------------------------------------
+  getTournaments: async function( request ) {
+    let query = request.queryStringParameters;
+    message.verifyParam( request, "date");
+    return await tournamentDB.getTournamentsAfterDate( query.date );
+  },
+
+  //----------------------------------------------------------------------
+  // Pass in all data about tournament, but ID and Code might not yet exist
+  // if this is creation call
   //
-  // Update all year's data in DB, this stomps existing data of this type.
-  /* {
-       id: David1234,
-       year: 2024,
-       data: { arrows: [...], scores: [....]
-     }
-*/
   // @param data blob with DB keys and data type (key) to save
   // @return savedValue
   //----------------------------------------------------------------------
-  updateArcher: async function( request ) {
-    message.verifyParam( request, "userId");
-    message.verifyParam( request, "year");
-    message.verifyParam( request, "data");
-    // message.verifyParam( request, "dataType");
-
-    let input = JSON.parse( request.body );
-
-    // parse request into a storable data blob
-    let data = input.data;
-    data.id = input.userId;
-    data.year = ""+input.year;
-
-    return await archerDB.updateArcherData( data );
+  updateTournament: async function( request ) {
+    let data = JSON.parse( request.body );
+    return await tournamentDB.updateTournament( data );
   },
 
   //----------------------------------------------------------------------
-  // Wipe all year's data out (should there be a way to wipe just one data type?)
-  // @param userId
-  // @param year
+  // Wipe tournament
+  // @param id
   // @return nothing
   //----------------------------------------------------------------------
-  deleteArcherData: async function( request ) {
-    message.verifyParam( request, "userId");
-    message.verifyParam( request, "year");
+  deleteTournament: async function( request ) {
+    message.verifyParam( request, "id");
 
     let params = JSON.parse( request.body );
-    return await archerDB.deleteArcherData( params.userId, params.year );
+    return await tournamentDB.deleteTournament( params.id );
   }
 };
 
@@ -214,14 +193,13 @@ module.exports = {
   //  Archers
   //----------------------------------------
   getArchers: function( request, context, callback ) {
-    console.log("Hello! " +  message );
     message.runFunctionAndRespond( request, callback, async function() {
       return await db.getArchers( request ); });
   },
 
-  getArcher: function( request, context, callback ) {
+  getArcherAllResults: function( request, context, callback ) {
     message.runFunctionAndRespond( request, callback, async function() {
-      return await db.getArcher( request ); });
+      return await db.getArcherAllResults( request ); });
   },
 
   updateArcher: function( request, context, callback ) {
@@ -235,26 +213,26 @@ module.exports = {
   },
 
   //----------------------------------------
-  //  ArcherData
+  //  Tournament
   //----------------------------------------
-  getArcherData: function( request, context, callback ) {
+  getTournament: function( request, context, callback ) {
     message.runFunctionAndRespond( request, callback, async function() {
-      return await db.getArcherData( request ); });
+      return await db.getTournament( request ); });
   },
 
-  getAllArchersData: function( request, context, callback ) {
+  getTournaments: function( request, context, callback ) {
     message.runFunctionAndRespond( request, callback, async function() {
-      return await db.getAllArchersData( request ); });
+      return await db.getTournaments( request ); });
   },
 
-  updateArcherData: function( request, context, callback ) {
+  updateTournament: function( request, context, callback ) {
     message.runFunctionAndRespond( request, callback, async function() {
-      return await db.updateArcherData( request ); });
+      return await db.updateTournament( request ); });
   },
 
-  deleteArcherData: function( request, context, callback ) {
+  deleteTournament: function( request, context, callback ) {
     message.runFunctionAndRespond( request, callback, async function() {
-      return await db.deleteArcherData( request ); });
+      return await db.deleteTournament( request ); });
   }
 
 };

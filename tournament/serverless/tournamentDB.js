@@ -15,11 +15,10 @@
 // No longer using Node-style callback( err, data );
 //----------------------------------------------------------------------
 
-const ArcherTableName = "AT_Archers";
-const TournamentTableName = "AT_Tournaments";
-const TournamentCodesTableName = "AT_TournamentCodes";
+const ArcherTableName = "TS_Archers";
+const TournamentTableName = "TS_Tournaments";
 
-const TournamentSequence = "AT_Tournaments";  // row in AtomicCounters
+const TournamentSequence = "TS_Tournaments";  // row in AtomicCounters
 
 
 // let db = require('./dynamoDB');  // All the Dynamo stuff
@@ -38,15 +37,6 @@ module.exports = {
   //----------------------------------------
 
   //----------------------------------------
-  getArcherAllResults: async function( archerName ) {
-    let argNames =  { "#name": "name" };
-    let filter =  "#name = :name";   // could be "contains( #name )"
-    let args = { ":name": archerName };
-
-    return await db.getRecordsByFilter( ArcherTableName, filter, argNames, args );
-  },
-
-  //----------------------------------------
   // @param tournamentId
   // @param groupId: bale or scoring group
   //----------------------------------------
@@ -60,6 +50,15 @@ module.exports = {
     };
     let query = "tournamentId = :tournamentId and scoringGroup = :groupId";
     return await db.getRecordsByQuery( ArcherTableName, query, args );
+  },
+
+  //----------------------------------------
+  getArcherAllResults: async function( archerName ) {
+    let argNames =  { "#name": "name" };
+    let filter =  "#name = :name";   // could be "contains( #name )"
+    let args = { ":name": archerName };
+
+    return await db.getRecordsByFilter( ArcherTableName, filter, argNames, args );
   },
 
   // Keys (archer.tournamentId, archer.name) are presumed to be present
@@ -81,25 +80,30 @@ module.exports = {
   //----------------------------------------
 
   //----------------------------------------
-  getTournament: async function( id ) {
+  getTournamentById: async function( id ) {
     return await db.getRecordById( TournamentTableName, id );
   },
 
-  // //----------------------------------------
-  // getTournamentByCode: async function( code, date ) {
-  //   let args = { "code": code, "date": date };
-  //   let tournament = await db.getRecordByKeys( TournamentCodesTableName, args );
-  //   if (tournament) {
-  //     return this.getTournamentById( tournament.id );
-  //   }
-  //   console.error("No tournament found for " + code + " on " + date);
-  //   return null;
-  // },
+  //----------------------------------------
+  getTournamentByCodeAndDate: async function( code, date ) {
+    let filter = "#code = :code AND #date = :date";
+
+    let argNames =  {  // Naming variables avoids reserved words
+      "#code": "code",
+      "#date": "date"
+    };
+    let args = {
+      "code": code,
+      "date": date
+    };
+
+    return await db.getRecordsByFilter( TournamentTableName, filter, argNames, args );
+  },
 
   //----------------------------------------
   // get all tournaments after given date. If null, then all tournaments ever
   //----------------------------------------
-  getAllTournamentsAfter: async function( date ) {
+  getTournamentsAfterDate: async function( date ) {
     if (!date) {
       return await db.getAllRecords( TournamentTableName );
     } else {
@@ -119,6 +123,10 @@ module.exports = {
     if (!data.id) {
       data.id = atomicCounter.getNextValueInSequence( TournamentSequence );
     }
+    if (!data.code) {
+      // do what?  FIXME
+    }
+
     return await db.saveRecord( TournamentTableName, data ); // really, overwrite
   },
 

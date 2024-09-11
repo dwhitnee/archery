@@ -517,7 +517,7 @@ let app = new Vue({
       }
 
       // server side will use date and short term code to get the persistent ID
-      let date = (new Date()).toLocaleDateString();
+      let date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
 
       this.loadingData = true;
       try {
@@ -585,8 +585,8 @@ let app = new Vue({
       }
       this.setMessage( this.tournament.name );
 
-      // this should take place server-side
-      this.tournament.date = (new Date()).toLocaleDateString();
+      // this should take place server-side? No, use the locale of the adhoc app user
+      this.tournament.date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
 
       if (localMode) {
         this.tournament.id = this.generateTournamentId();
