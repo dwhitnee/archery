@@ -159,23 +159,27 @@ let app = new Vue({
     tournamentTypes: [
       {
         "description": "WA 300",
-        "arrows": 3, "ends": 10
+        "arrows": 3, "ends": 10, maxArrowScore: 10
+      },
+      {
+        "description": "Lancaster 300",
+        "arrows": 3, "ends": 10, maxArrowScore: 11
       },
       // {
       //   "description": "WA 600",
-      //   "arrows": 3, "ends": 10, rounds: 2
+      //   "arrows": 3, "ends": 10, maxArrowScore: 10, rounds: 2
       // },
       {
         "description": "Blueface 300",
-        "arrows": 5, "ends": 12
+        "arrows": 5, "ends": 12, maxArrowScore: 5
       },
       {
         "description": "Outdoor 720",
-        "arrows": 6, "ends": 12
+        "arrows": 6, "ends": 12, maxArrowScore: 10
       },
       {
         "description": "NFAA 900",
-        "arrows": 5, "ends": 5, rounds: 3
+        "arrows": 5, "ends": 5, maxArrowScore: 10, rounds: 3
       }
     ],
 
@@ -442,12 +446,12 @@ let app = new Vue({
     //----------------------------------------
     // get all archers and arrow counts on this bale or scoring group
     //----------------------------------------
-    async getArcherGroup( tournamentId, groupName ) {
+    async getArcherGroup( tournamentId, groupId ) {
       try {
         this.loadingData = true;
         let response = await fetch(serverURL + "tournamentArchers" +
                                    "?tournamentId=" + tournamentId +
-                                   "&groupName=" + groupName );
+                                   "&groupId=" + groupId );
         if (!response.ok) { throw await response.json(); }
         let archers = await response.json();
         if (archers) {
