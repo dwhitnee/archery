@@ -49,6 +49,8 @@ module.exports = {
       ':groupId': groupId
     };
     let query = "tournamentId = :tournamentId and scoringGroup = :groupId";
+
+    // this array needs to be sorted by scoringGroupOrder  FIXME
     return await db.getRecordsByQuery( ArcherTableName, query, args );
   },
 

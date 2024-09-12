@@ -280,6 +280,9 @@ let app = new Vue({
     joinTournament: function() {
       this.joinCode = this.joinCode.toUpperCase();
       this.tournament = this.getTournamentByCode( this.joinCode );
+      if (!this.tournament.id) {
+        alert("No tournament found named " + this.joinCode);
+      }
     },
 
     // save to DB
@@ -306,6 +309,7 @@ let app = new Vue({
 
     addNewArcher: function( event ) {
       this.newArcher.tournamentId = this.tournament.id;
+      this.newArcher.groupId = this.groupName;
 
       this.newArcher = this.updateArcher( this.newArcher );
       this.archers.push( this.newArcher );
@@ -320,6 +324,14 @@ let app = new Vue({
       // this.bale.pop( archer );
     },
 
+    startScoring: function() {
+      for (let i=0; i < this.archers.length; i++) {
+        this.updateArcher( this.archers[i]);  // save the current order of archers
+      }
+
+      // move to scoring page TODO
+      alert("scoring page goes here");
+    },
 
     //----------------z------------------------
     // Dialog handlers
@@ -419,28 +431,28 @@ let app = new Vue({
     // Tournament persistence
     //----------------------------------------
     //----------------------------------------
-    async getTournamentByCode( tournamentCode ) {
+    getTournamentByCode: function( tournamentCode ) {
       if (!tournamentCode) {
         console.error("Tried to get null tournament");  debugger
-        return null;
+        return {};
       }
       if (localMode) {
-        return Util.loadData("tournament"+ tournamentCode);
+        return Util.loadData("tournament"+ tournamentCode) || {};
       } else {
-        return this.loadTournamentByCodeFromDB( tournamentCode );
+        return this.loadTournamentByCodeFromDB( tournamentCode ) || {};
       }
     },
 
     //----------------------------------------
-    async getTournamentById( tournamentId ) {
+    getTournamentById: function( tournamentId ) {
       if (!tournamentId) {
         console.error("Tried to get null tournament"); debugger
-        return null;
+        return {};
       }
       if (localMode) {
         return Util.loadData("tournament"+ tournamentId) || {};
       } else {
-        return this.loadTournamentByIdFromDB( tournamentId );
+        return this.loadTournamentByIdFromDB( tournamentId ) || {};
       }
     },
 
@@ -458,7 +470,7 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    async saveTournament() {
+    saveTournament: function() {
       if (!this.tournament || !this.tournament.name) {
         return;
       }
@@ -486,7 +498,8 @@ let app = new Vue({
     // Versioning is just to prevent a conflict, optimistic locking should do most of the
     // time. Only an error if two people are updating the same archer, which is an error anyway
     async getArcher( tournamentId, archerId ) {
-      return this.archers[ archerId ];
+      throw new Error("WTF");
+      // return this.archers[ archerId ]; this doesn't even work, archers is an array
       // there is no DB version of this, use loadTournamentArchers instead
     },
 
@@ -494,11 +507,11 @@ let app = new Vue({
     // load all archers in this tournament and/or on a given bale (scoring group)a
     // Called only at the beginning of scoring and if there is a versioning error
     //----------------------------------------
-    async getArchers( tournamentId, groupId ) {
+    getArchers: function( tournamentId, groupId ) {
       if (localMode) {
-        return Util.loadData("archers:"+tournamentId+"-"+groupId);
+        return Util.loadData("archers:"+tournamentId+"-"+groupId) || [];
       } else {
-        return this.loadArchersFromDB( tournamentId, groupId );
+        return this.loadArchersFromDB( tournamentId, groupId ) || [];
       }
     },
 
@@ -506,17 +519,27 @@ let app = new Vue({
     // update archer in DB.
     // @return archer so any metadata added can be updated in local copy
     //----------------------------------------
-    async updateArcher( archer ) {
+    updateArcher: function( archer ) {
       if (localMode) {
         // hacky way to store single archer in a group without SELECT
 
-        let archerGroup = this.loadArchers( archer.tournamentId, archer.groupId );
-        archerGroup[archer.name] = archer;
-        Util.saveData("archer:"+archer.tournamentId+"-"+archer.groupId, archerGroup);
+        let archerList = this.getArchers( archer.tournamentId, archer.groupId );
+
+        // iterate over archer array until we've found our man to update or be added
+        let i = archerList.findIndex( a => (a.name == archer.name));
+        if (i < 0)  {
+          i = archerList.length; // new archer to add
+        }
+        archerList[i] = archer;
+
+        Util.saveData("archers:"+archer.tournamentId+"-"+archer.groupId, archerList );
 
         return archer;
       } else {
         // save and update local copy with DB versioning and ID creation (if necessary)
+
+        //  TODO => archer.scoringGroupOrder = position in this.archers
+
         return this.saveArcherToDB( archer );
       }
     },
