@@ -50,7 +50,9 @@
       </div>
 
       <div>
-        <b><div v-if="message" class="message">{{ message }}</div></b>
+        <b><div v-if="tournament" class="message">
+          {{ tournament.name || "Tournament" }}
+        </div></b>
       </div>
 
       <div class="loginMenu">
@@ -62,7 +64,7 @@
 
       <label for="tournamentId"><b>Tournament code:</b></label>
       <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
-             v-model.trim="joinId" @keyup.enter.prevent="joinTournament()" />
+             v-model.trim="joinCode" @keyup.enter.prevent="joinTournament()" />
       <button class="btn btn-primary btn-sm" @click="joinTournament()">
         Join Tournament
       </button>

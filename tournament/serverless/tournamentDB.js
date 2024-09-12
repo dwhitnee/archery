@@ -124,7 +124,7 @@ module.exports = {
       data.id = atomicCounter.getNextValueInSequence( TournamentSequence );
     }
     if (!data.code) {
-      // do what?  FIXME
+      data.code = this.generateCode( 4 );
     }
 
     return await db.saveRecord( TournamentTableName, data ); // really, overwrite
@@ -133,5 +133,22 @@ module.exports = {
   deleteTournament: async function( id ) {
     return await db.deleteRecord( TournamentTableName, id );
   },
+
+
+
+
+  //----------------------------------------
+  // Generate random N letter code
+  // verify this ID doesn't exist already? TODO
+  // This should take place server side to ensure uniqueness
+  //----------------------------------------
+  generateCode: function( size ) {
+    let randomId = "";
+    for (let i=0; i < size; i++) {
+      randomId += String.fromCharCode(65+this.random(26));
+    }
+    return randomId;
+  },
+
 
 };
