@@ -311,8 +311,16 @@ let app = new Vue({
       this.newArcher.tournamentId = this.tournament.id;
       this.newArcher.groupId = this.groupName;
 
-      this.newArcher = this.updateArcher( this.newArcher );
-      this.archers.push( this.newArcher );
+      // This feels wonky. Archer order is part of metadata so we need
+      // to add them to the list before we can save.
+      // But metadata like versioning and any ID isn't created until archer saved so
+      // we still need to update our local copy.  This isn't an issue if we save the whole
+      // array at once, but I felt it was better to save archers
+      // individually, even though their order on the bale is also saved with each archer
+
+      this.archers.push( this.newArcher );   // add archer to list (order matters)
+      let updatedArcher = this.updateArcher( this.newArcher );  // save and update metadata
+      this.archers[this.archers.length-1] = updatedArcher;  // put updated archer in list
 
       this.newArcher = {};
 
@@ -521,24 +529,17 @@ let app = new Vue({
     //----------------------------------------
     updateArcher: function( archer ) {
       if (localMode) {
-        // hacky way to store single archer in a group without SELECT
-
-        let archerList = this.getArchers( archer.tournamentId, archer.groupId );
+        // hacky way to store single archer in a group, stomp the whole thing
+        Util.saveData("archers:"+archer.tournamentId+"-"+archer.groupId, this.archers );
 
         // iterate over archer array until we've found our man to update or be added
-        let i = archerList.findIndex( a => (a.name == archer.name));
-        if (i < 0)  {
-          i = archerList.length; // new archer to add
-        }
-        archerList[i] = archer;
-
-        Util.saveData("archers:"+archer.tournamentId+"-"+archer.groupId, archerList );
-
         return archer;
       } else {
         // save and update local copy with DB versioning and ID creation (if necessary)
+        // also save their order in the group
 
-        //  TODO => archer.scoringGroupOrder = position in this.archers
+        let i = this.archers.findIndex( a => (a.name == archer.name));
+        archer.scoringGroupOrder = (i<0)? 0 : i;
 
         return this.saveArcherToDB( archer );
       }
