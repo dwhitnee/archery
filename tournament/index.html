@@ -60,59 +60,89 @@
       </div>
     </div>
 
-    <div v-if="!tournament.id" class="joinTournament">
+    <div v-if="isMode( ViewMode.TOURNAMENT_START )">
 
-      <label for="tournamentId"><b>Tournament code:</b></label>
-      <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
-             v-model.trim="joinCode" @keyup.enter.prevent="joinTournament()" />
-      <button class="btn btn-primary btn-sm" @click="joinTournament()">
-        Join Tournament
-      </button>
+      <div v-if="!tournament.id" class="joinTournament">
 
-    </div>
-    <div v-else class="scoringGroup">
-
-      <div>Welcome to the {{ tournament.name }}!</div>
-      <div>Use code  "{{ tournament.id }}" to join</div>
-
-      <div v-if="!groupName">
-
-        Name your scoring group:
-        <input size="10" type="text" id="groupName"
-               placeholder="Bale 6" v-model.trim="newGroupName"
-               @keyup.enter.prevent="setGroupName( )" />
-        <button class="btn btn-primary btn-sm" @click="setGroupName()">Save</button>
+        <label for="tournamentId"><b>Tournament code:</b></label>
+        <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
+               v-model.trim="joinCode" @keyup.enter.prevent="joinTournament()" />
+        <button class="btn btn-primary btn-sm" @click="joinTournament()">
+          Join Tournament
+        </button>
 
       </div>
-      <div  v-else>
+      <div v-else class="scoringGroup">
 
-        <b>Scoring group: {{ groupName }}</b>
+        <div>Welcome to the {{ tournament.name }}!</div>
+        <div>Use code  "{{ tournament.id }}" to join</div>
 
-        <draggable v-model="archers" class="archerList" ghost-class="sort-ghost"
-                   group="people" @start="drag=true" @end="drag=false">
-          <div v-for="archer in archers" :key="archer.id"
-               @touchstart="selectArcher( archer )" @click="selectArcher( archer)">
-            <div class="icon reorderIcon"></div>
-            {{ archer.name }} ({{ archer.bowClass }}-{{ archer.age}}{{archer.gender }})
-          </div>
-        </draggable>
+        <div v-if="!groupName">
 
-        <div>
-          <a href="#" @click="openDialog('addArcher')">&#65291; Add archer to scoring group</a>
+          Name your scoring group:
+          <input size="10" type="text" id="groupName"
+                 placeholder="Bale 6" v-model.trim="newGroupName"
+                 @keyup.enter.prevent="setGroupName( )" />
+          <button class="btn btn-primary btn-sm" @click="setGroupName()">Save</button>
+
         </div>
+        <div  v-else>
 
-        <div>
-          <button :disabled="!archers.length" class="btn btn-primary btn-lg"
-                   id="scoringGroupStartButton" @click="startScoring()">
-            Start Scoring?
-          </button>
+          <b>Scoring group: {{ groupName }}</b>
+
+          <draggable v-model="archers" class="archerList" ghost-class="sort-ghost"
+                     group="people" @start="drag=true" @end="drag=false">
+            <div v-for="archer in archers" :key="archer.id"
+                 @touchstart="selectArcher( archer )" @click="selectArcher( archer)">
+              <div class="icon reorderIcon"></div>
+              {{ archer.name }} ({{ archer.bowClass }}-{{ archer.age}}{{archer.gender }})
+            </div>
+          </draggable>
+
           <div>
-            (save this group to database and begin!)
+            <a href="#" @click="openDialog('addArcher')">&#65291; Add archer to scoring group</a>
           </div>
 
+          <div>
+            <button :disabled="!archers.length" class="btn btn-primary btn-lg"
+                     id="scoringGroupStartButton" @click="startScoring()">
+              Start Scoring?
+            </button>
+            <div>
+              (save this group to database and begin!)
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- ======================================== -->
+
+    <div v-if="isMode( ViewMode.ARCHER_LIST )" class="archerList">
+      {{ this.groupName }}
+
+      <div v-for="archer in archers" class="scoreLine">
+        <div> {{ archer.name }} </div>
+        <div> {{ archer.total.score  }} </div>
+        <div> {{ archer.total.xCount }} </div>
+      </div>
+
+    </div>
+
+    <div v-if="isMode( ViewMode.SCORE_SHEET )" class="scorecard">
+      {{ this.archer.name }}
+
+      <div v-for="round in archer.rounds" class="round">
+        <div v-for="end in round.ends" class="end">
+          <div>{{ end }}</div>
+          <div v-for="arrow in end.arrows"> {{ arrow }} </div>
+          <div>{{ end.subTotal }}</div>
+          <div>{{ end.runningTotal }}</div>
+        </div>
+      </div>
+    </div>
+
 
 
     <!-- Settings-->

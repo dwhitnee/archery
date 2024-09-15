@@ -31,6 +31,7 @@
 
     // PK,HK,RK (Primary key or hash key, range key) pick two
 
+    // redundant, denormalize into Tournament obejct
     tournamentCodes {
       code: "XYZ"   // HK
       date: "1/1/2024"  // RK  (allows querying all of a day's tournaments...why?)
@@ -40,10 +41,8 @@
     // how to select by code? (ie, join a tournament)
     tournament {
       id: 42069,     // PK
-      date: "1/1/2024",
-
-      // code: "XYZ",   // secondary Index on code and date (to replace tournamentCodes)
-      // code: "XYZ1/1/2024",
+      date: "1/1/2024", // secondady HK with code
+      code: "XYZ",      // secondary Index on code and date (to replace tournamentCodes)
 
       description: "Peanut Farmer 1000",
       type: { "WA 300", ends: 10, arrows: 3, rounds: 1 }
@@ -62,12 +61,11 @@
     // would have to delete archers if groups get messed up (ie, app starts over)
     //   admin control here?
 
-    // I just dont like this table - THIS SHOULD NOT EXIST
-    scoringGroup {
-      tournamentId: 42069,  // in tournament and archer  (HK)
-      id: 42,               // in archer (only needs to be unique to tournament (1-200) RK
-      name: "Bale 42",      // anywhere? (add to archer)
-    }
+    // FIXME: Scoring Group/order should be stored independent of scores.
+    // It can be aggregated for a day's shooting though.
+
+    // It's OK, because it can change from round to round as long as
+    // there is only one current round.
 
 
     // SELECT * WHERE tournament="XYZ" and group="14" ORDER BY scoringGroupOrder
@@ -81,7 +79,37 @@
       name: "Brandy Allison",   // secondary HK for stats?
       bow: "FSLR",
       ageGender: "AM",
-      ends: [["9","9","9"], ["X","8","7",.]
+
+      total: { score: 600, xCount: 59 }
+      rounds: [
+        {
+           score: 300,
+           xCount: 29,
+           ends: [
+             {
+               arrows:  ["9","9","9"]
+               subTotal: 27,
+               runningTotal: 27,
+               xCount: 0
+             }
+             {
+               arrows:  ["X","8","M"]
+               subTotal: 18,
+               runningTotal: 45,
+               xCount: 1
+             }
+           ]
+        },
+        // round 2...
+      ]
+  OR
+          ends: [["9","9","9"], ["X","8","7",.]
+          // computed
+          endScore: [27, 25, ...]
+          endXCount: [0,1...]
+          runningTotal: [27, 52, ...]
+          roundScore: 300,
+          roundXCount: 29,
  }
 */
 //  ----------------------------------------------------------------------
@@ -104,6 +132,11 @@ var router = new VueRouter({
   routes: [ ]
 });
 
+const ViewMode = {
+  TOURNAMENT_START: "TOURNAMENT_START",
+  ARCHER_LIST: "ARCHER_LIST",
+  SCORE_SHEET: "SCORE_SHEET"
+};
 
 let app = new Vue({
   router,
@@ -118,12 +151,15 @@ let app = new Vue({
     loadingData: false,    // prevent other actions while this is going on
     adminView: false,
 
-    foo: "foo",  // to be removed
-
+    mode: ViewMode.TOURNAMENT_START,    // what page to show
+    foo: "foo",
     joinCode: "",  // tournament to join (XYZX)
 
-    // a tournament is a set of rounds and a set of archer scoring groups (e.g., bales)
-    // if scoring groups re-order, you need a new tournament object
+    // a tournament is a set of rounds and a set of archer scoring
+    // groups (e.g., bales) if scoring groups re-order, you need a new
+    // tournament object or tournament archers need to be changed in
+    // admin mode
+
     tournament: { },
     archers: [],           // on a particular bale (scoring group)
     scoringArcher: null,   // which archer we are currenty editing
@@ -133,6 +169,8 @@ let app = new Vue({
 
     newArcher: {},     // candidate new archer data model for UI before saving
     nextArcherId: 0,   // using name as Id. Not great, but numbers are not unique.
+
+    archer: {},    // current archer for ScoreSheet
 
     genders: [
       {full: "Male", abbrev: "M"},
@@ -171,11 +209,11 @@ let app = new Vue({
       // },
       {
         "description": "Blueface 300",
-        "arrows": 5, "ends": 12, maxArrowScore: 5
+        "arrows": 5, "ends": 12, maxArrowScore: 5  // 3 rounds of 4 ends?
       },
       {
         "description": "Outdoor 720",
-        "arrows": 6, "ends": 12, maxArrowScore: 10
+        "arrows": 6, "ends": 6, maxArrowScore: 10, rounds: 2
       },
       {
         "description": "NFAA 900",
@@ -266,15 +304,64 @@ let app = new Vue({
       this.messageCountdown = pause + 1;
     },
 
+    isMode: function( mode ) {
+      return this.mode == mode;
+    },
+
     setGroupName: function() {
       this.groupName = this.newGroupName;
     },
 
-    // [0, n)
-    random: function( max ) { return Math.floor(max * Math.random());  },
+    groupName: function() {
+      return this.groupName || this.archers[0].groupName;
+    },
 
     updateInProgress: function() {
       return this.saveInProgress || this.loadingData;
+    },
+
+
+    // do the math. From scratch each time?  Seems like overkill, but probably worth it
+    // The alternative is archer.scoreEnd( end, arrows ) which updates subTotals
+    //
+    computeSubTotals: function( archer, round ) {
+      let runningTotal = 0, xCount = 0;
+
+      archer.roundTotal = 0;
+      archer.xCountTotal = 0;
+      archer.runningTotal = [];
+
+      for (let end=0; end < archer.ends.length; end++) {
+        this.scoreEnd( archer, end );
+        runningTotal += archer.endScore[end];
+        xCount += archer.endXCount[end];
+        archer.runningTotal[end] = runningTotal;
+      }
+      archer.totalScore[round] = runningTotal;
+      archer.xCount[round] = xCount;
+    },
+
+    //----------------------------------------
+    // Update the running totals
+    // @arg archer
+    // @arg end - end number
+    //----------------------------------------
+    scoreEnd: function( archer, end ) {
+      let arrows = archer.ends[end];  // scores for this end, e.g. ["X", "10", "9", "M", ...]
+      archer.endScore[end] = 0;
+      archer.endXCount[end] = 0;
+
+      for (let a=0; a < arrows.length; a++) {
+        if (arrows[a] == "X") { // 10 normally. 11 for Lancaster, 5 for BF
+          archer.endScore[end] += this.tournament.type.maxArrowScore;
+          archer.endXCount[end]++;
+        } else {
+          if (arrows[a] != "M") {  // miss
+            archer.endScore[end] += arrows[a] | 0;  // convert "9" to int
+          }
+        }
+      }
+      this.computeSubTotals( archer, this.tournament.round );
     },
 
     joinTournament: function() {
@@ -337,8 +424,7 @@ let app = new Vue({
         this.updateArcher( this.archers[i]);  // save the current order of archers
       }
 
-      // move to scoring page TODO
-      alert("scoring page goes here");
+      this.mode = ViewMode.ARCHER_LIST;
     },
 
     //----------------z------------------------
@@ -472,7 +558,7 @@ let app = new Vue({
     generateTournamentId: function() {
       let randomId = "";
       for (let i=0; i<4; i++) {
-        randomId += String.fromCharCode(65+this.random(26));
+        randomId += String.fromCharCode( 65 + Util.random(26) );
       }
       return randomId;
     },
