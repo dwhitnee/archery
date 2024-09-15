@@ -88,13 +88,13 @@
            ends: [
              {
                arrows:  ["9","9","9"]
-               subTotal: 27,
+               score: 27,         // sum/subtotal
                runningTotal: 27,
                xCount: 0
              }
              {
                arrows:  ["X","8","M"]
-               subTotal: 18,
+               score: 18,
                runningTotal: 45,
                xCount: 1
              }
@@ -161,6 +161,8 @@ let app = new Vue({
     // admin mode
 
     tournament: { },
+    round: 0,     // which round of the tournament we are scoring (how is this determined? display only?)  Can we move around rounds?  Display only one round at a time?  All rounds?  How to edit and update previous rounds?
+
     archers: [],           // on a particular bale (scoring group)
     scoringArcher: null,   // which archer we are currenty editing
 
@@ -321,47 +323,57 @@ let app = new Vue({
     },
 
 
-    // do the math. From scratch each time?  Seems like overkill, but probably worth it
-    // The alternative is archer.scoreEnd( end, arrows ) which updates subTotals
-    //
-    computeSubTotals: function( archer, round ) {
-      let runningTotal = 0, xCount = 0;
+    //----------------------------------------
+    // Do the math for the whole round.
+    // From scratch each time?  Seems like overkill, but probably worth it
+    //----------------------------------------
+    computeRunningTotals: function( archer, roundNum ) {
+      let runningTotal = 0,  // for each end and total
+          xCount = 0;        // total only
 
-      archer.roundTotal = 0;
-      archer.xCountTotal = 0;
-      archer.runningTotal = [];
+      let round = archer.rounds[roundNum];
 
-      for (let end=0; end < archer.ends.length; end++) {
-        this.scoreEnd( archer, end );
-        runningTotal += archer.endScore[end];
-        xCount += archer.endXCount[end];
-        archer.runningTotal[end] = runningTotal;
+      // running totals for each end
+      for (let endNum=0; endNum < archer.ends.length; endNum++) {
+        let end = round.ends[endNum];
+        runningTotal += end.score;
+        xCount += end.xCount;
+        end.runningTotal = runningTotal;
       }
-      archer.totalScore[round] = runningTotal;
-      archer.xCount[round] = xCount;
+
+      // round totals
+      round.score = runningTotal;
+      round.xCount = xCount;
     },
 
     //----------------------------------------
-    // Update the running totals
+    // Update the scores for a single end.  Then updated round running totals
     // @arg archer
+    // @arg round - round number
     // @arg end - end number
     //----------------------------------------
-    scoreEnd: function( archer, end ) {
-      let arrows = archer.ends[end];  // scores for this end, e.g. ["X", "10", "9", "M", ...]
-      archer.endScore[end] = 0;
-      archer.endXCount[end] = 0;
+    scoreEnd: function( archer, roundNumber, endNumber ) {
+      // scores for this end, e.g. ["X", "10", "9", "M", ...]
+      let end = archer.rounds[roundNumber].ends[endNumber];
+      let arrows = end.arrows;
 
-      for (let a=0; a < arrows.length; a++) {
+      end.score = 0;
+      end.runningTotal = 0;  //
+      end.xCount = 0;
+
+      for (let a=0; a < end.arrows.length; a++) {
         if (arrows[a] == "X") { // 10 normally. 11 for Lancaster, 5 for BF
-          archer.endScore[end] += this.tournament.type.maxArrowScore;
-          archer.endXCount[end]++;
+          end.score += this.tournament.type.maxArrowScore;
+          end.xCount++;
         } else {
           if (arrows[a] != "M") {  // miss
-            archer.endScore[end] += arrows[a] | 0;  // convert "9" to int
+            end.score += arrows[a] | 0;  // convert "9" to int
           }
         }
       }
-      this.computeSubTotals( archer, this.tournament.round );
+
+      // running totals calculated here
+      this.computeRunningTotals( archer, this.round );
     },
 
     joinTournament: function() {
