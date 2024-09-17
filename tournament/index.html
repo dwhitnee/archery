@@ -56,10 +56,11 @@
       </div>
     </div>
 
+
+    <!-- pick a tournament or create a scoring group -->
     <div v-if="isMode( ViewMode.TOURNAMENT_START )">
 
       <div v-if="!tournament.id" class="joinTournament">
-
         <label for="tournamentId"><b>Tournament code:</b></label>
         <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
                v-model.trim="joinCode" @keyup.enter.prevent="joinTournament()" />
@@ -113,10 +114,9 @@
       </div>
     </div>
 
-    <!-- ======================================== -->
-
+    <!-- List of archers in the scoring group - click to enter scores for a single archer -->
     <div v-if="isMode( ViewMode.ARCHER_LIST )" class="archerList">
-      {{ this.groupName }}
+      Scoring for {{ this.groupName }}
 
       <div v-for="archer in archers" class="scoreLine">
         <div> {{ archer.name }} </div>
@@ -126,8 +126,9 @@
 
     </div>
 
+    <!-- enter scores for a single archer -->
     <div v-if="isMode( ViewMode.SCORE_SHEET )" class="scorecard">
-      {{ this.archer.name }}
+      Score for {{ this.archer.name }}
 
       <div v-for="round in archer.rounds" class="round">
         <div v-for="end in round.ends" class="end">

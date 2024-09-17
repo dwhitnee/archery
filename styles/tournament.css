@@ -99,6 +99,10 @@ a {
   margin-top: 2em;
 }
 
+.scoreLine > div {
+  display: inline-block;
+}
+
 /* span all columns */
 .addArcherGrid > h3 {
   grid-column: 1 / -1;

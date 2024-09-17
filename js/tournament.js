@@ -18,6 +18,7 @@
 
 // TODO:
 // archer data should be in cloud (how to uniquely ID?)
+// Round management. It's always round 0
 
 // archer ID is name?  How to avoid dupes at creation? Steal other archer?
 //  Enforce each archer on unique phone? Steal vs overwrite?
@@ -66,6 +67,8 @@
 
     // It's OK, because it can change from round to round as long as
     // there is only one current round.
+
+
 
 
     // SELECT * WHERE tournament="XYZ" and group="14" ORDER BY scoringGroupOrder
@@ -173,6 +176,7 @@ let app = new Vue({
     nextArcherId: 0,   // using name as Id. Not great, but numbers are not unique.
 
     archer: {},    // current archer for ScoreSheet
+    currentRound: 0,
 
     genders: [
       {full: "Male", abbrev: "M"},
@@ -288,6 +292,7 @@ let app = new Vue({
       let groupId = this.$route.query.groupId;  // scoring bale
       if (groupId) {
         this.archers = await this.getArchers( tournamentId, groupId );
+        this.groupName = this.archers[0].groupId;
       }
     }
 
@@ -343,10 +348,20 @@ let app = new Vue({
       let runningTotal = 0,  // for each end and total
           xCount = 0;        // total only
 
+      // init round if first time
+      archer.rounds = archer.rounds || [];
+      if (!archer.rounds[roundNum]) {
+        archer.rounds[roundNum] = {
+          score: 0,
+          xCount: 0,
+          ends : []
+        };
+      }
+
       let round = archer.rounds[roundNum];
 
       // running totals for each end
-      for (let endNum=0; endNum < archer.ends.length; endNum++) {
+      for (let endNum=0; endNum < round.ends.length; endNum++) {
         let end = round.ends[endNum];
         runningTotal += end.score;
         xCount += end.xCount;
@@ -356,6 +371,17 @@ let app = new Vue({
       // round totals
       round.score = runningTotal;
       round.xCount = xCount;
+
+      // all round totals - do we need this?
+      archer.total = {
+        score: 0,
+        xCount: 0
+      };
+      for (let r=0; r < archer.rounds.length; r++) {
+        archer.total.score += archer.rounds[r].score|0;    // "|0" prevents NaN if anything
+        archer.total.xCount += archer.rounds[r].xCount|0;  // is undefined
+      }
+
     },
 
     //----------------------------------------
@@ -451,9 +477,10 @@ let app = new Vue({
       }
 
       this.mode = ViewMode.ARCHER_LIST;
+      // FIXME - populate archers with basic data.
     },
 
-    //----------------z------------------------
+    //----------------------------------------
     // Dialog handlers
     //----------------------------------------
     openDialog( name, openCallback ) {
@@ -640,6 +667,9 @@ let app = new Vue({
     // @return archer so any metadata added can be updated in local copy
     //----------------------------------------
     updateArcher: function( archer ) {
+
+      this.computeRunningTotals( archer, this.currentRound );
+
       if (localMode) {
         // hacky way to store single archer in a group, stomp the whole thing
         Util.saveData("archers:"+archer.tournamentId+"-"+archer.groupId, this.archers );
