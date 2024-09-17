@@ -41,13 +41,9 @@
     <div v-if="loadingData" class="loading spinner-border spinner-border-lg"></div>
 
     <div class="menuBar">
-      <div>
-        <div class="settings icon settingsIcon"
-             title="Create new tournament"
-             @click="openDialog('createTournament')"></div>
+      <a href="create" class="settings icon settingsIcon" title="Create new tournament"></a>
 
-        <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
-      </div>
+      <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
 
       <div>
         <b><div v-if="tournament" class="message">
@@ -124,7 +120,7 @@
 
       <div v-for="archer in archers" class="scoreLine">
         <div> {{ archer.name }} </div>
-        <div> {{ archer.total.score  }} </div>
+        <div> {{ archer.total.score }} </div>
         <div> {{ archer.total.xCount }} </div>
       </div>
 

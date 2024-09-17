@@ -198,25 +198,37 @@ let app = new Vue({
 
     tournamentTypes: [
       {
-        "description": "WA 300",
+        "description": "WA Indoor 300",
         "arrows": 3, "ends": 10, maxArrowScore: 10
       },
+      // {
+      //   "description": "WA indoor 600",
+      //   "arrows": 3, "ends": 10, maxArrowScore: 10, rounds: 2
+      // },
+      // {
+      //   "description": "WA indoor 1200",
+      //   "arrows": 3, "ends": 10, maxArrowScore: 10, rounds: 4,
+      // },
       {
         "description": "Lancaster 300",
         "arrows": 3, "ends": 10, maxArrowScore: 11
       },
-      // {
-      //   "description": "WA 600",
-      //   "arrows": 3, "ends": 10, maxArrowScore: 10, rounds: 2
-      // },
       {
         "description": "Blueface 300",
         "arrows": 5, "ends": 12, maxArrowScore: 5  // 3 rounds of 4 ends?
       },
+      // {
+      //   "description": "Blueface 300 x2",
+      //   "arrows": 5, "ends": 12, maxArrowScore: 5, rounds: 2
+      // },
       {
         "description": "Outdoor 720",
         "arrows": 6, "ends": 6, maxArrowScore: 10, rounds: 2
       },
+      // {
+      //   "description": "Outdoor 1440",
+      //   "arrows": 6, "ends": 6, maxArrowScore: 10, rounds: 4
+      // },
       {
         "description": "NFAA 900",
         "arrows": 5, "ends": 5, maxArrowScore: 10, rounds: 3
@@ -393,11 +405,13 @@ let app = new Vue({
       this.saveTournament();
 
       // hack to dismiss modal, maybe store dialog element when opening?
-      this.closeDialogElement( event.target.parentElement.parentElement );
-
-      this.$forceUpdate();  // deep change to this.tournament does not trigger update
+      // this.closeDialogElement( event.target.parentElement.parentElement );
+      // this.$forceUpdate();  // deep change to this.tournament does not trigger update
 
       console.log("tournament created " + JSON.stringify( this.tournament ));
+
+      // redirect to tournament page
+      window.location.href += "../?id=" + this.tournament.id;
     },
 
     // open scoring page for this archer  TODO
