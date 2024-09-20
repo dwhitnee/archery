@@ -99,8 +99,28 @@ a {
   margin-top: 2em;
 }
 
-.scoreLine > div {
-  display: inline-block;
+.scoreLine {
+  display: grid;
+  grid-template-columns: 4fr 1fr auto;  /* name score xCount */
+}
+.scoreLine.header {
+  font-weight: bold;
+  background-color: inherit;
+  text-decoration: underline;
+}
+
+.round {
+  display: grid;
+  grid-template-columns: 1fr;  /* name score xCount */
+  background-color: green;
+}
+.end {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: .5em;
+}
+.arrowBox {
+  background-color: grey;
 }
 
 /* span all columns */

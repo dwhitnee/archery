@@ -117,8 +117,13 @@
     <!-- List of archers in the scoring group - click to enter scores for a single archer -->
     <div v-if="isMode( ViewMode.ARCHER_LIST )" class="archerList">
       Scoring for {{ this.groupName }}
+      <div class="scoreLine header">
+        <div>Name</div>
+        <div>Score</div>
+        <div>X</div>
+      </div>
 
-      <div v-for="archer in archers" class="scoreLine">
+      <div v-for="archer in archers" class="scoreLine" @click="scoreArcher( archer )">
         <div> {{ archer.name }} </div>
         <div> {{ archer.total.score }} </div>
         <div> {{ archer.total.xCount }} </div>
@@ -131,15 +136,24 @@
       Score for {{ this.archer.name }}
 
       <div v-for="round in archer.rounds" class="round">
-        <div v-for="end in round.ends" class="end">
-          <div>{{ end }}</div>
-          <div v-for="arrow in end.arrows"> {{ arrow }} </div>
+        <div v-for="(end,index) in round.ends" class="end" @click="scoreEnd( archer, end )">
+          <div>{{ index+1 }}</div>
+          <div v-for="arrow in end.arrows" class="arrowBox"> {{ arrow }} </div>
           <div>{{ end.subTotal }}</div>
           <div>{{ end.runningTotal }}</div>
         </div>
       </div>
     </div>
 
+
+
+    <!-- enter scores for a single end -->
+    <div v-if="isMode( ViewMode.SCORE_END )" class="scorecard">
+      End
+      <div v-for="arrow in scoringEnd.arrows" class="arrowBox"> {{ arrow }} </div>
+      <div> Calculator input here </div>
+      <button @click="enterScoreForEnd( archer, scoringEnd )">Enter</button>
+    </div>
 
 
     <!-- Settings-->

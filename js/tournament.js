@@ -138,7 +138,8 @@ var router = new VueRouter({
 const ViewMode = {
   TOURNAMENT_START: "TOURNAMENT_START",
   ARCHER_LIST: "ARCHER_LIST",
-  SCORE_SHEET: "SCORE_SHEET"
+  SCORE_SHEET: "SCORE_SHEET",
+  SCORE_END: "SCORE_END",
 };
 
 let app = new Vue({
@@ -175,7 +176,8 @@ let app = new Vue({
     newArcher: {},     // candidate new archer data model for UI before saving
     nextArcherId: 0,   // using name as Id. Not great, but numbers are not unique.
 
-    archer: {},    // current archer for ScoreSheet
+    archer: {},     // current archer for ScoreSheet
+    scoringEnd: {}, // current end of arrows being scored
     currentRound: 0,
 
     genders: [
@@ -292,7 +294,11 @@ let app = new Vue({
       let groupId = this.$route.query.groupId;  // scoring bale
       if (groupId) {
         this.archers = await this.getArchers( tournamentId, groupId );
-        this.groupName = this.archers[0].groupId;
+        if (!this.archers[0]) {
+          alert("No group named " + groupId );
+        } else {
+          this.groupName = this.archers[0].groupId;
+        }
       }
     }
 
@@ -340,6 +346,55 @@ let app = new Vue({
     },
 
 
+    // switch mode to show an archer's score for the tournament
+    scoreArcher: function( archer ) {
+      this.archer = archer;
+      this.mode = ViewMode.SCORE_SHEET;
+    },
+
+    scoreEnd: function( archer, end ) {
+      this.scoringEnd = end;
+      this.mode = ViewMode.SCORE_END;
+    },
+
+    archerInitialized: function( archer ) {
+      return archer.rounds && archer.rounds[0] && archer.rounds[0].ends;
+    },
+
+
+    // init archer data struct
+    initArcher: function( archer, tournament ) {
+      if (!tournament) {
+        alert("No tournament specified - BUG"); debugger;
+      }
+
+      if (this.archerInitialized( archer )) {
+        alert("Archer already initialzed - BUG"); debugger;
+      }
+
+      archer.rounds = archer.rounds || [];
+      for (let r=0; r < tournament.type.rounds; r++) {
+        if (!archer.rounds[r]) {
+          archer.rounds[r] = {
+            // score: 0,
+            // xCount: 0,
+            ends : []
+          };
+          for (let e=0; e < tournament.type.ends; e++) {
+            archer.rounds[r].ends[e] = {
+              arrows:  [],
+              // score: 0,
+              // runningTotal: 0,
+              // xCount: 0
+            };
+            for (let a=0; a < tournament.type.arrows; a++) {
+              archer.rounds[r].ends[e].arrows[a] = null;  // not 0? ""?
+            };
+          }
+        }
+      }
+    },
+
     //----------------------------------------
     // Do the math for the whole round.
     // From scratch each time?  Seems like overkill, but probably worth it
@@ -348,14 +403,8 @@ let app = new Vue({
       let runningTotal = 0,  // for each end and total
           xCount = 0;        // total only
 
-      // init round if first time
-      archer.rounds = archer.rounds || [];
-      if (!archer.rounds[roundNum]) {
-        archer.rounds[roundNum] = {
-          score: 0,
-          xCount: 0,
-          ends : []
-        };
+      if (!this.archerInitialized( archer )) {
+        this.initArcher( archer, this.tournament );
       }
 
       let round = archer.rounds[roundNum];
@@ -363,8 +412,8 @@ let app = new Vue({
       // running totals for each end
       for (let endNum=0; endNum < round.ends.length; endNum++) {
         let end = round.ends[endNum];
-        runningTotal += end.score;
-        xCount += end.xCount;
+        runningTotal += end.score|0;
+        xCount += end.xCount|0;
         end.runningTotal = runningTotal;
       }
 
@@ -390,9 +439,8 @@ let app = new Vue({
     // @arg round - round number
     // @arg end - end number
     //----------------------------------------
-    scoreEnd: function( archer, roundNumber, endNumber ) {
+    enterScoreForEnd: function( archer, end ) {
       // scores for this end, e.g. ["X", "10", "9", "M", ...]
-      let end = archer.rounds[roundNumber].ends[endNumber];
       let arrows = end.arrows;
 
       end.score = 0;
@@ -446,17 +494,23 @@ let app = new Vue({
       this.scoringArcher = archer;
     },
 
+
     addNewArcher: function( event ) {
       this.newArcher.tournamentId = this.tournament.id;
       this.newArcher.groupId = this.groupName;
+      this.initArcher( this.newArcher, this.tournament );
 
-      // This feels wonky. Archer order is part of metadata so we need
-      // to add them to the list before we can save.
-      // But metadata like versioning and any ID isn't created until archer saved so
-      // we still need to update our local copy.  This isn't an issue if we save the whole
-      // array at once, but I felt it was better to save archers
-      // individually, even though their order on the bale is also saved with each archer
+      // Adding to list then updating the list is wonky.
 
+      // NOTE: Archer order is part of metadata so we need to add them to
+      // the list before we can save. But metadata (like versioning
+      // and any ID) isn't created until archer saved so we still need
+      // to update our local copy.  This isn't an issue if we save the
+      // whole array at once, but I felt it was better to save archers
+      // individually, even though their order on the bale is also
+      // saved with each archer
+
+      // yes this code is weird, but there's a reason
       this.archers.push( this.newArcher );   // add archer to list (order matters)
       let updatedArcher = this.updateArcher( this.newArcher );  // save and update metadata
       this.archers[this.archers.length-1] = updatedArcher;  // put updated archer in list
@@ -471,13 +525,13 @@ let app = new Vue({
       // this.bale.pop( archer );
     },
 
+    // save current archer list to DB and begin tournament
     startScoring: function() {
       for (let i=0; i < this.archers.length; i++) {
         this.updateArcher( this.archers[i]);  // save the current order of archers
       }
 
       this.mode = ViewMode.ARCHER_LIST;
-      // FIXME - populate archers with basic data.
     },
 
     //----------------------------------------
@@ -579,28 +633,42 @@ let app = new Vue({
     //----------------------------------------
     //----------------------------------------
     getTournamentByCode: function( tournamentCode ) {
+      let tournament = {};
+
       if (!tournamentCode) {
         console.error("Tried to get null tournament");  debugger
-        return {};
+        return tournament;
       }
+
       if (localMode) {
-        return Util.loadData("tournament"+ tournamentCode) || {};
+        tournament = Util.loadData("tournament"+ tournamentCode) || {};
       } else {
-        return this.loadTournamentByCodeFromDB( tournamentCode ) || {};
+        tournamentCode =  this.loadTournamentByCodeFromDB( tournamentCode ) || {};
       }
+
+      if (tournament && !tournament.type.rounds) {
+        tournament.type.rounds = 1;  // default
+      }
+      return tournament;
     },
 
     //----------------------------------------
     getTournamentById: function( tournamentId ) {
+      let tournament = {};
+
       if (!tournamentId) {
         console.error("Tried to get null tournament"); debugger
-        return {};
+        return tournament;
       }
       if (localMode) {
-        return Util.loadData("tournament"+ tournamentId) || {};
+        tournament = Util.loadData("tournament"+ tournamentId) || {};
       } else {
-        return this.loadTournamentByIdFromDB( tournamentId ) || {};
+        tournamentId = this.loadTournamentByIdFromDB( tournamentId ) || {};
       }
+      if (tournament && !tournament.type.rounds) {
+        tournament.type.rounds = 1;  // default
+      }
+      return tournament;
     },
 
     //----------------------------------------
@@ -670,19 +738,17 @@ let app = new Vue({
 
       this.computeRunningTotals( archer, this.currentRound );
 
+      // save their order in the group (even if not in a sorted array)
+      let i = this.archers.findIndex( a => (a.name == archer.name));
+      archer.scoringGroupOrder = (i<0)? 0 : i;
+
       if (localMode) {
         // hacky way to store single archer in a group, stomp the whole thing
         Util.saveData("archers:"+archer.tournamentId+"-"+archer.groupId, this.archers );
 
-        // iterate over archer array until we've found our man to update or be added
         return archer;
       } else {
         // save and update local copy with DB versioning and ID creation (if necessary)
-        // also save their order in the group
-
-        let i = this.archers.findIndex( a => (a.name == archer.name));
-        archer.scoringGroupOrder = (i<0)? 0 : i;
-
         return this.saveArcherToDB( archer );
       }
     },
