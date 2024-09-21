@@ -2,6 +2,7 @@ html,body {
   font-family: Arial, Helvetica, sans-serif;
   height: 100%;
   margin: 0;
+  background-color: #eee;
 }
 
 /* [v-cloak] {  display:none !important; } */
@@ -129,17 +130,23 @@ a {
 .arrowBox {
   background-color: lightGray;
   height: 5em;
+  border: 2px solid black;
+  border-radius: .25em;
 }
 
 .calculator {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(7em, 1fr));
-  grid-gap: .25em;
+  grid-gap: .5em;
+  background-color: #aaa;
+  padding: 1em;
+  margin: 1em;
+  border-radius: .25em;
 }
 .calculator > button {
-  /* padding: 2em 3em; */
   width: inherit; /* 7em; */
   height: 6em;
+  font-size: larger;
 }
 
 /* span all columns */

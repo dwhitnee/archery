@@ -132,11 +132,12 @@
     </div>
 
     <!-- enter scores for a single archer -->
+
     <div v-if="isMode( ViewMode.SCORE_SHEET )" class="scorecard">
       Score for {{ this.archer.name }}
 
       <div v-for="round in archer.rounds" class="round">
-        <div v-for="(end,index) in round.ends" class="end" @click="scoreEnd( archer, end )">
+        <div v-for="(end,index) in round.ends" class="end" @click="scoreEnd( archer, end, index )">
           <div>{{ index+1 }}</div>
           <div v-for="arrow in end.arrows" class="arrowBox"> {{ arrow }} </div>
           <div>{{ end.subTotal }}</div>
@@ -145,17 +146,16 @@
       </div>
     </div>
 
-
-
     <!-- enter scores for a single end -->
+
     <div v-if="isMode( ViewMode.SCORE_END )" class="scorecard">
-      End
+      End {{ scoringEndNumber }}
       <div class="arrows">
         <div v-for="arrow in scoringEnd.arrows" class="arrowBox">
         {{ arrow }} </div>
       </div>
       <div  class="calculator">
-        <button v-for="pointValue in pointValues" type="button" class="btn btn-secondary">
+        <button v-for="pointValue in pointValues" type="button" class="btn btn-light">
           {{ pointValue }}
         </button>
         </div>

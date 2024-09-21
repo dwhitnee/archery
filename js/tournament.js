@@ -368,8 +368,9 @@ let app = new Vue({
       this.mode = ViewMode.SCORE_SHEET;
     },
 
-    scoreEnd: function( archer, end ) {
+    scoreEnd: function( archer, end, endNumber ) {
       this.scoringEnd = end;
+      this.scoringEndNumber = endNumber;
       this.mode = ViewMode.SCORE_END;
     },
 
