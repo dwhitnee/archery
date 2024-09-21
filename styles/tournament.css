@@ -119,8 +119,27 @@ a {
   grid-template-columns: 1fr 1fr 1fr;
   padding: .5em;
 }
+
+.arrows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7em, 1fr));
+  padding: 1em;
+  grid-gap: .25em 1em;
+}
 .arrowBox {
-  background-color: grey;
+  background-color: lightGray;
+  height: 5em;
+}
+
+.calculator {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7em, 1fr));
+  grid-gap: .25em;
+}
+.calculator > button {
+  /* padding: 2em 3em; */
+  width: inherit; /* 7em; */
+  height: 6em;
 }
 
 /* span all columns */

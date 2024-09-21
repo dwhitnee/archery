@@ -150,10 +150,18 @@
     <!-- enter scores for a single end -->
     <div v-if="isMode( ViewMode.SCORE_END )" class="scorecard">
       End
-      <div v-for="arrow in scoringEnd.arrows" class="arrowBox"> {{ arrow }} </div>
-      <div> Calculator input here </div>
+      <div class="arrows">
+        <div v-for="arrow in scoringEnd.arrows" class="arrowBox">
+        {{ arrow }} </div>
+      </div>
+      <div  class="calculator">
+        <button v-for="pointValue in pointValues" type="button" class="btn btn-secondary">
+          {{ pointValue }}
+        </button>
+        </div>
+      </div>
       <button @click="enterScoreForEnd( archer, scoringEnd )">Enter</button>
-    </div>
+   </div>
 
 
     <!-- Settings-->

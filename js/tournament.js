@@ -64,7 +64,6 @@
 
     // FIXME: Scoring Group/order should be stored independent of scores.
     // It can be aggregated for a day's shooting though.
-
     // It's OK, because it can change from round to round as long as
     // there is only one current round.
 
@@ -262,6 +261,17 @@ let app = new Vue({
             "UserAgent: " + navigator.userAgent + CRLF +
             "";
     },
+
+    // X,9,8,7,6,5,4,3,2,1,M
+    pointValues() {
+      let values = ["M"];
+      let i = 1;
+      for (; i <= this.tournament.type.maxArrowScore; i++) {
+        values[i] = i;
+      }
+      values[i]="X";
+      return values.slice().reverse();
+    },
   },
 
   //----------------------------------------
@@ -291,13 +301,18 @@ let app = new Vue({
     let tournamentId = this.$route.query.id;
     if (tournamentId) {
       this.tournament = await this.getTournamentById( tournamentId );
-      let groupId = this.$route.query.groupId;  // scoring bale
-      if (groupId) {
-        this.archers = await this.getArchers( tournamentId, groupId );
-        if (!this.archers[0]) {
-          alert("No group named " + groupId );
-        } else {
-          this.groupName = this.archers[0].groupId;
+      if (!this.tournament.type) {
+        alert("There is no tournament named " + tournamentId );
+      } else {
+        let groupId = this.$route.query.groupId;  // scoring bale
+        if (groupId) {
+          this.archers = await this.getArchers( tournamentId, groupId );
+          if (!this.archers[0]) {
+            this.groupName = groupId;
+            console.log("There is no scoring group named " + groupId );
+          } else {
+            this.groupName = this.archers[0].groupId;
+          }
         }
       }
     }
@@ -335,6 +350,7 @@ let app = new Vue({
 
     setGroupName: function() {
       this.groupName = this.newGroupName;
+      window.location.href += "&groupId=" + this.groupName;
     },
 
     groupName: function() {
@@ -665,8 +681,8 @@ let app = new Vue({
       } else {
         tournamentId = this.loadTournamentByIdFromDB( tournamentId ) || {};
       }
-      if (tournament && !tournament.type.rounds) {
-        tournament.type.rounds = 1;  // default
+      if (tournament && tournament.type) {
+        tournament.type.rounds = tournament.type.rounds || 1;  // at least one always
       }
       return tournament;
     },
@@ -719,7 +735,7 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // load all archers in this tournament and/or on a given bale (scoring group)a
+    // load all archers in this tournament and/or on a given bale (scoring group)
     // Called only at the beginning of scoring and if there is a versioning error
     //----------------------------------------
     getArchers: function( tournamentId, groupId ) {
