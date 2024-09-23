@@ -372,7 +372,9 @@ let app = new Vue({
     scoreEnd: function( archer, end, endNumber ) {
       this.scoringEnd = end;
       this.scoringEndNumber = endNumber;
-      this.currentArrow = 0;
+      this.currentArrow = end.arrows.filter((arrow) => arrow != null).length;
+
+
       this.mode = ViewMode.SCORE_END;
     },
 

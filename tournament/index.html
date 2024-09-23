@@ -139,9 +139,9 @@
       <div v-for="round in archer.rounds" class="round">
         <div v-for="(end,index) in round.ends" class="end" @click="scoreEnd( archer, end, index )">
           <div>{{ index+1 }}</div>
-          <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow }} </div>
-          <div>{{ end.subTotal }}</div>
-          <div>{{ end.runningTotal }}</div>
+          <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow || "&nbsp;" }} </div>
+          <div>{{ end.score || "&nbsp;" }}</div>
+          <div>{{ end.runningTotal || "&nbsp;" }}</div>
         </div>
       </div>
     </div>

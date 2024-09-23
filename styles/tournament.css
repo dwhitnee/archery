@@ -119,14 +119,19 @@ a {
 }
 
 .round {
-  display: grid;
-  grid-template-columns: 1fr;  /* name score xCount */
-  background-color: green;
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
 }
 .end {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  padding: .5em;
+  display: table-row;
+  padding: .5em;a
+  background-color: var(--gray);
+  text-align: center;
+}
+.end div {
+  display: table-cell;
+  width: 10%;
 }
 
 .scorecard {
@@ -143,7 +148,7 @@ a {
   display: table-cell;
   border: 1px solid black;
   background-color: lightGray;
-  padding: 1em 0;
+  padding: .5em 0;
   font-weight: bold;
   font-size: larger;
   text-align: center;
@@ -169,7 +174,7 @@ a {
 .calculator .deleteIcon {
   transform: scale(2);
   place-self: center;
-  filter: invert(40%);
+  filter: invert(50%);
 }
 
 /* span all columns */
