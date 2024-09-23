@@ -13,6 +13,10 @@ html,body {
    color: var(--blue);
  }
 
+ .center {
+   text-align: center;
+ }
+
 /* [v-cloak] {  display:none !important; } */
 /* [v-cloak]::before { position: absolute; top: 10em; left: 10em; content: "loading..."; } */
 
@@ -125,17 +129,18 @@ a {
 }
 .end {
   display: table-row;
-  padding: .5em;a
-  background-color: var(--gray);
   text-align: center;
 }
 .end div {
   display: table-cell;
   width: 10%;
 }
+.end .score {
+  border: 1px solid black;
+}
 
 .scorecard {
-  margin: 1em;
+  margin-right: 1em;
 }
 
 .arrows {

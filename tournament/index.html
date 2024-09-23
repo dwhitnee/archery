@@ -116,7 +116,7 @@
 
     <!-- List of archers in the scoring group - click to enter scores for a single archer -->
     <div v-if="isMode( ViewMode.ARCHER_LIST )" class="archerList">
-      Scoring for {{ this.groupName }}
+      Scoring group {{ this.groupName }}
       <div class="scoreLine header">
         <div>Name</div>
         <div>Score</div>
@@ -134,14 +134,22 @@
     <!-- enter scores for a single archer -->
 
     <div v-if="isMode( ViewMode.SCORE_SHEET )" class="scorecard">
-      <h3>{{ this.archer.name }}</h3>
+      <h3 class="center">{{ this.archer.name }}</h3>
 
       <div v-for="round in archer.rounds" class="round">
+
+        <div class="end" style="color: gray">
+          <div>end</div>
+          <div v-for="arrow in round.ends[0].arrows"></div>
+          <div>sum</div>
+          <div>total</div>
+        </div>
+
         <div v-for="(end,index) in round.ends" class="end" @click="scoreEnd( archer, end, index )">
           <div>{{ index+1 }}</div>
           <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow || "&nbsp;" }} </div>
-          <div>{{ end.score || "&nbsp;" }}</div>
-          <div>{{ end.runningTotal || "&nbsp;" }}</div>
+          <div class="score">{{ end.score || "&nbsp;" }}</div>
+          <div class="score">{{ end.runningTotal || "&nbsp;" }}</div>
         </div>
       </div>
     </div>
