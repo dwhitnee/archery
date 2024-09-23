@@ -177,6 +177,7 @@ let app = new Vue({
 
     archer: {},     // current archer for ScoreSheet
     scoringEnd: {}, // current end of arrows being scored
+    currentArrow: 0,
     currentRound: 0,
 
     genders: [
@@ -371,7 +372,38 @@ let app = new Vue({
     scoreEnd: function( archer, end, endNumber ) {
       this.scoringEnd = end;
       this.scoringEndNumber = endNumber;
+      this.currentArrow = 0;
       this.mode = ViewMode.SCORE_END;
+    },
+
+    // calculator button was pushed, update end
+    // translate to integers (including X's and M's)
+    enterArrowScore: function( score ) {
+      if (this.currentArrow >= this.tournament.type.arrows) {
+        alert("Too many arrows - delete one first");
+        return;
+      }
+
+      console.log("Arrow " + (this.currentArrow+1) + " is " + score );
+      this.scoringEnd.arrows[this.currentArrow++] = score;
+
+      // FIXME: sort scoring end high to low (add X to this)
+      this.scoringEnd.arrows.sort( this.compareArrowScores );
+    },
+
+    compareArrowScores: function(a,b) {
+      if (a == "M") { a = 0; }
+      if (b == "M") { b = 0; }
+      if (a == "X") { a = this.tournament.type.maxArrowScore+1; }
+      if (b == "X") { b = this.tournament.type.maxArrowScore+1; }
+      return b-a;
+    },
+
+    deleteArrowScore() {
+      console.log("deleting last arrow " + this.currentArrow );
+      this.scoringEnd.arrows[--this.currentArrow] = null;
+
+      this.$forceUpdate();  // deep change to this.scoringEnd does not trigger update
     },
 
     archerInitialized: function( archer ) {
@@ -403,6 +435,7 @@ let app = new Vue({
               // score: 0,
               // runningTotal: 0,
               // xCount: 0
+
             };
             for (let a=0; a < tournament.type.arrows; a++) {
               archer.rounds[r].ends[e].arrows[a] = null;  // not 0? ""?
@@ -456,7 +489,7 @@ let app = new Vue({
     // @arg round - round number
     // @arg end - end number
     //----------------------------------------
-    enterScoreForEnd: function( archer, end ) {
+    enterScoresForEnd: function( archer, end ) {
       // scores for this end, e.g. ["X", "10", "9", "M", ...]
       let arrows = end.arrows;
 
@@ -477,6 +510,9 @@ let app = new Vue({
 
       // running totals calculated here
       this.computeRunningTotals( archer, this.round );
+
+      // assumes we are only calling this from calculator page
+      this.mode = ViewMode.SCORE_SHEET;
     },
 
     joinTournament: function() {

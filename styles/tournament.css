@@ -5,6 +5,14 @@ html,body {
   background-color: #eee;
 }
 
+ :root {
+  --blue: #1e90ff;
+  --white: #ffffff;
+ }
+ .foo {
+   color: var(--blue);
+ }
+
 /* [v-cloak] {  display:none !important; } */
 /* [v-cloak]::before { position: absolute; top: 10em; left: 10em; content: "loading..."; } */
 
@@ -121,32 +129,47 @@ a {
   padding: .5em;
 }
 
-.arrows {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(7em, 1fr));
-  padding: 1em;
-  grid-gap: .25em 1em;
+.scorecard {
+  margin: 1em;
 }
-.arrowBox {
+
+.arrows {
+  display: table;
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+}
+.arrowScore {
+  display: table-cell;
+  border: 1px solid black;
   background-color: lightGray;
-  height: 5em;
-  border: 2px solid black;
-  border-radius: .25em;
+  padding: 1em 0;
+  font-weight: bold;
+  font-size: larger;
+  text-align: center;
 }
 
 .calculator {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(7em, 1fr));
+  /* grid-template-columns: repeat(auto-fill, minmax(7em, 1fr)); */
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   grid-gap: .5em;
   background-color: #aaa;
   padding: 1em;
-  margin: 1em;
+  margin-top: 1em;
   border-radius: .25em;
 }
 .calculator > button {
   width: inherit; /* 7em; */
-  height: 6em;
+  height: 4em;
   font-size: larger;
+  outline: 2px solid black;
+}
+
+.calculator .deleteIcon {
+  transform: scale(2);
+  place-self: center;
+  filter: invert(40%);
 }
 
 /* span all columns */
