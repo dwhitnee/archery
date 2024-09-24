@@ -23,6 +23,10 @@
 // archer ID is name?  How to avoid dupes at creation? Steal other archer?
 //  Enforce each archer on unique phone? Steal vs overwrite?
 
+// Return button from archer to bale
+// prevent "Done" button if all arrows not scored? mmm
+// scores not saved after end over.
+
 //----------------------------------------------------------------------
 //  OVERVIEW
 //----------------------------------------------------------------------
@@ -485,6 +489,15 @@ let app = new Vue({
 
     },
 
+
+    //----------------------------------------
+    doneWithEnd: function( archer, end ) {
+      // TODO: verify all arrows scored? Or all or nothing perhaps?
+
+      this.enterScoresForEnd( archer, end );
+      this.mode = ViewMode.SCORE_SHEET;
+    },
+
     //----------------------------------------
     // Update the scores for a single end.  Then updated round running totals
     // @arg archer
@@ -510,11 +523,8 @@ let app = new Vue({
         }
       }
 
-      // running totals calculated here
-      this.computeRunningTotals( archer, this.round );
-
-      // assumes we are only calling this from calculator page
-      this.mode = ViewMode.SCORE_SHEET;
+      // running totals calculated here, too
+      this.updateArcher( archer );
     },
 
     joinTournament: function() {
