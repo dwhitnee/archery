@@ -5,17 +5,17 @@ html,body {
   background-color: #eee;
 }
 
- :root {
+:root {
   --blue: #1e90ff;
   --white: #ffffff;
- }
- .foo {
-   color: var(--blue);
- }
+}
+.foo {
+  color: var(--blue);
+}
 
- .center {
-   text-align: center;
- }
+.center {
+  text-align: center;
+}
 
 /* [v-cloak] {  display:none !important; } */
 /* [v-cloak]::before { position: absolute; top: 10em; left: 10em; content: "loading..."; } */
@@ -97,6 +97,10 @@ a {
   justify-content: space-between;
   align-content: space-between;
   align-items: center;
+}
+.scoresheetHeader .icon {
+  margin-right: .25em;
+  margin-top: .25em;
 }
 
 .sort-ghost {

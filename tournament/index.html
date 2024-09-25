@@ -52,7 +52,6 @@
       </div>
 
       <div class="loginMenu">
-        <a href="#">Foo</a>
       </div>
     </div>
 
@@ -119,13 +118,13 @@
       Scoring group {{ this.groupName }}
       <div class="scoreLine header">
         <div>Name</div>
-        <div>Score</div>
+        <div class="center">Score</div>
         <div>X</div>
       </div>
 
       <div v-for="archer in archers" class="scoreLine" @click="scoreArcher( archer )">
         <div> {{ archer.name }} </div>
-        <div> {{ archer.total.score }} </div>
+        <div class="center"> {{ archer.total.score }} </div>
         <div> {{ archer.total.xCount }} </div>
       </div>
 
