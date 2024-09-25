@@ -164,14 +164,15 @@
       End {{ scoringEndNumber+1 }}
       <div class="arrows">
         <div v-for="arrow in scoringEnd.arrows" class="arrowScore">
-        {{ arrow || "&nbsp;" }} </div>
+          {{ arrow || "&nbsp;" }}
+        </div>
       </div>
       <div  class="calculator">
-        <button v-for="pointValue in pointValues" type="button"class="btn btn-light"
+        <button v-for="pointValue in pointValues" type="button" class="btn btn-light"
                 @click="enterArrowScore( pointValue )">
           {{ pointValue }}
         </button>
-        <button type="button" class="btn btn-light" style="display:grid;"
+        <button type="button" class="btn btn-light" style="display: grid;"
                 @click="deleteArrowScore()">
           <div class="icon deleteIcon"></div>
         </button>
@@ -180,7 +181,7 @@
         <button @click="doneWithEnd( archer, scoringEnd )">Done</button>
       </div>
     </div>
-  </div>
+
 
 
     <!-- Settings-->
