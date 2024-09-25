@@ -23,9 +23,7 @@
 // archer ID is name?  How to avoid dupes at creation? Steal other archer?
 //  Enforce each archer on unique phone? Steal vs overwrite?
 
-// Return button from archer to bale
-// prevent "Done" button if all arrows not scored? mmm
-// scores not saved after end over.
+// way to ensure no skipped (blank) ends - can't select beyond last scored end?
 
 //----------------------------------------------------------------------
 //  OVERVIEW
@@ -131,6 +129,13 @@ if (dev) {
   serverURL = "https://317bll5em3.execute-api.us-west-2.amazonaws.com/dev/";
 }
 
+Vue.filter('score', function (value) {
+  if (value == null) {
+    return "\u00A0";  // nbsp
+  } else {
+    return value;
+  }
+});
 
 // Vue-router 3
 var router = new VueRouter({
@@ -494,8 +499,21 @@ let app = new Vue({
     doneWithEnd: function( archer, end ) {
       // TODO: verify all arrows scored? Or all or nothing perhaps?
 
-      this.enterScoresForEnd( archer, end );
-      this.mode = ViewMode.SCORE_SHEET;
+      let arrowsScored = 0;
+      for (let i=0; i < end.arrows.length; i++) {
+        if (end.arrows[i] != null) {
+          arrowsScored++;
+        }
+      }
+
+      if ((arrowsScored == 0) || (arrowsScored == end.arrows.length)) {
+        this.enterScoresForEnd( archer, end );
+        this.mode = ViewMode.SCORE_SHEET;
+      } else {
+        alert("Must score all arrows or no arrows");
+        return;
+      }
+
     },
 
     //----------------------------------------
