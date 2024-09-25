@@ -596,6 +596,10 @@ let app = new Vue({
         this.updateArcher( this.archers[i]);  // save the current order of archers
       }
 
+      this.gotoArcherLlist();
+    },
+
+    gotoArcherLlist: function() {
       this.mode = ViewMode.ARCHER_LIST;
     },
 
