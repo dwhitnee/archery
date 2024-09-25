@@ -134,9 +134,11 @@
     <!-- enter scores for a single archer -->
 
     <div v-if="isMode( ViewMode.SCORE_SHEET )" class="scorecard">
-      <h3 class="center">
-        {{ this.archer.name }}
-        <div class="icon skipIcon" @click="gotoArcherLlist()"></div>
+      <h3 class="scoresheetHeader">
+        <div>{{ this.archer.name }}</div>
+        <button @click="gotoArcherLlist( )">
+          <div class="icon returnIcon"></div>
+        </button>
       </h3>
 
       <div v-for="round in archer.rounds" class="round">

@@ -81,11 +81,22 @@ a {
 .archerList > div:nth-child(even) {
   background-color: #ddd;
 }
-.archerList .icon {
+.icon {
   display: inline-block;
+}
+.archerList .icon {
   cursor: grab;
   margin-right: .5em;
   filter: invert(0);  /* maybe? */
+}
+
+.scoresheetHeader {
+  margin-left: .75em;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-content: space-between;
+  align-items: center;
 }
 
 .sort-ghost {
