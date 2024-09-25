@@ -25,6 +25,11 @@
 
 // way to ensure no skipped (blank) ends - can't select beyond last scored end?
 
+// Tournament Displey
+//   List all archers and scores, sorted by division (or not)
+//   Handicap system?
+
+
 //----------------------------------------------------------------------
 //  OVERVIEW
 //----------------------------------------------------------------------
@@ -199,16 +204,18 @@ let app = new Vue({
       { full: "YA (U18)", abbrev: "U18" },
       { full: "College  (U21)", abbrev: "U21" },
       { full: "Adult", abbrev: "A" },
-      { full: "Old Fart (50+)", abbrev: "S" },
-      { full: "Very Old Fart (60+)", abbrev: "SS" },
-      { full: "Super Old Fart (70+)", abbrev: "MS" },
+      { full: "Master (50+)", abbrev: "S" },
+      { full: "Silver Senior (60+)", abbrev: "SS" },
+      { full: "Master Senior (70+)", abbrev: "MS" },
     ],
 
     bows: [  // Also Trad, Longbow, FS-L,
-      { full: "Barebow", abbrev: "BBR" },
-      { full: "Recurve", abbrev: "FSLR" },
-      { full: "Compound", abbrev: "FS" },
-      { full: "Fixed Pins", abbrev: "BHFS" }
+      { full: "Barebow",   abbrev: "BBR",   nfaa: "Barebow Recurve" },
+      { full: "Recurve",   abbrev: "FSLR",  nfaa: "Freestyle Limited Recurve" },
+      { full: "Compound",  abbrev: "FS",    nfaa: "Freestyle" },
+      { full: "Fixed Pins", abbrev: "BHFS", nfaa: "Bowhunter Freestyle" },
+   // { full: "Traditional", abbrev: "TRAD", nfaa: "Traditional" }
+   // { full: "Longbow",     abbrev: "LB",   nfaa: "Longbow" }
     ],
 
     tournamentTypes: [
@@ -219,6 +226,10 @@ let app = new Vue({
       // {
       //   "description": "WA indoor 600",
       //   "arrows": 3, "ends": 10, maxArrowScore: 10, rounds: 2
+      // },
+      // {
+      //   "description": "Vegas 900",
+      //   "arrows": 3, "ends": 10, maxArrowScore: 10, rounds: 3
       // },
       // {
       //   "description": "WA indoor 1200",
@@ -840,6 +851,22 @@ let app = new Vue({
       }
     },
 
+    //----------------------------------------------------------------------
+    // just archers in given division
+    // Just for display.  Could sort them I suppose, nahhh
+    //----------------------------------------------------------------------
+    getArchersByClass( bow, age, gender ) {
+      let outArchers = [];
+
+      for (let i=0; i< this.archers.length; i++) {
+        let archer = this.archers[i];
+        // ex: FSLR-AM
+        if ((archer.bow == bow.abbrev) && (archer.ageGender == (age.abbrev+gender.abbrev))) {
+          outArchers.push( archer );
+        }
+      }
+      return outArchers;
+    },
 
 
     //----------------------------------------------------------------------
