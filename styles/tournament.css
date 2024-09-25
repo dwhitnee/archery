@@ -17,6 +17,14 @@ html,body {
   text-align: center;
 }
 
+.ellipsis {
+  display: inline-block;
+  width: 80%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* [v-cloak] {  display:none !important; } */
 /* [v-cloak]::before { position: absolute; top: 10em; left: 10em; content: "loading..."; } */
 
@@ -27,10 +35,13 @@ a {
 
 #tournamentApp {
   width: 100%;
-  display: grid;
+  display: table;
+  table-layout: fixed;  /* to fit all on one page/phone */
+
   /* grid-template-columns: 1fr 10fr 1fr; */
   grid-template-rows: auto;
   row-gap: .5em;
+  /* display: grid; */
   grid-template-areas:
     "menuBar";
 }
@@ -92,6 +103,7 @@ a {
 
 .scoresheetHeader {
   margin-left: .75em;
+  padding: .25em 0;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -101,6 +113,10 @@ a {
 .scoresheetHeader .icon {
   margin-right: .25em;
   margin-top: .25em;
+}
+
+h3 {
+  font-size: 1.5em;
 }
 
 .sort-ghost {
@@ -117,7 +133,7 @@ a {
   background: lightgreen;
   border: 2px solid black;
   border-radius: 1em;
-  margin: 2em;
+  margin: 1em;
 }
 
 .scoringGroup > div {

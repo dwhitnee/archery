@@ -91,7 +91,9 @@
             <div v-for="archer in archers" :key="archer.id"
                  @touchstart="selectArcher( archer )" @click="selectArcher( archer)">
               <div class="icon reorderIcon"></div>
-              {{ archer.name }} ({{ archer.bowClass }}-{{ archer.age}}{{archer.gender }})
+              <div class="ellipsis">
+                {{ archer.name }} ({{ archer.bowClass }}-{{ archer.age }}{{ archer.gender }})
+              </div>
             </div>
           </draggable>
 
@@ -134,7 +136,7 @@
 
     <div v-if="isMode( ViewMode.SCORE_SHEET )" class="scorecard">
       <h3 class="scoresheetHeader">
-        <div>{{ this.archer.name }}</div>
+        <div class="ellipsis">{{ this.archer.name }}</div>
         <button @click="gotoArcherLlist( )">
           <div class="icon returnIcon"></div>
         </button>
