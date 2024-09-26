@@ -185,7 +185,6 @@ let app = new Vue({
     round: 0,     // which round of the tournament we are scoring (how is this determined? display only?)  Can we move around rounds?  Display only one round at a time?  All rounds?  How to edit and update previous rounds?
 
     archers: [],           // on a particular bale (scoring group)
-    scoringArcher: null,   // which archer we are currenty editing
     sortedArchers: [],     // For display only (broken down by division [FSLR-AF])
 
     newGroupName: "",  // temp for data entry
@@ -344,6 +343,7 @@ let app = new Vue({
       }
     }
 
+    // debugging only
     let foo = this;
     this.handleKeypress = (event) => {
       if (event.shiftKey && (event.key === "Z")) {
@@ -398,8 +398,9 @@ let app = new Vue({
     scoreEnd: function( archer, end, endNumber ) {
       this.scoringEnd = end;
       this.scoringEndNumber = endNumber;
-      this.currentArrow = end.arrows.filter((arrow) => arrow != null).length;
 
+      // which arrow we are scoring, ie, first null arrow
+      this.currentArrow = end.arrows.filter((arrow) => arrow != null).length;
 
       this.mode = ViewMode.SCORE_END;
     },
@@ -415,10 +416,11 @@ let app = new Vue({
       console.log("Arrow " + (this.currentArrow+1) + " is " + score );
       this.scoringEnd.arrows[this.currentArrow++] = score;
 
-      // FIXME: sort scoring end high to low (add X to this)
+      // sort scoring end high to low - sorry Lancaster
       this.scoringEnd.arrows.sort( this.compareArrowScores );
     },
 
+    // "X" > [1-10] > "M"
     compareArrowScores: function(a,b) {
       if (a == "M") { a = 0; }
       if (b == "M") { b = 0; }
@@ -467,7 +469,7 @@ let app = new Vue({
             };
             for (let a=0; a < tournament.type.arrows; a++) {
               archer.rounds[r].ends[e].arrows[a] = null;  // not 0? ""?
-            };
+            }
           }
         }
       }
@@ -513,7 +515,7 @@ let app = new Vue({
 
 
     //----------------------------------------
-    doneWithEnd: function( archer, end ) {
+    doneWithEnd: async function( archer, end ) {
       // TODO: verify all arrows scored? Or all or nothing perhaps?
 
       let arrowsScored = 0;
@@ -524,7 +526,7 @@ let app = new Vue({
       }
 
       if ((arrowsScored == 0) || (arrowsScored == end.arrows.length)) {
-        this.enterScoresForEnd( archer, end );
+        await this.enterScoresForEnd( archer, end );
         this.mode = ViewMode.SCORE_SHEET;
       } else {
         alert("Must score all arrows or no arrows");
@@ -539,7 +541,7 @@ let app = new Vue({
     // @arg round - round number
     // @arg end - end number
     //----------------------------------------
-    enterScoresForEnd: function( archer, end ) {
+    enterScoresForEnd: async function( archer, end ) {
       // scores for this end, e.g. ["X", "10", "9", "M", ...]
       let arrows = end.arrows;
 
@@ -559,24 +561,26 @@ let app = new Vue({
       }
 
       // running totals calculated here, too
-      this.updateArcher( archer );
+      await this.updateArcher( archer );
+
+      // await archer.save();  // FIXME? class Archer { .. }
     },
 
-    joinTournament: function() {
+    joinTournament: async function() {
       this.joinCode = this.joinCode.toUpperCase();
-      this.tournament = this.getTournamentByCode( this.joinCode );
+      this.tournament = await this.getTournamentByCode( this.joinCode ) || {};
       if (!this.tournament.id) {
         alert("No tournament found named " + this.joinCode);
       }
     },
 
     // save to DB
-    createTournament: function( event ) {
+    createTournament: async function( event ) {
       if (this.tournament.id) {
         alert("Cannot modify an existing tournament. You must make a new one");
         return;
       }
-      this.saveTournament();
+      await this.saveTournament();
 
       // hack to dismiss modal, maybe store dialog element when opening?
       // this.closeDialogElement( event.target.parentElement.parentElement );
@@ -592,32 +596,19 @@ let app = new Vue({
       }
     },
 
-    // open scoring page for this archer  TODO
+    // open scoring page for this archer
     selectArcher: function( archer ) {
-      console.log("Here we go! " + archer.name);
-      this.scoringArcher = archer;
+      // deprecated? No way to press and hold vs drag an archer?
     },
 
 
-    addNewArcher: function( event ) {
+    addNewArcher: async function( event ) {
       this.newArcher.tournamentId = this.tournament.id;
       this.newArcher.groupId = this.groupName;
       this.initArcher( this.newArcher, this.tournament );
 
-      // Adding to list then updating the list is wonky.
-
-      // NOTE: Archer order is part of metadata so we need to add them to
-      // the list before we can save. But metadata (like versioning
-      // and any ID) isn't created until archer saved so we still need
-      // to update our local copy.  This isn't an issue if we save the
-      // whole array at once, but I felt it was better to save archers
-      // individually, even though their order on the bale is also
-      // saved with each archer
-
-      // yes this code is weird, but there's a reason
       this.archers.push( this.newArcher );   // add archer to list (order matters)
-      let updatedArcher = this.updateArcher( this.newArcher );  // save and update metadata
-      this.archers[this.archers.length-1] = updatedArcher;  // put updated archer in list
+      await this.updateArcher( this.newArcher );  // save and update metadata
 
       this.newArcher = {};
 
@@ -630,9 +621,10 @@ let app = new Vue({
     },
 
     // save current archer list to DB and begin tournament
-    startScoring: function() {
+    startScoring: async function() {
       for (let i=0; i < this.archers.length; i++) {
-        this.updateArcher( this.archers[i]);  // save the current order of archers
+        // save the current order of archers
+        await this.updateArcher( this.archers[i] );
       }
 
       this.gotoArcherLlist();
@@ -740,7 +732,7 @@ let app = new Vue({
     // Tournament persistence
     //----------------------------------------
     //----------------------------------------
-    getTournamentByCode: function( tournamentCode ) {
+    getTournamentByCode: async function( tournamentCode ) {
       let tournament = {};
 
       if (!tournamentCode) {
@@ -751,7 +743,7 @@ let app = new Vue({
       if (localMode) {
         tournament = Util.loadData("tournament"+ tournamentCode) || {};
       } else {
-        tournamentCode =  this.loadTournamentByCodeFromDB( tournamentCode ) || {};
+        tournament = await this.loadTournamentByCodeFromDB( tournamentCode ) || {};
       }
 
       if (tournament && !tournament.type.rounds) {
@@ -761,7 +753,7 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    getTournamentById: function( tournamentId ) {
+    getTournamentById: async function( tournamentId ) {
       let tournament = {};
 
       if (!tournamentId) {
@@ -771,7 +763,7 @@ let app = new Vue({
       if (localMode) {
         tournament = Util.loadData("tournament"+ tournamentId) || {};
       } else {
-        tournamentId = this.loadTournamentByIdFromDB( tournamentId ) || {};
+        tournament = await this.loadTournamentByIdFromDB( tournamentId ) || {};
       }
       if (tournament && tournament.type) {
         tournament.type.rounds = tournament.type.rounds || 1;  // at least one always
@@ -793,7 +785,7 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    saveTournament: function() {
+    saveTournament: async function() {
       if (!this.tournament || !this.tournament.name) {
         return;
       }
@@ -806,7 +798,7 @@ let app = new Vue({
         this.tournament.id = this.tournament.code;
         Util.saveData("tournament"+ this.tournament.id, this.tournament );
       } else {
-        this.tournament = this.saveTournamentToDB( this.tournament );  // ID/Code created in DB
+        await this.saveTournamentToDB( this.tournament );  // ID/Code created in DB
       }
     },
 
@@ -830,19 +822,19 @@ let app = new Vue({
     // load all archers in this tournament and/or on a given bale (scoring group)
     // Called only at the beginning of scoring and if there is a versioning error
     //----------------------------------------
-    getArchers: function( tournamentId, groupId ) {
+    getArchers: async function( tournamentId, groupId ) {
       if (localMode) {
         return Util.loadData("archers:"+tournamentId+"-"+groupId) || [];
       } else {
-        return this.loadArchersFromDB( tournamentId, groupId ) || [];
+        return await this.loadArchersFromDB( tournamentId, groupId ) || [];
       }
     },
 
     //----------------------------------------
     // update archer in DB.
-    // @return archer so any metadata added can be updated in local copy
+    // @arg archer - data to save, but also updated with DB metadata (version, date)
     //----------------------------------------
-    updateArcher: function( archer ) {
+    updateArcher: async function( archer ) {
 
       this.computeRunningTotals( archer, this.currentRound );
 
@@ -854,10 +846,9 @@ let app = new Vue({
         // hacky way to store single archer in a group, stomp the whole thing
         Util.saveData("archers:"+archer.tournamentId+"-"+archer.groupId, this.archers );
 
-        return archer;
       } else {
-        // save and update local copy with DB versioning and ID creation (if necessary)
-        return this.saveArcherToDB( archer );
+        // save and update local copy with DB metadata
+        await this.saveArcherToDB( archer );
       }
     },
 
@@ -923,7 +914,7 @@ let app = new Vue({
         this.loadingData = true;
 
         let response = await fetch(serverURL +
-                                   "tournaments?code=" + tournamentCode +
+                                   "tournament?code=" + tournamentCode +
                                    "&date=" + date);
         if (!response.ok) { throw await response.json(); }
         return await response.json();
@@ -952,7 +943,7 @@ let app = new Vue({
       try {
         this.loadingData = true;
 
-        let response = await fetch(serverURL + "tournaments?id=" + tournamentId );
+        let response = await fetch(serverURL + "tournament?id=" + tournamentId );
         if (!response.ok) { throw await response.json(); }
         return await response.json();
       }
@@ -1000,7 +991,7 @@ let app = new Vue({
     async saveTournamentToDB( tournament ) {
       if (this.updateInProgress()) {    // one thing at a time...
         alert("Another action was in progress. Try again.");
-        return null;
+        return;
       }
 
       try {
@@ -1012,13 +1003,14 @@ let app = new Vue({
 
         let result = await response.json();
         console.log("update resulted in " + JSON.stringify( result ));
-        return result;  // now with ID and code(?)
+
+        Object.assign( tournament, result ); // now with ID, code, and version
+        // tournament = {...tournament, ...result};  // ES9 (2018)
       }
       catch( err ) {
         console.error("Create tournament: " + JSON.stringify( err ));
         alert("Try again. Tournament create failed " +
               Util.sadface + (err.message || err));
-        return null;
       }
       finally {
         this.saveInProgress = false;
@@ -1032,7 +1024,7 @@ let app = new Vue({
     async saveArcherToDB( archer ) {
       if (this.updateInProgress()) {    // one thing at a time...
         alert("Another action was in progress. Try again.");
-        return null;
+        return;
       }
 
       try {
@@ -1047,14 +1039,13 @@ let app = new Vue({
         let result = await response.json();
         console.log("update resulted in " + JSON.stringify( result ));
 
-        // return updated object (with versioning data, etc)
-        return result;
+        Object.assign( archer, result ); // now with version, metadata, etc
+        // archer = {...archer, ...result};  // ES9 (2018) icky imho
       }
       catch( err ) {
         console.error("Change name: " + JSON.stringify( err ));
         alert("Try again. Change name failed " +
               Util.sadface + (err.message || err));
-        return null;
       }
       finally {
         this.saveInProgress = false;

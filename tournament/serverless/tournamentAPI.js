@@ -130,7 +130,7 @@ let db = {
   getTournament: async function( request ) {
     let query = request.queryStringParameters;
     if (query.id) {
-      return await tournamentDB.getTournamentById( query.id );
+      return await tournamentDB.getTournamentById( query.id | 0 );  // id is numeric, not str
     } else {
       message.verifyParam( request, "code");
       message.verifyParam( request, "date");

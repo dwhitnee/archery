@@ -97,11 +97,12 @@ module.exports = {
       "#date": "date"
     };
     let args = {
-      "code": code,
-      "date": date
+      ":code": code,
+      ":date": date
     };
 
-    return await db.getRecordsByFilter( TournamentTableName, filter, argNames, args );
+    let result = await db.getRecordsByFilter( TournamentTableName, filter, argNames, args );
+    return result[0];  // should be only one
   },
 
   //----------------------------------------
