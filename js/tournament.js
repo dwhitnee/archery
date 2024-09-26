@@ -34,6 +34,7 @@
 
 // Error handling: try/catch on awaits on DB side?
 
+
 //----------------------------------------------------------------------
 //  OVERVIEW
 //----------------------------------------------------------------------
@@ -337,7 +338,7 @@ let app = new Vue({
             this.groupName = groupId;
             console.log("There is no scoring group named " + groupId );
           } else {
-            this.groupName = this.archers[0].groupId;
+            this.groupName = this.archers[0].scoringGroup;
           }
         }
       }
@@ -377,7 +378,7 @@ let app = new Vue({
 
     setGroupName: function() {
       this.groupName = this.newGroupName;
-      window.location.href += "&groupId=" + this.groupName;
+      window.location.search += "&groupId=" + this.groupName;
     },
 
     groupName: function() {
@@ -569,7 +570,9 @@ let app = new Vue({
     joinTournament: async function() {
       this.joinCode = this.joinCode.toUpperCase();
       this.tournament = await this.getTournamentByCode( this.joinCode ) || {};
-      if (!this.tournament.id) {
+      if (this.tournament.id) {
+        window.location.search = "?id=" + this.tournament.id;
+      } else {
         alert("No tournament found named " + this.joinCode);
       }
     },
@@ -582,15 +585,9 @@ let app = new Vue({
       }
       await this.saveTournament();
 
-      // hack to dismiss modal, maybe store dialog element when opening?
-      // this.closeDialogElement( event.target.parentElement.parentElement );
-      // this.$forceUpdate();  // deep change to this.tournament does not trigger update
-
       if (this.tournament.id) {
         console.log("tournament created " + JSON.stringify( this.tournament ));
-
-        // redirect to tournament page
-        window.location.href += "../?id=" + this.tournament.id;
+        window.location.href += "../?id=" + this.tournament.id;  // redirect to tournament page
       } else {
         alert("Failed to create tournament");
       }
@@ -604,7 +601,7 @@ let app = new Vue({
 
     addNewArcher: async function( event ) {
       this.newArcher.tournamentId = this.tournament.id;
-      this.newArcher.groupId = this.groupName;
+      this.newArcher.scoringGroup = this.groupName;
       this.initArcher( this.newArcher, this.tournament );
 
       this.archers.push( this.newArcher );   // add archer to list (order matters)
@@ -844,7 +841,7 @@ let app = new Vue({
 
       if (localMode) {
         // hacky way to store single archer in a group, stomp the whole thing
-        Util.saveData("archers:"+archer.tournamentId+"-"+archer.groupId, this.archers );
+        Util.saveData("archers:"+archer.tournamentId+"-"+archer.scoringGroup, this.archers );
 
       } else {
         // save and update local copy with DB metadata
@@ -929,7 +926,7 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // load tournament by direct ID (when would this get used?)
+    // load tournament by direct ID
     // in an ad-hoc tournament you'd only have the tournament code (XYZQ).
     // in an organized tournament you'd have the tournament and bale ID's
     // .../tournament?tournamentId=69&scoringGroup=42
@@ -970,7 +967,7 @@ let app = new Vue({
         this.loadingData = true;
 
         let response = await fetch(serverURL + "archers?tournamentId" + tournamentId +
-                                   "&groupId = " + groupId );
+                                   "&scoringGroup = " + groupId );
         if (!response.ok) { throw await response.json(); }
         return await response.json();
       }

@@ -48,7 +48,7 @@ module.exports = {
     }
     let args = {
       ':tournamentId': 'tournamentId',
-      ':groupId': groupId
+      ':scoringGroup': groupId
     };
     let query = "tournamentId = :tournamentId and scoringGroup = :groupId";
 
