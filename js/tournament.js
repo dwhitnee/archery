@@ -182,6 +182,7 @@ let app = new Vue({
 
     archers: [],           // on a particular bale (scoring group)
     scoringArcher: null,   // which archer we are currenty editing
+    sortedArchers: [],     // For display only (broken down by division [FSLR-AF])
 
     newGroupName: "",  // temp for data entry
     groupName: "",     // immutable key for this scoring group
@@ -328,6 +329,7 @@ let app = new Vue({
         let groupId = this.$route.query.groupId;  // scoring bale
         if (groupId) {
           this.archers = await this.getArchers( tournamentId, groupId );
+          this.sortArchersForDisplay();
           if (!this.archers[0]) {
             this.groupName = groupId;
             console.log("There is no scoring group named " + groupId );
@@ -855,16 +857,40 @@ let app = new Vue({
     // just archers in given division
     // Just for display.  Could sort them I suppose, nahhh
     //----------------------------------------------------------------------
-    getArchersByClass( bow, age, gender ) {
+    getArchersByClass: function( bow, age, gender ) {
+      // FSLR-AF
+      return this.sortedArchers[bow.abbrev + "-" + age.abbrev + gender.abbrev] || [];
+    },
+
+    sortArchersForDisplay: function() {
+      for (let b = 0; b < this.bows.length; b++) {
+        for (let a = 0; a < this.ages.length; a++) {
+          for (let g = 0; g < this.genders.length; g++) {
+            const division =
+                  this.bows[b].abbrev + "-" + this.ages[a].abbrev + this.genders[g].abbrev;
+            this.sortedArchers[division] = this.findArchersByClass(
+              this.bows[b], this.ages[a], this.genders[g] );
+          }
+        }
+      }
+      this.$forceUpdate();
+    },
+
+    findArchersByClass( bow, age, gender ) {
       let outArchers = [];
 
       for (let i=0; i< this.archers.length; i++) {
         let archer = this.archers[i];
         // ex: FSLR-AM
-        if ((archer.bow == bow.abbrev) && (archer.ageGender == (age.abbrev+gender.abbrev))) {
+        // if ((archer.bow == bow.abbrev) &&
+        if ((archer.bowClass == bow.abbrev) &&
+            (archer.age == age.abbrev) &&
+            (archer.gender == gender.abbrev))
+        {
           outArchers.push( archer );
         }
       }
+
       return outArchers;
     },
 

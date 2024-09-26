@@ -128,6 +128,11 @@ h3 {
   visibility: hidden;  /* but still in DOM */
 }
 
+.resultsPage {
+  display: grid;
+  padding: 1em;
+}
+
 .scoringGroup {
   padding: 2em;
   background: lightgreen;

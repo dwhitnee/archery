@@ -57,7 +57,7 @@
 
 
     <!-- pick a tournament or create a scoring group -->
-    <div v-if="isMode( ViewMode.TOURNAMENT_SELECT )">
+    <div v-if="isMode( ViewMode.TOURNAMENT_START )">
 
       <div v-if="!tournament.id" class="joinTournament">
         <label for="tournamentId"><b>Tournament code:</b></label>
@@ -68,13 +68,13 @@
         </button>
 
       </div>
-      <div v-else class="scoringGroup">
+      <div v-else class="resultsPage">
 
         <h3>{{ tournament.name }}</h3>
 
         <!-- results like  https://drive.google.com/file/d/1Zmz_iE0EUlASVKqjfVHt3Yms-moM1g9b/view   -->
 
-        <div class="categoryHeader">
+        <div class="categoryHeader scoreLine header">
           <div>Category</div>
           <div v-for="roundNum in tournament.type.rounds"  v-if="tournament.type.rounds > 1">
             <div>Score {{ roundNum+1 }} </div>
@@ -87,20 +87,23 @@
         <div v-for="bow in bows">
           <div v-for="age in ages">
             <div v-for="gender in genders">
-              {{ age }}  {{ gender }}  {{ bow }}
-              <div v-for="archer in getArchersByClass( bow, age, gender )">
-                {{ archer.name }}
-                <div v-for="roundNum in tournament.type.rounds"  v-if="tournament.type.rounds > 1">
-                  {{ archer.rounds[roundNum].score }}
-                  {{ archer.rounds[roundNum].xCount }}
+              <div v-if="getArchersByClass( bow, age, gender ).length">
+                <b>{{ age.full }}  {{ gender.full }}  {{ bow.full }}</b>
+              </div>
+              <div v-for="archer in getArchersByClass( bow, age, gender )" class="archerList">
+                <div class="scoreLine">
+                  <div>{{ archer.name }}</div>
+                  <div v-for="roundNum in tournament.type.rounds"  v-if="tournament.type.rounds > 1">
+                    <div>{{ archer.rounds[roundNum].score }}</div>
+                    <div>{{ archer.rounds[roundNum].xCount }}</div>
+                  </div>
+                  <div>{{ archer.total.score }}</div>
+                  <div>{{ archer.total.xCount }}</div>
                 </div>
-                {{ archer.total.score }}
-                {{ archer.total.xCount }}
               </div>
             </div>
           </div>
         </div>
-
 
       </div>
     </div>
@@ -152,10 +155,10 @@
 
 
   <script src="../../js/vue-2.7.15.min.js"></script>
-  <script src=".. /../js/vue-router-3.1.3.min.js"></script>
+  <script src="../../js/vue-router-3.1.3.min.js"></script>
 
-  <script src=".. /../js/util.js"></script>
-  <script src=".. /../js/tournament.js"></script>
+  <script src="../../js/util.js"></script>
+  <script src="../../js/tournament.js"></script>
 
 
 </body>
