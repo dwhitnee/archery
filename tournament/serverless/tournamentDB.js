@@ -125,7 +125,11 @@ module.exports = {
   //----------------------------------------
   updateTournament: async function( data ) {
     if (!data.id) {
-      data.id = atomicCounter.getNextValueInSequence( TournamentSequence );
+      // run this only once, put this in the catch?
+      // await atomicCounter.createSequence( TournamentSequence );
+
+      data.id = await atomicCounter.getNextValueInSequence( TournamentSequence );
+      console.log("Next ID: " + data.id );
     }
     if (!data.code) {
       data.code = this.generateCode( 4 );
@@ -139,7 +143,7 @@ module.exports = {
   },
 
 
-
+  random: function( max ) { return Math.floor(max * Math.random());  },
 
   //----------------------------------------
   // Generate random N letter code

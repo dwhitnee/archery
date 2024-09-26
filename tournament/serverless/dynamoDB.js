@@ -257,7 +257,7 @@ module.exports = {
         "#dataType": dataType,
       },
       ExpressionAttributeValues: {
-        ":data": data[dataType],
+        ":data": data[dataType],            // WRONG
         ":updatedDate": now.toISOString()
       }
     };

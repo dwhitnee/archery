@@ -57,7 +57,8 @@ provider:
           Action:
             - dynamodb:*
           Resource: [
-              "arn:aws:dynamodb:us-west-2:*:table/TS_*"
+              "arn:aws:dynamodb:us-west-2:*:table/TS_*",
+              "arn:aws:dynamodb:us-west-2:*:table/AtomicCounters"
           ]
 
 #----------------------------------------

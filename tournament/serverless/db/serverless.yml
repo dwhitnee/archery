@@ -30,7 +30,8 @@ provider:
           Action:
             - dynamodb:*
           Resource: [
-              "arn:aws:dynamodb:us-west-2:*:table/TS_*"
+              "arn:aws:dynamodb:us-west-2:*:table/TS_*",
+              "arn:aws:dynamodb:us-west-2:*:table/AtomicCounters"
           ]
 
 # we need a secondary index on name to query all tournaments for a single archer
@@ -38,13 +39,30 @@ provider:
 resources:
   Resources:
 
+    AtomicCountersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: AtomicCounters
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: N
+
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+
     TournamentsTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: TS_Tournaments
         AttributeDefinitions:
           - AttributeName: id
-            AttributeType: S
+            AttributeType: N
           - AttributeName: date
             AttributeType: S
           - AttributeName: code
@@ -78,7 +96,7 @@ resources:
         TableName: TS_Archers
         AttributeDefinitions:
           - AttributeName: tournamentId
-            AttributeType: S
+            AttributeType: N
           - AttributeName: scoringGroup
             AttributeType: S
           - AttributeName: name

@@ -25,10 +25,14 @@
 
 // way to ensure no skipped (blank) ends - can't select beyond last scored end?
 
+// createTournament layout reactive
+// CORS on API-Gateway
+
 // Tournament Displey
 //   List all archers and scores, sorted by division (or not)
 //   Handicap system?
 
+// Error handling: try/catch on awaits on DB side?
 
 //----------------------------------------------------------------------
 //  OVERVIEW
@@ -126,12 +130,12 @@
 // AWS Lambda serverless API deployment endpoint
 
 let dev = true;  // if on a desktop (ie, not deployed)
-let localMode = true;
+let localMode = false;
 
 // FIXME: prod lambda
 let serverURL = "https://CREATE_ME.execute-api.us-west-2.amazonaws.com/prod/";
 if (dev) {
-  serverURL = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev";
+  serverURL = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev/";
 }
 
 Vue.filter('score', function (value) {
@@ -578,10 +582,14 @@ let app = new Vue({
       // this.closeDialogElement( event.target.parentElement.parentElement );
       // this.$forceUpdate();  // deep change to this.tournament does not trigger update
 
-      console.log("tournament created " + JSON.stringify( this.tournament ));
+      if (this.tournament.id) {
+        console.log("tournament created " + JSON.stringify( this.tournament ));
 
-      // redirect to tournament page
-      window.location.href += "../?id=" + this.tournament.id;
+        // redirect to tournament page
+        window.location.href += "../?id=" + this.tournament.id;
+      } else {
+        alert("Failed to create tournament");
+      }
     },
 
     // open scoring page for this archer  TODO
@@ -1007,8 +1015,8 @@ let app = new Vue({
         return result;  // now with ID and code(?)
       }
       catch( err ) {
-        console.error("Change name: " + JSON.stringify( err ));
-        alert("Try again. Change name failed " +
+        console.error("Create tournament: " + JSON.stringify( err ));
+        alert("Try again. Tournament create failed " +
               Util.sadface + (err.message || err));
         return null;
       }
