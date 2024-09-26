@@ -92,7 +92,7 @@
                  @touchstart="selectArcher( archer )" @click="selectArcher( archer)">
               <div class="icon reorderIcon"></div>
               <div class="ellipsis">
-                {{ archer.name }} ({{ archer.bowClass }}-{{ archer.age }}{{ archer.gender }})
+                {{ archer.name }} ({{ archer.bow }}-{{ archer.age }}{{ archer.gender }})
               </div>
             </div>
           </draggable>
@@ -238,7 +238,7 @@
 
         <div>Bow</div>
         <div>
-          <select id="bow" v-model="newArcher.bowClass">
+          <select id="bow" v-model="newArcher.bow">
             <option disabled value="">select one</option>
             <option v-for="bow in bows" :value="bow.abbrev">
               {{ bow.full }} ({{ bow.abbrev }})
@@ -263,7 +263,7 @@
 
         </div>
         <button
-            :disabled=" !newArcher.name || !newArcher.bowClass || !newArcher.gender ||! newArcher.age"
+            :disabled=" !newArcher.name || !newArcher.bow || !newArcher.gender ||! newArcher.age"
             class="btn btn-primary btn-med" @click="addNewArcher(event )">
           Add Archer
         </button>
