@@ -1,5 +1,7 @@
 org: dwhitnee
-app: tournamentScoring
+app: tournament-scoring
+#----------------------------------------
+# org and app above most be created in the serverless app ("sls login")
 #----------------------------------------
 # configuration for uploading code to the AWS cloud
 # https://serverless.com/framework/docs/
@@ -34,7 +36,7 @@ app: tournamentScoring
 # See also https://serverless.com/blog/quick-tips-for-faster-serverless-development/
 #----------------------------------------
 
-service:  tournamentScoring
+service:  tournament-scoring
 frameworkVersion: '3'
 configValidationMode: error
 
@@ -86,7 +88,7 @@ functions:
           cors: true
 
   getArcherAllResults:
-    handler: tournamentAPI.getArchers
+    handler: tournamentAPI.getArcherAllResults
     description: Results for a single named archer in all tournaments
     events:
       - http:

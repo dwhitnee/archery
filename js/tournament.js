@@ -128,10 +128,10 @@
 let dev = true;  // if on a desktop (ie, not deployed)
 let localMode = true;
 
-// FIXME: new lambda?
-let serverURL = "https://ox5gprrilk.execute-api.us-west-2.amazonaws.com/prod/";
+// FIXME: prod lambda
+let serverURL = "https://CREATE_ME.execute-api.us-west-2.amazonaws.com/prod/";
 if (dev) {
-  serverURL = "https://317bll5em3.execute-api.us-west-2.amazonaws.com/dev/";
+  serverURL = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev";
 }
 
 Vue.filter('score', function (value) {

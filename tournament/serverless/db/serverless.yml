@@ -47,7 +47,7 @@ resources:
             AttributeType: S
           - AttributeName: date
             AttributeType: S
-          - AttributeName: description
+          - AttributeName: code
             AttributeType: S
 
         KeySchema:
@@ -81,12 +81,14 @@ resources:
             AttributeType: S
           - AttributeName: scoringGroup
             AttributeType: S
+          - AttributeName: name
+            AttributeType: S
 
         KeySchema:
           - AttributeName: tournamentId
             KeyType: HASH
-           - AttributeName: scoringGroup
-             KeyType: RANGE
+          - AttributeName: scoringGroup
+            KeyType: RANGE
 
         ProvisionedThroughput:
           ReadCapacityUnits: 1

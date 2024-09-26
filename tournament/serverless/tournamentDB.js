@@ -21,9 +21,11 @@ const TournamentTableName = "TS_Tournaments";
 const TournamentSequence = "TS_Tournaments";  // row in AtomicCounters
 
 
-// let db = require('./dynamoDB');  // All the Dynamo stuff
-import db from './dynamoDB.js';  // All the Dynamo stuff
-import atomicCounter from './atomicCounter.js';  // Sequence generator
+let db = require('./dynamoDB');  // All the Dynamo stuff
+let atomicCounter = require('./atomicCounter');  // All the Dynamo stuff
+
+// import db from './dynamoDB.js';  // All the Dynamo stuff
+// import atomicCounter from './atomicCounter.js';  // Sequence generator
 
 module.exports = {
 
