@@ -882,8 +882,7 @@ let app = new Vue({
       for (let i=0; i< this.archers.length; i++) {
         let archer = this.archers[i];
         // ex: FSLR-AM
-        // if ((archer.bow == bow.abbrev) &&
-        if ((archer.bowClass == bow.abbrev) &&
+        if ((archer.bow == bow.abbrev) &&
             (archer.age == age.abbrev) &&
             (archer.gender == gender.abbrev))
         {

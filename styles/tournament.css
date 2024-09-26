@@ -82,16 +82,31 @@ a {
 .archerList {
   padding: 1em;
 }
-
+.archerResultList > div,
 .archerList > div {
   background-color: #ccc;
-  padding: .5em;
-  border-radius: .5em;
-  margin-bottom: .5em;
+  padding: .25em;
 }
-.archerList > div:nth-child(even) {
+.archerList > div {
+  padding: .5em;
+  margin-bottom: .5em;
+  border-radius: .5em;
+}
+.archerList > div:nth-child(even),
+.archerResultList > div:nth-child(even) {
   background-color: #ddd;
 }
+
+.archerResultList {
+  display: table;
+  width: 100%;
+  /* border-collapse: collapse; */
+  /* border: black; */
+}
+.archerResultList .scoreLine {
+  /* border: 1px solid black; */
+}
+
 .icon {
   display: inline-block;
 }
@@ -117,6 +132,7 @@ a {
 
 h3 {
   font-size: 1.5em;
+  margin: .5em 0;
 }
 
 .sort-ghost {
@@ -156,6 +172,7 @@ h3 {
   font-weight: bold;
   background-color: inherit;
   text-decoration: underline;
+  margin: .5em 0;
 }
 
 .round {

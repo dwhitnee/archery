@@ -87,11 +87,12 @@
         <div v-for="bow in bows">
           <div v-for="age in ages">
             <div v-for="gender in genders">
-              <div v-if="getArchersByClass( bow, age, gender ).length">
-                <b>{{ age.full }}  {{ gender.full }}  {{ bow.full }}</b>
+              <div v-if="getArchersByClass( bow, age, gender ).length"
+                   class="scoreLine header">
+                {{ age.full }}  {{ gender.full }}  {{ bow.full }}
               </div>
-              <div v-for="archer in getArchersByClass( bow, age, gender )" class="archerList">
-                <div class="scoreLine">
+              <div class="archerResultList">
+                <div v-for="archer in getArchersByClass( bow, age, gender )" class="scoreLine">
                   <div>{{ archer.name }}</div>
                   <div v-for="roundNum in tournament.type.rounds"  v-if="tournament.type.rounds > 1">
                     <div>{{ archer.rounds[roundNum].score }}</div>
