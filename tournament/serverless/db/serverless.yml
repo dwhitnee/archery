@@ -45,7 +45,7 @@ resources:
         TableName: AtomicCounters
         AttributeDefinitions:
           - AttributeName: id
-            AttributeType: N
+            AttributeType: S
 
         KeySchema:
           - AttributeName: id

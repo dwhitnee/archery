@@ -43,9 +43,13 @@ module.exports = {
     catch (e) {
       console.error("Counter failed to increment: " + e );
 
-      // maybe? We don't want to stop a sequence but the most likely
-      // reason for failure is lack of creation...
-      await this.createSequence( sequenceName );
+      // Create sequence maybe? We don't want to reset an existing
+      // sequence but the most likely reason for failure is lack of creation...
+
+      // console.info("Creating sequence and trying again: " + sequenceName);
+      // await this.createSequence( sequenceName );
+      // const response = await dynamoDB.send( new UpdateCommand( dbParams ));
+      // return response.Attributes.counter;
     }
     return undefined;
   },
