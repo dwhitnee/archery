@@ -1,0 +1,126 @@
+#----------------------------------------
+# configuration for creating DynamoDB table in the AWS cloud
+# https://serverless.com/framework/docs/
+#----------------------------------------
+#
+# edit ~/.aws/credentials with [serverless-admin] private keys
+#
+#    export AWS_PROFILE="serverless-admin"
+#    export AWS_REGION=us-west-2
+#    serverless deploy    # --aws-profile serverless-admin --region us-west-2
+#
+#
+# This only needs to be run once to create the tables in the region desired.
+#----------------------------------------
+
+service: tournament-resources
+frameworkVersion: '3'
+configValidationMode: error
+
+
+# Where the service will be deployed and what it can access
+provider:
+  name: aws
+  region: us-west-2
+  runtime: nodejs20.x
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - dynamodb:*
+          Resource: [
+              "arn:aws:dynamodb:us-west-2:*:table/TS_*",
+              "arn:aws:dynamodb:us-west-2:*:table/AtomicCounters"
+          ]
+
+# we need a secondary index on name to query all tournaments for a single archer
+# format from "aws dynamodb describe-table --table-name TS_Archers"
+resources:
+  Resources:
+
+    AtomicCountersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: AtomicCounters
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+
+    TournamentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: TS_Tournaments
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: N
+          - AttributeName: date
+            AttributeType: S
+          - AttributeName: code
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        GlobalSecondaryIndexes:
+          - IndexName: tournamentDateCode-index
+            KeySchema:
+              - AttributeName: date
+                KeyType: HASH
+              - AttributeName: code
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+
+    ArchersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: TS_Archers
+        AttributeDefinitions:
+          - AttributeName: tournamentId
+            AttributeType: N
+          - AttributeName: scoringGroup
+            AttributeType: S
+          - AttributeName: name
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: name
+            KeyType: HASH
+          - AttributeName: tournamentId
+            KeyType: RANGE
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+        GlobalSecondaryIndexes:
+          - IndexName: scoringGroup-index
+            KeySchema:
+              - AttributeName: tournamentId
+                KeyType: HASH
+              - AttributeName: scoringGroup
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1

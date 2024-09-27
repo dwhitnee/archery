@@ -1,0 +1,320 @@
+html,body {
+  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  margin: 0;
+  background-color: #eee;
+}
+
+:root {
+  --blue: #1e90ff;
+  --white: #ffffff;
+}
+.foo {
+  color: var(--blue);
+}
+
+.center {
+  text-align: center;
+}
+
+.ellipsis {
+  display: inline-block;
+  width: 80%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* [v-cloak] {  display:none !important; } */
+/* [v-cloak]::before { position: absolute; top: 10em; left: 10em; content: "loading..."; } */
+
+a {
+  text-decoration: underline;
+}
+
+
+#tournamentApp {
+  width: 100%;
+  display: table;
+  table-layout: fixed;  /* to fit all on one page/phone */
+
+  /* grid-template-columns: 1fr 10fr 1fr; */
+  grid-template-rows: auto;
+  row-gap: .5em;
+  /* display: grid; */
+  grid-template-areas:
+    "menuBar";
+}
+
+.menuBar {
+  display: grid;
+  grid-template-columns: 1fr 5fr 1fr;
+  grid-template-rows: auto;
+  background: lightGrey;
+  /* margin: .1em 0; */
+  padding: .25em;
+}
+.menuBar > div {
+  margin: auto;
+  /* border: 2px solid grey; */
+  /* border-radius: .2em; */
+  padding: 0 .5em;
+  text-decoration: inherit;
+}
+
+.appGrid {
+}
+
+.appGrid > .menuBar { grid-area: menuBar; }
+/* .appGrid > .weeklyArrowInput { grid-area: weeklyArrowInput; } */
+/* .appGrid > .weeklyScoreInput { grid-area: weeklyScoreInput; } */
+/* .appGrid > .summaryDisplay { grid-area: summaryDisplay; } */
+
+
+.joinTournament {
+  padding: 3em;
+  background: lightgreen;
+  border: 2px solid black;
+  border-radius: 1em;
+  margin: 2em;
+}
+
+.archerList {
+  padding: 1em;
+}
+.archerResultList > div,
+.archerList > div {
+  background-color: #ccc;
+  padding: .25em;
+}
+.archerList > div {
+  padding: .5em .5em .25em .5em;
+  margin-bottom: .5em;
+  border-radius: .5em;
+}
+.archerList > div:nth-child(even),
+.archerResultList > div:nth-child(even) {
+  background-color: #ddd;
+}
+
+.archerResultList {
+  display: table;
+  width: 100%;
+  /* border-collapse: collapse; */
+  /* border: black; */
+}
+.archerResultList .scoreLine {
+  /* border: 1px solid black; */
+}
+
+.icon {
+  display: inline-block;
+}
+.archerList .icon {
+  cursor: grab;
+  margin-right: .5em;
+  filter: invert(0);  /* maybe? */
+}
+
+.scoresheetHeader {
+  margin-left: .75em;
+  padding: .25em 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-content: space-between;
+  align-items: center;
+}
+.scoresheetHeader .icon {
+  margin-right: .25em;
+  margin-top: .25em;
+}
+
+h3 {
+  font-size: 1.5em;
+  margin: .5em 0;
+}
+
+.sort-ghost {
+  opacity: 0.3;
+  transition: all 0.7s ease-out;
+}
+
+.invisible {
+  visibility: hidden;  /* but still in DOM */
+}
+
+.resultsPage {
+  display: grid;
+  padding: 1em;
+}
+
+.scoringGroup {
+  padding: 2em;
+  background: lightgreen;
+  border: 2px solid black;
+  border-radius: 1em;
+  margin: 1em;
+}
+
+.scoringGroup > div {
+  margin-bottom: 1em;   /* FIXME make a grid */
+}
+#scoringGroupStartButton {
+  margin-top: 2em;
+}
+
+.scoreLine {
+  display: grid;
+  grid-template-columns: 4fr 1fr auto;  /* name score xCount */
+}
+.scoreLine.header {
+  font-weight: bold;
+  background-color: inherit;
+  text-decoration: underline;
+  margin: .5em 0;
+}
+
+.round {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+}
+.end {
+  display: table-row;
+  text-align: center;
+}
+.end div {
+  display: table-cell;
+  width: 10%;
+}
+.end .score {
+  border: 1px solid black;
+}
+
+.scorecard {
+  margin-right: 1em;
+}
+
+.arrows {
+  display: table;
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+}
+.arrowScore {
+  display: table-cell;
+  border: 1px solid black;
+  background-color: lightGray;
+  padding: .5em 0;
+  font-weight: bold;
+  font-size: larger;
+  text-align: center;
+}
+
+.calculator {
+  display: grid;
+  /* grid-template-columns: repeat(auto-fill, minmax(7em, 1fr)); */
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-gap: .5em;
+  background-color: #aaa;
+  padding: 1em;
+  margin-top: 1em;
+  border-radius: .25em;
+}
+.calculator > button {
+  width: inherit; /* 7em; */
+  height: 4em;
+  font-size: larger;
+  outline: 2px solid black;
+}
+
+.calculator .deleteIcon {
+  transform: scale(2);
+  place-self: center;
+  filter: invert(50%);
+}
+
+/* span all columns */
+.addArcherGrid > h3 {
+  grid-column: 1 / -1;
+}
+/* center button */
+.addArcherGrid > button {
+  grid-column: 2 / -1;
+  margin-top: 3em;
+}
+
+.addArcherGrid {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  grid-template-rows: auto;
+  max-height: 15em;
+}
+
+.createTournamentGrid {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  grid-template-rows: auto;
+  max-height: 15em;
+
+  padding: 2em;
+  background: lightgreen;
+  border: 2px solid black;
+  border-radius: 1em;
+  margin: 2em;
+}
+.createTournamentGrid > h3 {
+  grid-column: 1 / -1;
+}
+.createTournamentGrid > button {
+  grid-column: 2 / -1;
+  margin-top: 3em;
+}
+
+#settings {
+  margin: auto;
+}
+
+.watermark {
+  position: absolute;
+  color: black;
+  opacity: 20%;
+  font-weight: bold;
+  font-size: 20vw;
+  transform: rotate(-45deg);
+  top: 0;
+  left: 15vw;
+  z-index: 50
+}
+
+.loading {
+  width: 20vw;
+  height: 20vw;
+  position: absolute;
+  top: 20vh;
+  left: 40vw;
+  z-index: 10;
+  opacity: 60%;
+  background: #FAEF00;
+}
+
+.editable {
+  padding: .275em;
+  padding-right: 1em;
+  min-width: 8em;
+  border: 1px solid gray;
+  display: inline;
+  overflow-wrap: break-word;
+  hyphen: auto;
+  background-color: white;
+}
+
+/* fake input="text" placeholder */
+.editable[placeholder]:empty:before {
+  content: attr(placeholder);
+  color: #888;
+}
+.editable[placeholder]:empty:focus:before {
+  content: "";
+}

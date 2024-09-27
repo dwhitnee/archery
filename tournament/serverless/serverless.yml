@@ -1,0 +1,157 @@
+org: dwhitnee
+app: tournament-scoring
+#----------------------------------------
+# org and app above most be created in the serverless app ("sls login")
+#----------------------------------------
+# configuration for uploading code to the AWS cloud
+# https://serverless.com/framework/docs/
+#----------------------------------------
+#
+# edit ~/.aws/credentials with [serverless-admin] private keys
+#
+#    export AWS_PROFILE="serverless-admin"
+#    export AWS_REGION=us-west-2
+#    serverless deploy    # --aws-profile serverless-admin --region us-west-2 --stage dev
+
+# or for updates of a single function:
+#    serverless deploy function -f getBusEvents
+#
+# The `service` block is the name of the service, as in
+# https://1zqvyi3gfk.execute-api.us-east-1.amazonaws.com/dev/euchre
+#
+#  https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/games
+ # https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/game
+ # https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/newGame
+ # https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/joinGame
+
+# serverless logs -f gameList -t
+#
+# promote:
+#  serverless deploy -s prod
+#
+# rollback:
+#    sls deploy list
+#    sls rollback -t <timestamp>
+#
+# See also https://serverless.com/blog/quick-tips-for-faster-serverless-development/
+#----------------------------------------
+
+service:  tournament-scoring
+frameworkVersion: '3'
+configValidationMode: error
+
+#----------------------------------------
+# Where the service will be deployed and what it can access
+#----------------------------------------
+provider:
+  name: aws
+  region: us-west-2
+  runtime: nodejs20.x
+  versionFunctions: false
+  stage: ${opt:stage,"dev"}
+
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - dynamodb:*
+          Resource: [
+              "arn:aws:dynamodb:us-west-2:*:table/TS_*",
+              "arn:aws:dynamodb:us-west-2:*:table/AtomicCounters"
+          ]
+
+#----------------------------------------
+# if we put DB config here, then every deploy fails with "Table already exists"
+#
+# see db/serverless.yml to create the DB table. This will create the table:
+#  cd db; serverless deploy
+#----------------------------------------
+
+
+#----------------------------------------
+# Code to deploy
+# The 'events' block defines how to trigger the handler code
+# 'handler' refers to <file name>.<function name>
+# CORS doesn't seem to work right, I had to manually add
+# OPTIONS "Access-Control-Allow-Origin" to each API Gateway
+# https://us-west-2.console.aws.amazon.com/apigateway/home?region=us-west-2#/apis/f7c3878i78/resources/q37u0j/methods/OPTIONS
+#----------------------------------------
+functions:
+
+  getArchers:
+    handler: tournamentAPI.getArchers
+    description: List of archers in a tournament or on a bale (groupId)
+    events:
+      - http:
+          path: archers
+          method: get
+          cors: true
+
+  getArcherAllResults:
+    handler: tournamentAPI.getArcherAllResults
+    description: Results for a single named archer in all tournaments
+    events:
+      - http:
+          path: archerAllResults
+          method: get
+          cors: true
+
+  updateArcher:
+    handler: tournamentAPI.updateArcher
+    description: Update archer scores
+    events:
+      - http:
+          path: updateArcher
+          method: post
+          cors: true
+
+  deleteArcher:
+    handler: tournamentAPI.deleteArcher
+    description: Remove archer from tournament
+    events:
+      - http:
+          path: deleteArcher
+          method: post
+          cors: true
+
+
+  getTournament:
+    handler: tournamentAPI.getTournament
+    description: Get tournament by id or (code and date)
+    events:
+      - http:
+          path: tournament
+          method: get
+          cors: true
+
+  getTournaments:
+    handler: tournamentAPI.getTournaments
+    description: Get all recent tournaments after a given date
+    events:
+      - http:
+          path: tournaments
+          method: get
+          cors: true
+
+  updateTournament:
+    handler: tournamentAPI.updateTournament
+    description: Update tournament metadata
+    events:
+      - http:
+          path: updateTournament
+          method: post
+          cors: true
+
+  deleteTournament:
+    handler: tournamentAPI.deleteTournament
+    description: delete tournament
+    events:
+      - http:
+          path: deleteTournament
+          method: post
+          cors: true
+
+resources:
+  # API Gateway Errors
+  - ${file(resources/api-gateway-errors.yml)}

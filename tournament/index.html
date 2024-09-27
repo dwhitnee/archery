@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<head>
+  <title>Tournament Scoring</title>
+  <meta charset="utf-8" />
+
+  <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous"/>
+  <link rel="stylesheet" type="text/css" href="../styles/icons.css"/>
+  <link rel="stylesheet" type="text/css" href="../styles/dialog.css"/>
+  <link rel="stylesheet" type="text/css" href="../styles/tournament.css"/>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+  <!-- various browser and app icons -->
+  <link rel="icon" type="image/svg+xml"  sizes="any" href="../media/icon.svg" />
+  <link rel="mask-icon" href="../media/mask.svg" color="#FFFF00" />
+  <link rel="apple-touch-icon" href="../media/apple-touch-icon.png" />
+  <link rel="apple-touch-startup-image" href="../media/apple-touch-icon.png" />
+  <meta name="theme-color" content="#ffff00" />
+
+  <!-- Open Graph (social metadata) -->
+  <meta property="og:title" content="Archery Tournament Scoring" />
+  <meta property="og:description" content="A simple phone/tablet/laptop app to keep track of arrows" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://dwhitnee.github.io/archery/" />
+  <meta property="og:image" content="https://dwhitnee.github.io/archery/media/icon.svg" />
+
+  <!-- for localhost testing -->
+  <meta name="Referrer-Policy" content="no-referrer-when-downgrade" />
+
+  <style>
+    [v-cloak] {  display:none !important; }
+  </style>
+
+</head>
+
+<body>
+  <div id="tournamentApp" class="appGrid" v-cloak>
+    <div v-if="loadingData" class="loading spinner-border spinner-border-lg"></div>
+
+    <div class="menuBar">
+      <div>
+        <a href="create" class="settings icon settingsIcon" title="Create new tournament"></a>
+        <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
+      </div>
+
+      <div>
+        <b><div v-if="tournament" class="message">
+          {{ tournament.name || "Tournament" }}
+        </div></b>
+      </div>
+
+      <div class="loginMenu">
+      </div>
+    </div>
+
+
+    <!-- pick a tournament or create a scoring group -->
+    <div v-if="isMode( ViewMode.TOURNAMENT_START )">
+
+      <div v-if="!tournament.id" class="joinTournament">
+        <label for="tournamentId"><b>Tournament code:</b></label>
+        <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
+               v-model.trim="joinCode" @keyup.enter.prevent="joinTournament()" />
+        <button class="btn btn-primary btn-sm" @click="joinTournament()">
+          Join Tournament
+        </button>
+
+      </div>
+      <div v-else class="scoringGroup">
+
+        <div>Welcome to the {{ tournament.name }}!</div>
+        <div>Use code  "{{ tournament.code }}" to join</div>
+
+        <div v-if="!groupName">
+
+          Name your scoring group:
+          <input size="10" type="text" id="groupName"
+                 placeholder="Bale 6" v-model.trim="newGroupName"
+                 @keyup.enter.prevent="setGroupName( )" />
+          <button class="btn btn-primary btn-sm" @click="setGroupName()">Save</button>
+
+        </div>
+        <div  v-else>
+
+          <b>Scoring group: {{ groupName }}</b>
+
+          <draggable v-model="archers" class="archerList" ghost-class="sort-ghost"
+                     group="people" @start="drag=true" @end="drag=false">
+            <div v-for="archer in archers" :key="archer.id"
+                 @touchstart="selectArcher( archer )" @click="selectArcher( archer)">
+              <div class="icon reorderIcon"></div>
+              <div class="ellipsis">
+                {{ archer.name }} ({{ archer.bow }}-{{ archer.age }}{{ archer.gender }})
+              </div>
+            </div>
+          </draggable>
+
+          <div>
+            <a href="#" @click="openDialog('addArcher')">&#65291; Add archer to scoring group</a>
+          </div>
+
+          <div>
+            <button :disabled="!archers.length" class="btn btn-primary btn-lg"
+                     id="scoringGroupStartButton" @click="startScoring()">
+              Start Scoring?
+            </button>
+            <div>
+              (save this group to database and begin!)
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- List of archers in the scoring group - click to enter scores for a single archer -->
+    <div v-if="isMode( ViewMode.ARCHER_LIST )" class="archerList">
+      Scoring group {{ this.groupName }}
+      <div class="scoreLine header">
+        <div>Name</div>
+        <div class="center">Score</div>
+        <div>X</div>
+      </div>
+
+      <div v-for="archer in archers" class="scoreLine" @click="scoreArcher( archer )">
+        <div> {{ archer.name }} </div>
+        <div class="center"> {{ archer.total.score }} </div>
+        <div> {{ archer.total.xCount }} </div>
+      </div>
+
+    </div>
+
+    <!-- enter scores for a single archer -->
+
+    <div v-if="isMode( ViewMode.SCORE_SHEET )" class="scorecard">
+      <h3 class="scoresheetHeader">
+        <div class="ellipsis">{{ this.archer.name }}</div>
+        <button @click="gotoArcherLlist( )">
+          <div class="icon returnIcon"></div>
+        </button>
+      </h3>
+
+      <div v-for="round in archer.rounds" class="round">
+
+        <div class="end" style="color: gray">
+          <div>end</div>
+          <div v-for="arrow in round.ends[0].arrows"></div>
+          <div>sum</div>
+          <div>total</div>
+        </div>
+
+        <div v-for="(end,index) in round.ends" class="end" @click="scoreEnd( archer, end, index )">
+          <div>{{ index+1 }}</div>
+          <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow | score }} </div>
+          <div class="score">{{ end.score | score }}</div>
+          <div class="score">{{ end.runningTotal | score }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- enter scores for a single end -->
+
+    <div v-if="isMode( ViewMode.SCORE_END )" class="scorecard">
+      End {{ scoringEndNumber+1 }}
+      <div class="arrows">
+        <div v-for="arrow in scoringEnd.arrows" class="arrowScore">
+          {{ arrow | score }}
+        </div>
+      </div>
+      <div  class="calculator">
+        <button v-for="pointValue in pointValues" type="button" class="btn btn-light"
+                @click="enterArrowScore( pointValue )">
+          {{ pointValue }}
+        </button>
+        <button type="button" class="btn btn-light" style="display: grid;"
+                @click="deleteArrowScore()">
+          <div class="icon deleteIcon"></div>
+        </button>
+        <div></div>
+        <div></div>
+        <button @click="doneWithEnd( archer, scoringEnd )">Done</button>
+      </div>
+    </div>
+
+
+
+    <!-- Settings-->
+
+    <div id="dialogBackdrop"></div>
+
+    <dialog id="createTournament">
+      <button class="close" @click="closeDialog( $event )"></button>
+
+      <div class="createTournamentGrid">
+        <h3>Create New Tournament</h3>
+
+        <div>
+          <label class="form-check-label" for="tournyDesc">Description:</label>
+        </div>
+        <div>
+          <input size="30" type="text" id="tournyDesc" placeholder="Example: Nock Point Tuesday Mail-in..."
+                 v-model.trim="tournament.name"  />
+        </div>
+
+        <div>
+          <label class="form-check-label" for="tournamentType">Type:</label>
+        </div>
+        <div>
+          <select id="tournamentType" v-model="tournament.type">
+            <option disabled value="">select one</option>
+            <option v-for="type in tournamentTypes" :value="type">
+              {{ type.description }} ({{ type.arrows}} arrows/{{ type.ends}} ends)
+            </option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary btn-sm" @click="createTournament( $event )"
+                :disabled=" !tournament.name ||! tournament.type">
+          Create Tournament
+        </button>
+
+      </div>
+    </dialog>
+
+
+    <dialog id="addArcher">
+      <button class="close" @click="closeDialog( $event )"></button>
+
+      <div class="addArcherGrid">
+        <h3>Add archer to your scoring group</h3>
+
+        <div><label for="archer">Name:</b></label></div>
+        <div><input id="archerName" size=20 type="text" placeholder="Brady Ellison...."
+                 v-model.trim="newArcher.name" />
+        </div>
+
+        <div>Bow</div>
+        <div>
+          <select id="bow" v-model="newArcher.bow">
+            <option disabled value="">select one</option>
+            <option v-for="bow in bows" :value="bow.abbrev">
+              {{ bow.full }} ({{ bow.abbrev }})
+            </option>
+          </select>
+        </div>
+
+        <div>Age/Gender</div>
+        <div>
+          <select id="age" v-model="newArcher.age">
+            <option disabled value="">select one</option>
+            <option v-for="age in ages" :value="age.abbrev">
+              {{ age.full }}
+            </option>
+          </select>
+          <select id="gender" v-model="newArcher.gender">
+            <option disabled value="">select one</option>
+            <option v-for="gender in genders" :value="gender.abbrev">
+              {{ gender.full }}
+            </option>
+          </select>
+
+        </div>
+        <button
+            :disabled=" !newArcher.name || !newArcher.bow || !newArcher.gender ||! newArcher.age"
+            class="btn btn-primary btn-med" @click="addNewArcher(event )">
+          Add Archer
+        </button>
+
+      </div>
+    </dialog>
+
+
+
+    <dialog id="settings">
+      <button class="close" @click="closeDialog( $event )"></button>
+
+      <div class="settings">
+
+        <div class="prefGrid">
+          <div class="prefs">
+          </div>
+        </div>
+
+        <hr/>
+        <div class="feedback">
+          <div>Feedback:</div>
+          <div><ul>
+            <li><a :href="'mailto:dwhitnee@gmail.com?subject=Tournament%20Feedback&body='+deviceData">Email</a></li>
+            <li><a href="https://www.facebook.com/sharer.php?u=http://dwhitnee.github.io/archery/" target="_blank" rel="noopener">Facebook</a></li>
+          </ul>
+          </div>
+        </div>
+
+        <div class="credits">
+          Acknowledgements:
+          <button class="btn btn-secondary btn-sm" @click="showCredits = !showCredits">View</button>
+          <div v-if="showCredits">
+            Author: <ul><li>David Whitney</li></ul>
+            Testers: <ul>
+            <li>your name here!</li>
+          </ul>
+          Credits:
+          <ul>
+            <li><a href="https://vuejs.org/">Vue.js</a></li>
+          </ul>
+          </div>
+        </div>
+        <div class="version">build: {{ version }}</div>
+      </div>
+
+    </dialog>
+  </div>
+
+
+  <script src="../js/vue-2.7.15.min.js"></script>
+  <script src="../js/vue-router-3.1.3.min.js"></script>
+
+  <script src="../js/Sortable-1.8.4.min.js"></script>
+  <script src="../js/vue-draggable-2.20.0.min.js"></script>
+
+  <!-- <script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script> -->
+  <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script> -->
+
+  <script src="../js/util.js"></script>
+  <script src="../js/tournament.js"></script>
+
+
+</body>
+</html>
