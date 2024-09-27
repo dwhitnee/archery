@@ -1010,7 +1010,7 @@ let app = new Vue({
       }
       catch( err ) {
         console.error("Create tournament: " + JSON.stringify( err ));
-        alert("Try again. Tournament create failed " +
+        alert("Reload and try again. Tournament create failed " +
               Util.sadface + (err.message || err));
       }
       finally {
@@ -1045,7 +1045,7 @@ let app = new Vue({
       }
       catch( err ) {
         console.error("Archer update: " + JSON.stringify( err ));
-        alert("Try again. Archer update failed " +
+        alert("Reload and try again. Archer update failed (conflict?) " +
               Util.sadface + (err.message || err));
       }
       finally {
