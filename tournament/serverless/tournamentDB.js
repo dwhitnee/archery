@@ -21,7 +21,7 @@ const TournamentCodeIndex = "tournamentDateCode-index";  // secondary on code+da
 const ArcherTableName = "TS_Archers";           // PK on name (+tournament)
 const ArcherGroupIndex = "scoringGroup-index";  // secondary index on tournament (+bale)
 
-const TournamentSequence = "TS_Tournaments";    // row in AtomicCounters
+const TournamentSequence = "TS_Tournaments_sequence";    // row in AtomicCounters
 
 
 let db = require('./dynamoDB');  // All the Dynamo stuff
