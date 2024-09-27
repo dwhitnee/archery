@@ -52,7 +52,7 @@ module.exports = {
     let filter =  "#coach = :coach";   // could be "contains( #coach )"
     let args = { ":coach": coach };
 
-    return await db.getRecordsByFilter( ArcherTableName, filter, args, argNames );
+    return await db.getRecordsByFilterScan( ArcherTableName, filter, args, argNames );
 
     // brute force way
     // if (response.Items) {
@@ -95,7 +95,7 @@ module.exports = {
     let filter = "#year = :year";
     let args = { ":year": year };
 
-    return await db.getRecordsByFilter( ArcherDataTableName, filter, args, argNames );
+    return await db.getRecordsByFilterScan( ArcherDataTableName, filter, args, argNames );
   },
 
   // update either only the given attribute (datatype), or the whole object

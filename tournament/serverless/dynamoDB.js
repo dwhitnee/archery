@@ -150,7 +150,7 @@ module.exports = {
   // @param args for filter - ex: { ':id': 'id', ':year': year };
   // @param argNames for filter - ex: { "#date": ":date" }   only needed for reserved words
   //----------------------------------------------------------------------
-  getRecordsByFilter: async function( tableName, filter, args, argNames ) {
+  getRecordsByFilterScan: async function( tableName, filter, args, argNames ) {
     console.log("Querying " + tableName + ": " + args);
 
     let dbRequest = {

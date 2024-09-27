@@ -64,8 +64,8 @@ module.exports = {
     let archers =
         await db.getRecordsBySecondaryIndex( ArcherTableName, ArcherGroupIndex, query, args );
 
-    // sorted by scoringGroupOrder  FIXME
-    archers.sort( ... );
+    // sorted by position in group
+    archers.sort( (a,b) => a.scoringGroupOrder > b.scoringGroupOrder);
 
     return archers;
   },
@@ -134,7 +134,7 @@ module.exports = {
       let filter = "#date > :date";
       let args = { ":date": date };
 
-      return await db.getRecordsByFilter( TournamentTableName, filter, args, argNames );
+      return await db.getRecordsByFilterScan( TournamentTableName, filter, args, argNames );
     }
   },
 
