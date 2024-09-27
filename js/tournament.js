@@ -34,6 +34,8 @@
 
 // Error handling: try/catch on awaits on DB side?
 
+// archer needs secondary index on tournamentId and group (for multiple results)
+// unique PK is tourArcherID or touramentId + name
 
 //----------------------------------------------------------------------
 //  OVERVIEW
@@ -966,8 +968,8 @@ let app = new Vue({
       try {
         this.loadingData = true;
 
-        let response = await fetch(serverURL + "archers?tournamentId" + tournamentId +
-                                   "&scoringGroup = " + groupId );
+        let response = await fetch(serverURL + "archers?tournamentId=" + tournamentId +
+                                   "&groupId=" + groupId );
         if (!response.ok) { throw await response.json(); }
         return await response.json();
       }
