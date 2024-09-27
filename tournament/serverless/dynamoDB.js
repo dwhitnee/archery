@@ -4,9 +4,9 @@
 //
 // Expects tableName to be passed to all fucntions,
 //
-// Uses Get() - requires a hash key
-// Query() - requires hash and range key (or secondary Global Index)
-// Scan() - requires only a filter
+// Uses Get() - requires a PK or hash key (HK) + range key (RK)
+// Query() - requires HK and RK (or secondary Global Index)
+// Scan() - requires only a filter - slow
 
 // Delete and Update require hash keys
 //----------------------------------------------------------------------
@@ -40,7 +40,12 @@ module.exports = {
     return await this.getRecordByKeys( tableName, keys);
   },
 
-  // return one value given the (possibly compound: Hash key + sort key) keys
+  //----------------------------------------
+  // get one data blob by coumpound key (HK + RK)
+  //
+  // @param tableName - DB tableName
+  // @param keys - the PK (hash key)
+  //----------------------------------------
   getRecordByKeys: async function( tableName, keys ) {
     console.log("Getting " + tableName + ": " + JSON.stringify( keys ));
 
@@ -58,23 +63,28 @@ module.exports = {
 
 
   //----------------------------------------------------------------------
-  // Retrieve a list of records from DB
-  // This is intended to be wrapped and called internally
+  // Retrieve a list of records from DB, query on the table's Hash Key (but all range keys)
   //
   // arg ":values" represent variables, without colon is key name (unless reserved)
   // NOTE: "year" is reserved"
-
+  //
+  // SQL equivalent: "SELECT * from Games WHERE createdDate> "Thu Jan 18 2018"
+  //  IFF there is an index on createdDate
+  //
   // @param tableName - DB table
-  // @param query - ex: "id = :id and year = :year";
-  // @param args for query - ex: { ':id': 'id', ':year': year };
+  // @param query - ex: "id = :id and #year = :year";
+  // @param args for query - ex: { ':id': id, ':year': 2024 };
+  // @param argsNames for reserved words in query - ex: { '#year': 'year' };
+  // @param indexName - name of secondary index to query on (null for default index)
   //----------------------------------------------------------------------
-  getRecordsByQuery: async function( tableName, query, args, argNames ) {
+  getRecordsByQuery: async function( tableName, query, args, argNames, indexName ) {
     console.log("Querying " + tableName + ": " + JSON.stringify( args ));
 
     let dbRequest = {
       TableName : tableName,
-      KeyConditionExpression: query,
-      ExpressionAttributeValues: args,
+      IndexName: indexName,      // null if the default table index (only for seconday index)
+      KeyConditionExpression: query,   // ex: "gameOver = :f and createdDate > :yesterday",
+      ExpressionAttributeValues: args,    // { ":name": "joe" };
       ExpressionAttributeNames: argNames  // only required if an arg is a reserved word (like 'year')
     };
     console.log( dbRequest );
@@ -84,9 +94,49 @@ module.exports = {
     return response.Items || [];   // no data returns undefined, not an empty Item object
   },
 
+  //----------------------------------------------------------------------
+  // Like Query (on HK), but query on given secondary Index on table
+  // Same as getRecordsByQuery otherwise
+  //
+  // @param tableName - DB table
+  // @param tableName - indexName (must be created in Dynamo)
+  // @param query - ex: "coach = :coach and year = :year";
+  // @param args for query - ex: { ':coach': 'coach', ':year': year };
+  //----------------------------------------------------------------------
+  getRecordsBySecondaryIndex: async function( tableName, indexName, query, args, argNames ) {
+
+    return await this.getRecordsByQuery( tableName, query, args, argNames, indexName );
+
+    /*
+    // SQL equivalent: "SELECT * from Games WHERE createdDate> "Thu Jan 18 2018"
+
+    // The Index allows us to do this "where" clause. Since this is
+    // "NoSQL" this query is impossible without this Index configured
+    // on the table ahead of time.
+
+    // :values represent variables, without colon is key name (unless reserved)
+
+    let dbRequest = {
+      TableName : tableName,
+      IndexName: indexName,          // "createdDate-index",
+      KeyConditionExpression: query, //  "gameOver = :f and createdDate > :yesterday",
+      ExpressionAttributeValues: args,
+      ExpressionAttributeNames: argNames  // only required if an arg is a reserved word (like 'year')
+    };
+
+    console.log( dbRequest );
+
+    const response = await dynamoDB.send( new QueryCommand( dbRequest ));
+    console.log( response );
+    return response.Items || [];   // no data returns undefined, not an empty Item object
+*/
+  },
+
 
   //----------------------------------------------------------------------
-  // Retrieve a list of records from DB
+  // Retrieve a list of records from DB -
+  // BEWARE: Full Table Scan (use a secondary index instead if possible)
+  //
   // This is intended to be wrapped and called internally
   // https://dynobase.dev/dynamodb-filterexpression/
   //
@@ -97,17 +147,17 @@ module.exports = {
 
   // @param tableName - DB table
   // @param filter - ex: "id = :id and year = :year";
-  // @param argNames for filter - ex: { "#coach": "coach" }   only needed for filter funcs
   // @param args for filter - ex: { ':id': 'id', ':year': year };
+  // @param argNames for filter - ex: { "#date": ":date" }   only needed for reserved words
   //----------------------------------------------------------------------
-  getRecordsByFilter: async function( tableName, filter, argNames, args ) {
+  getRecordsByFilter: async function( tableName, filter, args, argNames ) {
     console.log("Querying " + tableName + ": " + args);
 
     let dbRequest = {
       TableName: tableName,
       FilterExpression: filter,
-      ExpressionAttributeNames: argNames,
-      ExpressionAttributeValues: args
+      ExpressionAttributeValues: args,
+      ExpressionAttributeNames: argNames
     };
 
     console.log( dbRequest );
@@ -134,52 +184,6 @@ module.exports = {
     // response.Items.forEach(function (pie) {
     //   console.log(`${pieS}\n`);
     // });
-  },
-
-
-
-  //----------------------------------------------------------------------
-  // return all records based on Secondary Global Index created manually
-  // Same as getRecordsByQuery otherwise
-  //
-  // @param tableName - DB table
-  // @param tableName - indexName (must be created in Dynamo)
-  // @param query - ex: "coach = :coach and year = :year";
-  // @param args for query - ex: { ':coach': 'coach', ':year': year };
-  //----------------------------------------------------------------------
-  getRecordsBySecondaryIndex: async function( tableName, indexName, query, args ) {
-
-    // let someTime = new Date();
-    // someTime.setDate( someTime.getDate()-1);
-    // let yesterday = someTime.toISOString();   // "2020-05-05T09:46:26.500Z"
-
-    // // SQL equivalent: "SELECT * from Games WHERE createdDate> "Thu Jan 18 2018"
-
-    // // The Index allows us to do this "where" clause.
-    // // Since this is "NoSQL" this query is impossible without this
-    // // Index configured on the table ahead of time.
-
-    // // The alternative is to scan() all Games and only show the days we want.
-    // // Or put a secondary/sort index on "day".
-
-    // // :values represent variables, without colon is key name (unless reserved)
-
-    let dbRequest = {
-      TableName : tableName,
-      IndexName: indexName, // "createdDate-index",
-      KeyConditionExpression: query, //  "gameOver = :f and createdDate > :yesterday",
-      ExpressionAttributeValues: args,
-      // {
-      //   ":yesterday": yesterday,       // "2020-05-04T09:46:26.500Z"
-      //   ":f": "false"
-      // }
-    };
-
-    console.log( dbRequest );
-
-    const response = await dynamoDB.send( new QueryCommand( dbRequest ));
-    console.log( response );
-    return response.Items || [];   // no data returns undefined, not an empty Item object
   },
 
 

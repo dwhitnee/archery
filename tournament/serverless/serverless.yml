@@ -81,7 +81,7 @@ functions:
 
   getArchers:
     handler: tournamentAPI.getArchers
-    description: List of archers on a tournament bale
+    description: List of archers in a tournament or on a bale (groupId)
     events:
       - http:
           path: archers
