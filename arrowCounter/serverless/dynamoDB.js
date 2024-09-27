@@ -100,7 +100,7 @@ module.exports = {
   // @param argNames for filter - ex: { "#coach": "coach" }   only needed for filter funcs
   // @param args for filter - ex: { ':id': 'id', ':year': year };
   //----------------------------------------------------------------------
-  getRecordsByFilter: async function( tableName, filter, argNames, args ) {
+  getRecordsByFilter: async function( tableName, filter, args, argNames ) {
     console.log("Querying " + tableName + ": " + args);
 
     let dbRequest = {
