@@ -33,11 +33,7 @@ module.exports = {
     try {
       console.info( JSON.stringify( dbParams ) );
       const response = await dynamoDB.send( new UpdateCommand( dbParams ));
-
       console.log("Responding with updated counter: " +  JSON.stringify( response ));
-      // if (!response || !response.Attributes || !response.Attributes.count) {
-      //   throw new Error("incrementing counter failed");
-      // }
       return response.Attributes.counter;  // here's the new unique ID
     }
     catch (e) {
@@ -45,11 +41,12 @@ module.exports = {
 
       // Create sequence maybe? We don't want to reset an existing
       // sequence but the most likely reason for failure is lack of creation...
-
-      // console.info("Creating sequence and trying again: " + sequenceName);
-      // await this.createSequence( sequenceName );
-      // const response = await dynamoDB.send( new UpdateCommand( dbParams ));
-      // return response.Attributes.counter;
+/*
+      console.info("Creating sequence and trying again: " + sequenceName);
+      await this.createSequence( sequenceName );
+      const response = await dynamoDB.send( new UpdateCommand( dbParams ));
+      return response.Attributes.counter;
+*/
     }
     return undefined;
   },
