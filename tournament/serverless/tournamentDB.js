@@ -65,7 +65,7 @@ module.exports = {
         await db.getRecordsBySecondaryIndex( ArcherTableName, ArcherGroupIndex, query, args );
 
     // sorted by position in group
-    archers.sort( (a,b) => a.scoringGroupOrder > b.scoringGroupOrder);
+    archers.sort( (a,b) => a.scoringGroupOrder - b.scoringGroupOrder);
 
     return archers;
   },

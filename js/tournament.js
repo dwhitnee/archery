@@ -37,6 +37,8 @@
 // archer needs secondary index on tournamentId and group (for multiple results)
 // unique PK is tourArcherID or touramentId + name
 
+// test overlapping writes
+
 //----------------------------------------------------------------------
 //  OVERVIEW
 //----------------------------------------------------------------------
@@ -1042,8 +1044,8 @@ let app = new Vue({
         // archer = {...archer, ...result};  // ES9 (2018) icky imho
       }
       catch( err ) {
-        console.error("Change name: " + JSON.stringify( err ));
-        alert("Try again. Change name failed " +
+        console.error("Archer update: " + JSON.stringify( err ));
+        alert("Try again. Archer update failed " +
               Util.sadface + (err.message || err));
       }
       finally {
