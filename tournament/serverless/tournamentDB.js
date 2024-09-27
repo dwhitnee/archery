@@ -15,10 +15,13 @@
 // No longer using Node-style callback( err, data );
 //----------------------------------------------------------------------
 
-const ArcherTableName = "TS_Archers";
-const TournamentTableName = "TS_Tournaments";
+const TournamentTableName = "TS_Tournaments";            // PK on id
+const TournamentCodeIndex = "tournamentDateCode-index";  // secondary on code+date
 
-const TournamentSequence = "TS_Tournaments";  // row in AtomicCounters
+const ArcherTableName = "TS_Archers";           // PK on name (+tournament)
+const ArcherGroupIndex = "scoringGroup-index";  // secondary index on tournament (+bale)
+
+const TournamentSequence = "TS_Tournaments";    // row in AtomicCounters
 
 
 let db = require('./dynamoDB');  // All the Dynamo stuff
@@ -39,30 +42,43 @@ module.exports = {
   //----------------------------------------
 
   //----------------------------------------
+  // Get archers in a tournament [optional: group]
   // @param tournamentId
   // @param groupId: bale or scoring group
   //----------------------------------------
   getArchersByScoringGroup: async function( tournamentId, groupId ) {
-    if (!groupId) {
-      return await db.getAllRecords( ArcherTableName );
-    }
-    let args = {
-      ':tournamentId': 'tournamentId',
-      ':scoringGroup': groupId
-    };
-    let query = "tournamentId = :tournamentId and scoringGroup = :groupId";
 
-    // this array needs to be sorted by scoringGroupOrder  FIXME
-    return await db.getRecordsByQuery( ArcherTableName, query, args );
+    let query = "tournamentId = :tournamentId";
+    let args = {
+      ':tournamentId': tournamentId|0,  // ensure numeric
+    };
+
+    if (!groupId) {      // get all archers in tournament
+      return await db.getRecordsBySecondaryIndex( ArcherTableName, ArcherGroupIndex, query, args );
+    }
+
+    // get just the archers in this group
+    query += " and scoringGroup = :groupId";
+    args[':groupId'] = groupId;
+
+    let archers =
+        await db.getRecordsBySecondaryIndex( ArcherTableName, ArcherGroupIndex, query, args );
+
+    // sorted by scoringGroupOrder  FIXME
+    archers.sort( ... );
+
+    return archers;
   },
 
   //----------------------------------------
+  // One archer's results for all tournaments (TODO: substring?)
+  //----------------------------------------
   getArcherAllResults: async function( archerName ) {
-    let argNames =  { "#name": "name" };
-    let filter =  "#name = :name";   // could be "contains( #name )"
-    let args = { ":name": archerName };
+    let query =  "#name = :name";
+    let argNames =  { "#name": "name" };     // in case "name" is a reserved word
+    let args =      { ":name": archerName };
 
-    return await db.getRecordsByFilter( ArcherTableName, filter, argNames, args );
+    return await db.getRecordsByQuery( ArcherTableName, query, argNames, args );
   },
 
   // Keys (archer.tournamentId, archer.name) are presumed to be present
@@ -90,7 +106,7 @@ module.exports = {
 
   //----------------------------------------
   getTournamentByCodeAndDate: async function( code, date ) {
-    let filter = "#code = :code AND #date = :date";
+    let query = "#code = :code AND #date = :date";
 
     let argNames =  {  // Naming variables avoids reserved words
       "#code": "code",
@@ -101,8 +117,10 @@ module.exports = {
       ":date": date
     };
 
-    let result = await db.getRecordsByFilter( TournamentTableName, filter, argNames, args );
-    return result[0];  // should be only one
+    let results = await db.getRecordsBySecondaryIndex( TournamentTableName, TournamentCodeIndex,
+                                                       query, args, argNames );
+
+    return results[0];  // should be only one
   },
 
   //----------------------------------------
@@ -116,7 +134,7 @@ module.exports = {
       let filter = "#date > :date";
       let args = { ":date": date };
 
-      return await db.getRecordsByFilter( TournamentTableName, filter, argNames, args );
+      return await db.getRecordsByFilter( TournamentTableName, filter, args, argNames );
     }
   },
 
