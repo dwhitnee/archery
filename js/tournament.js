@@ -735,7 +735,7 @@ let app = new Vue({
       let tournament = {};
 
       if (!tournamentCode) {
-        console.error("Tried to get null tournament");  debugger
+        console.error("Tried to get null tournament");  debugger;
         return tournament;
       }
 
@@ -756,7 +756,7 @@ let app = new Vue({
       let tournament = {};
 
       if (!tournamentId) {
-        console.error("Tried to get null tournament"); debugger
+        console.error("Tried to get null tournament"); debugger;
         return tournament;
       }
       if (localMode) {
