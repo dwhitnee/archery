@@ -103,9 +103,9 @@ resources:
             AttributeType: S
 
         KeySchema:
-          - AttributeName: tournamentId
+          - AttributeName: name
             KeyType: HASH
-          - AttributeName: scoringGroup
+          - AttributeName: tournamentId
             KeyType: RANGE
 
         ProvisionedThroughput:
@@ -113,10 +113,12 @@ resources:
           WriteCapacityUnits: 1
 
         GlobalSecondaryIndexes:
-          - IndexName: archerName-index
+          - IndexName: scoringGroup-index
             KeySchema:
-              - AttributeName: name
+              - AttributeName: tournamentId
                 KeyType: HASH
+              - AttributeName: scoringGroup
+                KeyType: RANGE
             Projection:
               ProjectionType: ALL
             ProvisionedThroughput:

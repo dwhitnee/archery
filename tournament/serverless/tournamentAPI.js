@@ -35,14 +35,14 @@ _Tournament_
   "type" { desc, ends, arrows, rounds }
 }
 
-_Archer_
+_Archer_   ( PK name+tournament, query on tournament[+bale] )
 {
-  "tournamentId      // HK
+  "tournamentId       // RK1, HK2
 
-  "scoringGroup"      // RK   bale #, could represent several bales
+  "scoringGroup"      // RK2   bale #, could represent several bales
   "scoringGroupOrder" // (1-4) priority of archers in group
 
-  "name"             // index HK for stats
+  "name"             // Hash Key 1 for stats for all tournaments
   "bow" "FSLR",
   "ageGender"        // AM, SF, YF, ...
   "ends"             // [["9","9","9"], ["X","8","7",.]
@@ -77,7 +77,7 @@ let db = {
     message.verifyParam( request, "groupId");
 
     let query = request.queryStringParameters;
-    return await tournamentDB.getArchersByScoringGroup(  query.tournamentId, query.groupId );
+    return await tournamentDB.getArchersByScoringGroup( query.tournamentId, query.groupId );
   },
 
   //----------------------------------------------------------------------
@@ -139,7 +139,7 @@ let db = {
   },
 
   //----------------------------------------------------------------------
-  // Get all tournaments since given date ("1/1/2024")  2024/01/01 better
+  // Get all tournaments since given date ("2024/01/01")
   // @param: date
   //----------------------------------------------------------------------
   getTournaments: async function( request ) {
