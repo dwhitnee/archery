@@ -19,7 +19,7 @@ html,body {
 
 .ellipsis {
   display: inline-block;
-  width: 80%;
+  width: 75%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

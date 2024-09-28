@@ -15,6 +15,12 @@
 // GNU General Public License for more details.
 //-----------------------------------------------------------------------
 
+// merge conflict howto (if development branch can't merge with main cleanly)
+//  git co main
+//  git merge scoring --no-commit --no-ff
+//  git co --theirs .
+
+
 
 // TODO:
 // archer data should be in cloud (how to uniquely ID?)
