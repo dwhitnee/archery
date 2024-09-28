@@ -134,7 +134,7 @@
 
 // AWS Lambda serverless API deployment endpoint
 
-let dev = true;  // if on a desktop (ie, not deployed)
+let dev = true;  // if on a desktop (ie, not deployed) FIXME -create prod
 let localMode = false;
 
 // FIXME: prod lambda

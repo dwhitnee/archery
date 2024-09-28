@@ -53,7 +53,7 @@ module.exports = {
       ':tournamentId': tournamentId|0,  // ensure numeric
     };
 
-    if (!groupId) {      // get all archers in tournament
+    if (!groupId || groupId=='0') {      // get all archers in tournament
       return await db.getRecordsBySecondaryIndex( ArcherTableName, ArcherGroupIndex, query, args );
     }
 
@@ -134,7 +134,12 @@ module.exports = {
       let filter = "#date > :date";
       let args = { ":date": date };
 
-      return await db.getRecordsByFilterScan( TournamentTableName, filter, args, argNames );
+      let tournaments = await db.getRecordsByFilterScan( TournamentTableName,
+                                                         filter, args, argNames );
+      // sorted by reverse date (most recent first)
+      tournaments.sort( (a,b) => b.createdDate.localeCompare( a.createdDate ));
+
+      return tournaments;
     }
   },
 
