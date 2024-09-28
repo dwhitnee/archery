@@ -80,7 +80,7 @@ a {
 }
 
 .archerList {
-  padding: 1em;
+  padding: 0.5em;
 }
 .archerResultList > div,
 .archerList > div {
@@ -105,6 +105,10 @@ a {
 }
 .archerResultList .scoreLine {
   /* border: 1px solid black; */
+}
+
+#scoringGroupStartButton {
+  width: 99%;  /* padding a little weird at 100% for some reason */
 }
 
 .icon {
@@ -150,7 +154,7 @@ h3 {
 }
 
 .scoringGroup {
-  padding: 2em;
+  padding: 0.5em;
   background: lightgreen;
   border: 2px solid black;
   border-radius: 1em;

@@ -568,7 +568,7 @@ let app = new Vue({
       // running totals calculated here, too
       await this.updateArcher( archer );
 
-      // await archer.save();  // FIXME? class Archer { .. }
+      // await archer.save();  // FIXME? class Archer { etc.. }
     },
 
     joinTournament: async function() {
@@ -577,7 +577,7 @@ let app = new Vue({
       if (this.tournament.id) {
         window.location.search = "?id=" + this.tournament.id;
       } else {
-        alert("No tournament found named " + this.joinCode);
+        alert("No tournament from today found named " + this.joinCode);
       }
     },
 
@@ -747,8 +747,10 @@ let app = new Vue({
         tournament = await this.loadTournamentByCodeFromDB( tournamentCode ) || {};
       }
 
-      if (tournament && !tournament.type.rounds) {
-        tournament.type.rounds = 1;  // default
+      if (tournament && tournament.type) { // load fail is {}
+        if (!tournament.type.rounds) {
+          tournament.type.rounds = 1;  // default
+        }
       }
       return tournament;
     },
@@ -910,6 +912,8 @@ let app = new Vue({
 
       // server side will use date and short term code to get the persistent ID
       let date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
+
+      // date = "2024-09-27"; // testing RTOS
 
       try {
         this.loadingData = true;

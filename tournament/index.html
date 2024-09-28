@@ -42,8 +42,11 @@
 
     <div class="menuBar">
       <div>
-        <a href="create" class="settings icon settingsIcon" title="Create new tournament"></a>
         <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
+        <div v-else>
+          <a href="create" class="settings icon settingsIcon"
+             title="Create new tournament"></a>
+        </div>
       </div>
 
       <div>
@@ -107,10 +110,6 @@
                      id="scoringGroupStartButton" @click="startScoring()">
               Start Scoring?
             </button>
-            <div>
-              (save this group to database and begin!)
-            </div>
-
           </div>
         </div>
       </div>
