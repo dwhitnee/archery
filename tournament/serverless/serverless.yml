@@ -152,6 +152,46 @@ functions:
           method: post
           cors: true
 
+
+  getLeague:
+    handler: tournamentAPI.getLeague
+    description: Get league by id
+    events:
+      - http:
+          path: league
+          method: get
+          cors: true
+
+  getLeagues:
+    handler: tournamentAPI.getLeagues
+    description: Get all active/recent leagues
+    events:
+      - http:
+          path: leagues
+          method: get
+          cors: true
+
+  updateLeague:
+    handler: tournamentAPI.updateLeague
+    description: Update league metadata
+    events:
+      - http:
+          path: updateLeague
+          method: post
+          cors: true
+
+  deleteLeague:
+    handler: tournamentAPI.deleteLeague
+    description: delete league
+    events:
+      - http:
+          path: deleteLeague
+          method: post
+          cors: true
+
+
+
+
 resources:
   # API Gateway Errors
   - ${file(resources/api-gateway-errors.yml)}

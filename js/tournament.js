@@ -836,9 +836,16 @@ let app = new Vue({
 
     //----------------------------------------
     saveLeague: async function() {
-      if (!this.legaue || !this.legaue.name) {
+      if (!this.league || !this.league.name) {
         return;
       }
+
+      // created date I guess. Add expiration date? What good does that do?
+      // FIXME - figure out whate dates are needed for a league
+      // end-date - don't allow any more tournaments to be added
+      // start-date - Show recent leagues (within the last two months?)
+
+      this.league.date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
 
       if (localMode) {
         this.league.id = this.nextSequenceId++;
@@ -876,8 +883,8 @@ let app = new Vue({
       }
     },
 
+    // FIXME - show results-to-date for league?
     getArchersForLeague: async function( leagueName ) {
-
       // load tournaments for league
       let tournaments = await this.loadTournamentsForLeague( leagueName );
       for (let i=0; i < tournaments.length; i++) {

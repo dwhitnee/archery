@@ -21,7 +21,12 @@ const TournamentCodeIndex = "tournamentDateCode-index";  // secondary on code+da
 const ArcherTableName = "TS_Archers";           // PK on name (+tournament)
 const ArcherGroupIndex = "scoringGroup-index";  // secondary index on tournament (+bale)
 
-const TournamentSequence = "TS_Tournaments_sequence";    // row in AtomicCounters
+const LeagueTableName = "TS_Leagues";           // PK on name (+tournament)
+const LeagueDateIndex = "date-index";           // secondary index on tournament (+bale)
+
+// row in AtomicCounters
+const TournamentSequence = "TS_Tournaments_sequence";
+const LeagueSequence = "TS_League_sequence";
 
 
 let db = require('./dynamoDB');  // All the Dynamo stuff
@@ -164,6 +169,55 @@ module.exports = {
 
   deleteTournament: async function( id ) {
     return await db.deleteRecord( TournamentTableName, id );
+  },
+
+
+
+
+  //----------------------------------------
+  //----------------------------------------
+  // LEAGUES - a collection of tournaments
+  //----------------------------------------
+
+  //----------------------------------------
+  getLeagueById: async function( id ) {
+    return await db.getRecordById( LeagueTableName, id );
+  },
+
+  //----------------------------------------
+  // get all after given date. If null, then all leagues ever
+  //----------------------------------------
+  getLeaguesAfterDate: async function( date ) {
+    if (!date) {
+      return await db.getAllRecords( LeagueTableName );
+    } else {
+      let argNames =  { "#date": "date" };  // Naming variables avoids reserved words
+      let filter = "#date > :date";
+      let args = { ":date": date };
+
+      let leagues = await db.getRecordsByFilterScan( LeagueTableName,
+                                                     filter, args, argNames );
+      // sorted by reverse date (most recent first)
+      leagues.sort( (a,b) => b.createdDate.localeCompare( a.createdDate ));
+
+      return leagues;
+    }
+  },
+
+  //----------------------------------------
+  // overwrite
+  // if new, go get a unique ID
+  //----------------------------------------
+  updateLeague: async function( data ) {
+    if (!data.id) {
+      data.id = await atomicCounter.getNextValueInSequence( LeagueSequence );
+      console.log("Next ID: " + data.id );
+    }
+    return await db.saveRecord( LeagueTableName, data ); // really, overwrite
+  },
+
+  deleteLeague: async function( id ) {
+    return await db.deleteRecord( LeagueTableName, id );
   },
 
 
