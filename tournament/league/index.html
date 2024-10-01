@@ -60,6 +60,11 @@
                  placeholder="6" v-model.trim="league.maxDays"  />
         </div>
 
+        <div>
+          <label class="form-check-label" for="doHandicap">Calculate handicap?</label>
+          <input type="checkbox" id="doHandicap" v-model.trim="league.doHandicap"  />
+        </div>
+
         <button class="btn btn-primary btn-sm" @click="createLeague( $event )"
                 :disabled=" !league.name ||! league.maxDays">
           Create League

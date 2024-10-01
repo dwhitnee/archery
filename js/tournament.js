@@ -71,10 +71,13 @@
     // SELECT id from TOURNAMENTS where leagueId=6;
     // SELECT scores from ARCHERS where tournamentId in above;
 
+    // should league be denormalilzed into tournament?  FIXME
+    // will need maxScores to calculate totals safely/correctly
     league {
       id: 6
       name: "Scott's Tots",
       maxScores: 6,  // how many tournament scores should be counted (per archer) towards league total
+      doHandicap: true  // whether to calculate handicap based on scores (which ones? all?)
     }
 
     // DESIGN TODO: scoringGroup is really just a list of archers,
@@ -883,15 +886,31 @@ let app = new Vue({
       }
     },
 
+    //----------------------------------------
     // FIXME - show results-to-date for league?
-    getArchersForLeague: async function( leagueName ) {
+    // list of archers with weekly scores, overall score, current handicap
+    getArchersForLeague: async function( leagueId ) {
       // load tournaments for league
-      let tournaments = await this.loadTournamentsForLeague( leagueName );
+      let tournaments = await this.loadTournamentsForLeague( leagueId );
+      let archers = {};
+
+      // make hash keyed by archer name (which wont work for existing archer display algorithms
+      // what is best way to display archer, scores, total, and handicap?
+      // for a handicap league there may not be archer classes, just one big list of archers
       for (let i=0; i < tournaments.length; i++) {
-        return await this.loadArchersFromDB( tournaments[i].id, 0 ) || [];
+        let newArchers = await this.loadArchersFromDB( tournaments[i].id, 0 ) || [];
+        // add archers to list de-dupe and add scores
+        newArchers.forEach( (archer) => {
+          if (!archers[archer.name]) {
+            archers[archer.name] = [];
+          }
+          archers[archer.name].push( archer );
+        });
       }
 
-
+      // iterate over archers and compute handicap and total score
+      // FIXME: how does this work for a two day regular tournament?
+      // eg, changing bales each day
     },
 
 
