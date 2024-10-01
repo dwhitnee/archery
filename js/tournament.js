@@ -955,131 +955,80 @@ let app = new Vue({
     // SERVER CALLS
     //----------------------------------------------------------------------
 
+    //      LOAD
+
     //----------------------------------------
-    // load tournament from 4 letter code that is valid today only, use ID from here on out
+    // load tournament from 4 letter code that is valid today only
     // code should only be used for ad-hoc tournaments, not ones set up in advance.
+    // Server side will use date and short term code to get the persistent ID
     //----------------------------------------
     async loadTournamentByCodeFromDB( tournamentCode ) {
-      if (this.updateInProgress()) {    // one thing at a time...
-        alert("Another action was in progress. Try again.");
-        return null;
-      }
-
-      // server side will use date and short term code to get the persistent ID
       let date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
-
       // date = "2024-09-27"; // testing RTOS
 
-      try {
-        this.loadingData = true;
-
-        let response = await fetch(serverURL +
-                                   "tournament?code=" + tournamentCode +
-                                   "&date=" + date);
-        if (!response.ok) { throw await response.json(); }
-        return await response.json();
-      }
-      catch (err) {
-        console.error( err );
-        return null;
-      }
-      finally {
-        this.loadingData = false;
-      }
+      let serverCmd = "tournament?code=" + tournamentCode + "&date=" + date;
+      return await this.loadObjectsFromDB( serverCmd );
     },
-
     //----------------------------------------
     // load tournament by direct ID
-    // in an ad-hoc tournament you'd only have the tournament code (XYZQ).
-    // in an organized tournament you'd have the tournament and bale ID's
-    // .../tournament?tournamentId=69&scoringGroup=42
+    // in an ad-hoc tournament the code will turn into an ID upon creation
     //----------------------------------------
-    async loadTournamentByIdFromDB( tournamentId ) {
-      if (this.updateInProgress()) {    // one thing at a time...
-        alert("Another action was in progress. Try again.");
-        return null;
-      }
-
-      try {
-        this.loadingData = true;
-
-        let response = await fetch(serverURL + "tournament?id=" + tournamentId );
-        if (!response.ok) { throw await response.json(); }
-        return await response.json();
-      }
-      catch (err) {
-        console.error( err );
-        return null;
-      }
-      finally {
-        this.loadingData = false;
-      }
+    async loadTournamentByIdFromDB( id ) {
+      return await this.loadObjectsFromDB( "tournament?id=" + id );
     },
-
-    // async loadArcher() Not needed
     //----------------------------------------
-
-    //----------------------------------------
-
-    //----------------------------------------
-    // generic object load from remote
-    //----------------------------------------
-    async loadArchersFromDB( tournamentId, groupId ) {
-      if (this.updateInProgress()) {    // one thing at a time...
-        alert("Another action was in progress. Try again.");
-        return null;
-      }
-
-      try {
-        this.loadingData = true;
-
-        let response = await fetch(serverURL + "archers?tournamentId=" + tournamentId +
-                                   "&groupId=" + groupId );
-        if (!response.ok) { throw await response.json(); }
-        return await response.json();
-      }
-      catch (err) {
-        console.error( err );
-        return null;
-      }
-      finally {
-        this.loadingData = false;
-      }
-    },
-
-
-    //----------------------------------------
-    async loadObjectsFromDB( tournamentId, groupId ) {
-      if (this.updateInProgress()) {    // one thing at a time...
-        alert("Another action was in progress. Try again.");
-        return null;
-      }
-
-      try {
-        this.loadingData = true;
-
-        let response = await fetch(serverURL + "archers?tournamentId=" + tournamentId +
-                                   "&groupId=" + groupId );
-        if (!response.ok) { throw await response.json(); }
-        return await response.json();
-      }
-      catch (err) {
-        console.error( err );
-        return null;
-      }
-      finally {
-        this.loadingData = false;
-      }
-    },
-
-
     // load all archers in this tournament and/or on a given bale (scoring group)
+    //----------------------------------------
+    async loadLeagueFromDB( id ) {
+      return await this.loadObjectsFromDB("league?id=" + id );
+    },
+    //----------------------------------------
+    // load all archers in this tournament and/or on a given bale (scoring group)
+    //----------------------------------------
     async loadArchersFromDB( tournamentId, groupId ) {
       let serverCmd = "archers?tournamentId=" + tournamentId + "&groupId=" + groupId;
       return await this.loadObjectsFromDB( serverCmd );
     },
 
+    //----------------------------------------
+    // generic object load from remote
+    //----------------------------------------
+    async loadObjectsFromDB( serverCmd ) {
+      if (this.updateInProgress()) {    // one thing at a time...
+        alert("Another action was in progress. Try again.");
+        return null;
+      }
 
+      try {
+        this.loadingData = true;
+        let response = await fetch(serverURL + serverCmd );
+        if (!response.ok) { throw await response.json(); }
+        return await response.json();
+      }
+      catch (err) {
+        console.error( err );
+        return null;
+      }
+      finally {
+        this.loadingData = false;
+      }
+    },
+
+
+    //      SAVE
+
+    //----------------------------------------
+    // ID, version, metadata to be generated remotely and populated into given object
+    //----------------------------------------
+    async saveTournamentToDB( tournament ) {
+      await this.saveObjectToDB( tournament, "Tournament");
+    },
+    async saveLeagueToDB( league ) {
+      await this.saveObjectToDB( league, "League");
+    },
+    async saveArcherToDB( archer ) {
+      await this.saveObjectToDB( archer, "Archer");
+    },
 
     //----------------------------------------
     // generic object save call updateTournament, updateArcher, updateLeague
@@ -1115,19 +1064,6 @@ let app = new Vue({
       }
     },
 
-    //----------------------------------------
-    // save descriptor for tournament with scoring groups
-    // ID to be generated remotely.
-    //----------------------------------------
-    async saveTournamentToDB( tournament ) {
-      await this.saveObjectToDB( tournament, "Tournament");
-    },
-    async saveLeagueToDB( league ) {
-      await this.saveObjectToDB( league, "League");
-    },
-    async saveArcherToDB( archer ) {
-      await this.saveObjectToDB( archer, "Archer");
-    },
 
   },
 
