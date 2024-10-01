@@ -1074,10 +1074,10 @@ let app = new Vue({
 
 
     // load all archers in this tournament and/or on a given bale (scoring group)
-    async loadArchersFromDB( tournamentId, groupId ) {
-      let serverCmd = "archers?tournamentId=" + tournamentId + "&groupId=" + groupId;
-      return await this.loadObjectsFromDB( serverCmd );
-    },
+    // async loadArchersFromDB( tournamentId, groupId ) {
+    //   let serverCmd = "archers?tournamentId=" + tournamentId + "&groupId=" + groupId;
+    //   return await this.loadObjectsFromDB( serverCmd );
+    // },
 
 
 
