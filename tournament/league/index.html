@@ -33,7 +33,7 @@
 
 <body>
   <div id="tournamentApp" class="appGrid" v-cloak>
-    <div v-if="loadingData" class="loading spinner-border spinner-border-lg"></div>
+    <div v-if="updateInProgress()" class="loading spinner-border spinner-border-lg"></div>
 
     <div v-if="!league.id">
       <div class="createTournamentGrid">

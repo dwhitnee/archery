@@ -12,7 +12,10 @@ html,body {
 .foo {
   color: var(--blue);
 }
-
+.small {
+  font-size: smaller;
+  color: #888;
+}
 .center {
   text-align: center;
 }
@@ -170,13 +173,16 @@ h3 {
 
 .scoreLine {
   display: grid;
-  grid-template-columns: 4fr 1fr auto;  /* name score xCount */
+  grid-template-columns: 3fr 2fr 1fr 1fr;  /* name score xCount */
 }
 .scoreLine.header {
   font-weight: bold;
   background-color: inherit;
   text-decoration: underline;
   margin: .5em 0;
+}
+.scoreLine > .score {
+  text-align: right;
 }
 
 .round {
@@ -198,6 +204,7 @@ h3 {
 
 .scorecard {
   margin-right: 1em;
+  touch-action: manipulation;  /* no double tap zoom */
 }
 
 .arrows {

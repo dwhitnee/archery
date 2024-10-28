@@ -341,26 +341,24 @@ let app = new Vue({
       debugger;
     });
 
-    Util.setNamespace("TS");
+    Util.setNamespace("TS");  // tournamentScoring
 
     let tournamentId = this.$route.query.id;
     this.league.id = this.$route.query.leagueId;
-    let groupId = this.$route.query.groupId;  // scoring bale
+    let groupId = this.$route.query.groupId || 0;  // scoring bale
 
     if (tournamentId) {
       this.tournament = await this.getTournamentById( tournamentId );
       if (!this.tournament.type) {
         alert("There is no tournament named " + tournamentId );
       } else {
-        if (groupId) {
-          this.archers = await this.getArchers( tournamentId, groupId );
-          this.sortArchersForDisplay();
-          if (!this.archers[0]) {
-            this.groupName = groupId;
-            console.log("There is no scoring group named " + groupId );
-          } else {
-            this.groupName = this.archers[0].scoringGroup;
-          }
+        this.archers = await this.getArchers( tournamentId, groupId );
+        this.sortArchersForDisplay();
+        if (!this.archers[0]) {
+          this.groupName = groupId;
+          console.log("There is no scoring group named " + groupId );
+        } else {
+          this.groupName = this.archers[0].scoringGroup;
         }
       }
     }
@@ -503,7 +501,8 @@ let app = new Vue({
     //----------------------------------------
     computeRunningTotals: function( archer, roundNum ) {
       let runningTotal = 0,  // for each end and total
-          xCount = 0;        // total only
+          xCount = 0,        // total only
+          arrowCount = 0;
 
       if (!this.archerInitialized( archer )) {
         this.initArcher( archer, this.tournament );
@@ -517,20 +516,24 @@ let app = new Vue({
         runningTotal += end.score|0;
         xCount += end.xCount|0;
         end.runningTotal = runningTotal;
+        arrowCount += end.arrows.length;
       }
 
       // round totals
       round.score = runningTotal;
+      round.arrowCount = arrowCount;
       round.xCount = xCount;
 
       // all round totals - do we need this?
       archer.total = {
         score: 0,
+        arrowCount: 0,
         xCount: 0
       };
       for (let r=0; r < archer.rounds.length; r++) {
         archer.total.score += archer.rounds[r].score|0;    // "|0" prevents NaN if anything
         archer.total.xCount += archer.rounds[r].xCount|0;  // is undefined
+        archer.total.arrowCount += archer.rounds[r].arrowCount|0;
       }
 
     },
@@ -938,7 +941,7 @@ let app = new Vue({
 
     //----------------------------------------------------------------------
     // just archers in given division
-    // Just for display.  Could sort them I suppose, nahhh
+    // Just for display, sorted by score.
     //----------------------------------------------------------------------
     getArchersByClass: function( bow, age, gender ) {
       // FSLR-AF
@@ -973,7 +976,19 @@ let app = new Vue({
         }
       }
 
+      outArchers.sort( this.compareArcherScores );
       return outArchers;
+    },
+
+    // compare scores down to X count tiebreaker
+    compareArcherScores: function(a,b) {
+      let at = a.total, bt = b.total;
+
+      if (at.score != bt.score) {
+        return bt.score - at.score;
+      } else {
+        return bt.xCount - at.xCount;
+      }
     },
 
 
