@@ -3,8 +3,7 @@
   <title>Tournament Scoring</title>
   <meta charset="utf-8" />
 
-  <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
-        crossorigin="anonymous"/>
+  <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" crossorigin="anonymous"/>
   <link rel="stylesheet" type="text/css" href="../styles/icons.css"/>
   <link rel="stylesheet" type="text/css" href="../styles/dialog.css"/>
   <link rel="stylesheet" type="text/css" href="../styles/tournament.css"/>
@@ -119,15 +118,20 @@
     <div v-if="isMode( ViewMode.ARCHER_LIST )" class="archerList">
       Scoring group {{ this.groupName }}
       <div class="scoreLine header">
-        <div>Name</div>
+        <div>
+          Name
+          <div class="icon reorderIcon" @click="window.location.reload()"></div>
+        </div>
         <div class="center">Score</div>
         <div>X</div>
+        <div></div>
       </div>
 
-      <div v-for="archer in archers" class="scoreLine" @click="scoreArcher( archer )">
+      <div v-for="archer in archers" class="scoreLine" @click="scoreArcherNextEnd( archer )">
         <div> {{ archer.name }} </div>
         <div class="center"> {{ archer.total.score }} </div>
         <div> {{ archer.total.xCount }} </div>
+        <div class="small">/{{ archer.total.arrowCount }} </div>
       </div>
 
     </div>
@@ -137,7 +141,7 @@
     <div v-if="isMode( ViewMode.SCORE_SHEET )" class="scorecard">
       <h3 class="scoresheetHeader">
         <div class="ellipsis">{{ this.archer.name }}</div>
-        <button @click="gotoArcherLlist( )">
+        <button @click="gotoArcherList( )">
           <div class="icon returnIcon"></div>
         </button>
       </h3>
@@ -174,8 +178,7 @@
                 @click="enterArrowScore( pointValue )">
           {{ pointValue }}
         </button>
-        <button type="button" class="btn btn-light" style="display: grid;"
-                @click="deleteArrowScore()">
+        <button type="button" class="btn btn-light" style="display: grid;" @click="deleteArrowScore()">
           <div class="icon deleteIcon"></div>
         </button>
         <div></div>

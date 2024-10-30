@@ -415,6 +415,23 @@ let app = new Vue({
       this.mode = ViewMode.SCORE_SHEET;
     },
 
+    // switch mode to first unscored end for this archer
+    // if we came from ARCHER_LIST then go straight to SCORE_END (first empty end)
+    scoreArcherNextEnd: function( archer ) {
+      this.archer = archer;
+
+      // find first end with unscored arrows
+      let ends = archer.rounds[this.round].ends;
+      let endNum = 0;
+      for (; endNum < ends.length; endNum++) {
+        if (!ends[endNum].arrows[0]) {
+          break;
+        }
+      }
+      this.scoreEnd( archer, ends[endNum], endNum);
+    },
+
+    // bring up calculator for given end
     scoreEnd: function( archer, end, endNumber ) {
       this.scoringEnd = end;
       this.scoringEndNumber = endNumber;
@@ -449,11 +466,13 @@ let app = new Vue({
       return b-a;
     },
 
+    // FIXME: need debounce on button clicks?
     deleteArrowScore() {
-      console.log("deleting last arrow " + this.currentArrow );
-      this.scoringEnd.arrows[--this.currentArrow] = null;
-
-      this.$forceUpdate();  // deep change to this.scoringEnd does not trigger update
+      if (this.currentArrow > 0) {
+        console.log("deleting last arrow " + this.currentArrow );
+        this.scoringEnd.arrows[--this.currentArrow] = null;
+        this.$forceUpdate();  // deep change to this.scoringEnd does not trigger update
+      }
     },
 
     archerInitialized: function( archer ) {
@@ -516,7 +535,10 @@ let app = new Vue({
         runningTotal += end.score|0;
         xCount += end.xCount|0;
         end.runningTotal = runningTotal;
-        arrowCount += end.arrows.length;
+
+        const scoredArrows = end.arrows.filter( a => (typeof(a) == "number" ||
+                                                      typeof(a) == "string"));  // "X"
+        arrowCount += scoredArrows.length;
       }
 
       // round totals
@@ -663,10 +685,10 @@ let app = new Vue({
         await this.updateArcher( this.archers[i] );
       }
 
-      this.gotoArcherLlist();
+      this.gotoArcherList();
     },
 
-    gotoArcherLlist: function() {
+    gotoArcherList: function() {
       this.mode = ViewMode.ARCHER_LIST;
     },
 
