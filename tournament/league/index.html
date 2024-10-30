@@ -33,7 +33,7 @@
 
 <body>
   <div id="tournamentApp" class="appGrid" v-cloak>
-    <div v-if="loadingData" class="loading spinner-border spinner-border-lg"></div>
+    <div v-if="updateInProgress()" class="loading spinner-border spinner-border-lg"></div>
 
     <div v-if="!league.id">
       <div class="createTournamentGrid">
@@ -58,6 +58,11 @@
         <div>
           <input size="5" type="text" id="maxTournamentDays"
                  placeholder="6" v-model.trim="league.maxDays"  />
+        </div>
+
+        <div>
+          <label class="form-check-label" for="doHandicap">Calculate handicap?</label>
+          <input type="checkbox" id="doHandicap" v-model.trim="league.doHandicap"  />
         </div>
 
         <button class="btn btn-primary btn-sm" @click="createLeague( $event )"

@@ -16,6 +16,11 @@
   o updateTournament( id )
   o deleteTournament( id )
 
+  o getLeague( id )
+  o getAllLeagues()       // admin only?
+  o updateLeague( id )
+  o deleteLeague( id )
+
   o getArcherAllResults( name )             // all of "Brandy Allison"s scores
   o getArchers( tournamentId, [groupId] )   // All archers on a scoring bale or in a tournament
   o updateArcher( tournamentId, archerId )
@@ -33,6 +38,14 @@ _Tournament_
   "code",  //  index RK   "XYZQ"
   "description",
   "type" { desc, ends, arrows, rounds }
+}
+
+_League_
+{
+  "id",    PK
+  "endDate",  //  index HK?
+  "description",
+  "maxTournamentDays"
 }
 
 _Archer_   ( PK name+tournament, query on tournament[+bale] )
@@ -152,7 +165,7 @@ let db = {
   // Pass in all data about tournament, but ID and Code might not yet exist
   // if this is creation call
   //
-  // @param data blob with DB keys and data type (key) to save
+  // @param tournament blob
   // @return savedValue
   //----------------------------------------------------------------------
   updateTournament: async function( request ) {
@@ -170,7 +183,49 @@ let db = {
 
     let params = JSON.parse( request.body );
     return await tournamentDB.deleteTournament( params.id );
+  },
+
+  //----------------------------------------------------------------------
+  // League description
+  // @param: id - tournament ID
+  //----------------------------------------------------------------------
+  getLeague: async function( request ) {
+    message.verifyParam( request, "id");
+    let query = request.queryStringParameters;
+    return await tournamentDB.getLeagueById( query.id | 0 );  // id is numeric, not str
+  },
+
+  //----------------------------------------------------------------------
+  // Get all leagues since given date ("2024/01/01")
+  // Get all recent leagues? Unexpired leagues  FIXME
+  // @param: date
+  //----------------------------------------------------------------------
+  getLeagues: async function( request ) {
+    let query = request.queryStringParameters;
+    message.verifyParam( request, "date");
+    return await tournamentDB.getLeaguesAfterDate( query.date );
+  },
+
+  //----------------------------------------------------------------------
+  // @param league data blob
+  // @return savedValue
+  //----------------------------------------------------------------------
+  updateLeague: async function( request ) {
+    let data = JSON.parse( request.body );
+    return await tournamentDB.updateLeague( data );
+  },
+
+  //----------------------------------------------------------------------
+  // Wipe object
+  // @param id
+  // @return nothing
+  //----------------------------------------------------------------------
+  deleteLeague: async function( request ) {
+    message.verifyParam( request, "id");
+    let params = JSON.parse( request.body );
+    return await tournamentDB.deleteLeague( params.id );
   }
+
 };
 
 
@@ -233,6 +288,29 @@ module.exports = {
   deleteTournament: function( request, context, callback ) {
     message.runFunctionAndRespond( request, callback, async function() {
       return await db.deleteTournament( request ); });
+  },
+
+  //----------------------------------------
+  //  League
+  //----------------------------------------
+  getLeague: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.getLeague( request ); });
+  },
+
+  getLeagues: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.getLeagues( request ); });
+  },
+
+  updateLeague: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.updateLeague( request ); });
+  },
+
+  deleteLeague: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.deleteLeague( request ); });
   }
 
 };

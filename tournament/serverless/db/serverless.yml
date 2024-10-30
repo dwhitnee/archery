@@ -89,6 +89,23 @@ resources:
               ReadCapacityUnits: 1
               WriteCapacityUnits: 1
 
+    LeaguesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: TS_Leagues
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: N
+          - AttributeName: date
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
 
     ArchersTable:
       Type: AWS::DynamoDB::Table

@@ -71,10 +71,13 @@
     // SELECT id from TOURNAMENTS where leagueId=6;
     // SELECT scores from ARCHERS where tournamentId in above;
 
+    // should league be denormalilzed into tournament?  FIXME
+    // will need maxScores to calculate totals safely/correctly
     league {
       id: 6
       name: "Scott's Tots",
       maxScores: 6,  // how many tournament scores should be counted (per archer) towards league total
+      doHandicap: true  // whether to calculate handicap based on scores (which ones? all?)
     }
 
     // DESIGN TODO: scoringGroup is really just a list of archers,
@@ -338,26 +341,24 @@ let app = new Vue({
       debugger;
     });
 
-    Util.setNamespace("TS");
+    Util.setNamespace("TS");  // tournamentScoring
 
     let tournamentId = this.$route.query.id;
     this.league.id = this.$route.query.leagueId;
-    let groupId = this.$route.query.groupId;  // scoring bale
+    let groupId = this.$route.query.groupId || 0;  // scoring bale
 
     if (tournamentId) {
       this.tournament = await this.getTournamentById( tournamentId );
       if (!this.tournament.type) {
         alert("There is no tournament named " + tournamentId );
       } else {
-        if (groupId) {
-          this.archers = await this.getArchers( tournamentId, groupId );
-          this.sortArchersForDisplay();
-          if (!this.archers[0]) {
-            this.groupName = groupId;
-            console.log("There is no scoring group named " + groupId );
-          } else {
-            this.groupName = this.archers[0].scoringGroup;
-          }
+        this.archers = await this.getArchers( tournamentId, groupId );
+        this.sortArchersForDisplay();
+        if (!this.archers[0]) {
+          this.groupName = groupId;
+          console.log("There is no scoring group named " + groupId );
+        } else {
+          this.groupName = this.archers[0].scoringGroup;
         }
       }
     }
@@ -500,7 +501,8 @@ let app = new Vue({
     //----------------------------------------
     computeRunningTotals: function( archer, roundNum ) {
       let runningTotal = 0,  // for each end and total
-          xCount = 0;        // total only
+          xCount = 0,        // total only
+          arrowCount = 0;
 
       if (!this.archerInitialized( archer )) {
         this.initArcher( archer, this.tournament );
@@ -514,20 +516,24 @@ let app = new Vue({
         runningTotal += end.score|0;
         xCount += end.xCount|0;
         end.runningTotal = runningTotal;
+        arrowCount += end.arrows.length;
       }
 
       // round totals
       round.score = runningTotal;
+      round.arrowCount = arrowCount;
       round.xCount = xCount;
 
       // all round totals - do we need this?
       archer.total = {
         score: 0,
+        arrowCount: 0,
         xCount: 0
       };
       for (let r=0; r < archer.rounds.length; r++) {
         archer.total.score += archer.rounds[r].score|0;    // "|0" prevents NaN if anything
         archer.total.xCount += archer.rounds[r].xCount|0;  // is undefined
+        archer.total.arrowCount += archer.rounds[r].arrowCount|0;
       }
 
     },
@@ -836,9 +842,16 @@ let app = new Vue({
 
     //----------------------------------------
     saveLeague: async function() {
-      if (!this.legaue || !this.legaue.name) {
+      if (!this.league || !this.league.name) {
         return;
       }
+
+      // created date I guess. Add expiration date? What good does that do?
+      // FIXME - figure out whate dates are needed for a league
+      // end-date - don't allow any more tournaments to be added
+      // start-date - Show recent leagues (within the last two months?)
+
+      this.league.date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
 
       if (localMode) {
         this.league.id = this.nextSequenceId++;
@@ -876,15 +889,31 @@ let app = new Vue({
       }
     },
 
-    getArchersForLeague: async function( leagueName ) {
-
+    //----------------------------------------
+    // FIXME - show results-to-date for league?
+    // list of archers with weekly scores, overall score, current handicap
+    getArchersForLeague: async function( leagueId ) {
       // load tournaments for league
-      let tournaments = await this.loadTournamentsForLeague( leagueName );
+      let tournaments = await this.loadTournamentsForLeague( leagueId );
+      let archers = {};
+
+      // make hash keyed by archer name (which wont work for existing archer display algorithms
+      // what is best way to display archer, scores, total, and handicap?
+      // for a handicap league there may not be archer classes, just one big list of archers
       for (let i=0; i < tournaments.length; i++) {
-        return await this.loadArchersFromDB( tournaments[i].id, 0 ) || [];
+        let newArchers = await this.loadArchersFromDB( tournaments[i].id, 0 ) || [];
+        // add archers to list de-dupe and add scores
+        newArchers.forEach( (archer) => {
+          if (!archers[archer.name]) {
+            archers[archer.name] = [];
+          }
+          archers[archer.name].push( archer );
+        });
       }
 
-
+      // iterate over archers and compute handicap and total score
+      // FIXME: how does this work for a two day regular tournament?
+      // eg, changing bales each day
     },
 
 
@@ -912,7 +941,7 @@ let app = new Vue({
 
     //----------------------------------------------------------------------
     // just archers in given division
-    // Just for display.  Could sort them I suppose, nahhh
+    // Just for display, sorted by score.
     //----------------------------------------------------------------------
     getArchersByClass: function( bow, age, gender ) {
       // FSLR-AF
@@ -947,7 +976,19 @@ let app = new Vue({
         }
       }
 
+      outArchers.sort( this.compareArcherScores );
       return outArchers;
+    },
+
+    // compare scores down to X count tiebreaker
+    compareArcherScores: function(a,b) {
+      let at = a.total, bt = b.total;
+
+      if (at.score != bt.score) {
+        return bt.score - at.score;
+      } else {
+        return bt.xCount - at.xCount;
+      }
     },
 
 
@@ -955,76 +996,45 @@ let app = new Vue({
     // SERVER CALLS
     //----------------------------------------------------------------------
 
+    //      LOAD
+
     //----------------------------------------
-    // load tournament from 4 letter code that is valid today only, use ID from here on out
+    // load tournament from 4 letter code that is valid today only
     // code should only be used for ad-hoc tournaments, not ones set up in advance.
+    // Server side will use date and short term code to get the persistent ID
     //----------------------------------------
     async loadTournamentByCodeFromDB( tournamentCode ) {
-      if (this.updateInProgress()) {    // one thing at a time...
-        alert("Another action was in progress. Try again.");
-        return null;
-      }
-
-      // server side will use date and short term code to get the persistent ID
       let date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
-
       // date = "2024-09-27"; // testing RTOS
 
-      try {
-        this.loadingData = true;
-
-        let response = await fetch(serverURL +
-                                   "tournament?code=" + tournamentCode +
-                                   "&date=" + date);
-        if (!response.ok) { throw await response.json(); }
-        return await response.json();
-      }
-      catch (err) {
-        console.error( err );
-        return null;
-      }
-      finally {
-        this.loadingData = false;
-      }
+      let serverCmd = "tournament?code=" + tournamentCode + "&date=" + date;
+      return await this.loadObjectsFromDB( serverCmd );
     },
-
     //----------------------------------------
     // load tournament by direct ID
-    // in an ad-hoc tournament you'd only have the tournament code (XYZQ).
-    // in an organized tournament you'd have the tournament and bale ID's
-    // .../tournament?tournamentId=69&scoringGroup=42
+    // in an ad-hoc tournament the code will turn into an ID upon creation
     //----------------------------------------
-    async loadTournamentByIdFromDB( tournamentId ) {
-      if (this.updateInProgress()) {    // one thing at a time...
-        alert("Another action was in progress. Try again.");
-        return null;
-      }
-
-      try {
-        this.loadingData = true;
-
-        let response = await fetch(serverURL + "tournament?id=" + tournamentId );
-        if (!response.ok) { throw await response.json(); }
-        return await response.json();
-      }
-      catch (err) {
-        console.error( err );
-        return null;
-      }
-      finally {
-        this.loadingData = false;
-      }
+    async loadTournamentByIdFromDB( id ) {
+      return await this.loadObjectsFromDB( "tournament?id=" + id );
     },
-
-    // async loadArcher() Not needed
     //----------------------------------------
-
+    // load all archers in this tournament and/or on a given bale (scoring group)
     //----------------------------------------
+    async loadLeagueFromDB( id ) {
+      return await this.loadObjectsFromDB("league?id=" + id );
+    },
+    //----------------------------------------
+    // load all archers in this tournament and/or on a given bale (scoring group)
+    //----------------------------------------
+    async loadArchersFromDB( tournamentId, groupId ) {
+      let serverCmd = "archers?tournamentId=" + tournamentId + "&groupId=" + groupId;
+      return await this.loadObjectsFromDB( serverCmd );
+    },
 
     //----------------------------------------
     // generic object load from remote
     //----------------------------------------
-    async loadArchersFromDB( tournamentId, groupId ) {
+    async loadObjectsFromDB( serverCmd ) {
       if (this.updateInProgress()) {    // one thing at a time...
         alert("Another action was in progress. Try again.");
         return null;
@@ -1032,9 +1042,7 @@ let app = new Vue({
 
       try {
         this.loadingData = true;
-
-        let response = await fetch(serverURL + "archers?tournamentId=" + tournamentId +
-                                   "&groupId=" + groupId );
+        let response = await fetch(serverURL + serverCmd );
         if (!response.ok) { throw await response.json(); }
         return await response.json();
       }
@@ -1047,39 +1055,21 @@ let app = new Vue({
       }
     },
 
+
+    //      SAVE
 
     //----------------------------------------
-    async loadObjectsFromDB( tournamentId, groupId ) {
-      if (this.updateInProgress()) {    // one thing at a time...
-        alert("Another action was in progress. Try again.");
-        return null;
-      }
-
-      try {
-        this.loadingData = true;
-
-        let response = await fetch(serverURL + "archers?tournamentId=" + tournamentId +
-                                   "&groupId=" + groupId );
-        if (!response.ok) { throw await response.json(); }
-        return await response.json();
-      }
-      catch (err) {
-        console.error( err );
-        return null;
-      }
-      finally {
-        this.loadingData = false;
-      }
+    // ID, version, metadata to be generated remotely and populated into given object
+    //----------------------------------------
+    async saveTournamentToDB( tournament ) {
+      await this.saveObjectToDB( tournament, "Tournament");
     },
-
-
-    // load all archers in this tournament and/or on a given bale (scoring group)
-    // async loadArchersFromDB( tournamentId, groupId ) {
-    //   let serverCmd = "archers?tournamentId=" + tournamentId + "&groupId=" + groupId;
-    //   return await this.loadObjectsFromDB( serverCmd );
-    // },
-
-
+    async saveLeagueToDB( league ) {
+      await this.saveObjectToDB( league, "League");
+    },
+    async saveArcherToDB( archer ) {
+      await this.saveObjectToDB( archer, "Archer");
+    },
 
     //----------------------------------------
     // generic object save call updateTournament, updateArcher, updateLeague
@@ -1115,19 +1105,6 @@ let app = new Vue({
       }
     },
 
-    //----------------------------------------
-    // save descriptor for tournament with scoring groups
-    // ID to be generated remotely.
-    //----------------------------------------
-    async saveTournamentToDB( tournament ) {
-      await this.saveObjectToDB( tournament, "Tournament");
-    },
-    async saveLeagueToDB( league ) {
-      await this.saveObjectToDB( league, "League");
-    },
-    async saveArcherToDB( archer ) {
-      await this.saveObjectToDB( archer, "Archer");
-    },
 
   },
 

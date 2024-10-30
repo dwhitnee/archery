@@ -25,11 +25,11 @@
 
 <body>
   <div id="tournamentApp" class="appGrid" v-cloak="">
-    <div v-if="loadingData" class="loading spinner-border spinner-border-lg"></div>
+    <div v-if="updateInProgress()" class="loading spinner-border spinner-border-lg"></div>
 
     <div class="menuBar">
       <div>
-        <div v-if="inProgress()" class="spinner-border spinner-border-sm"></div>
+        <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
       </div>
       <div>
         <b><div v-if="message" class="message">{{ message }}</div></b>
