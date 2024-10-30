@@ -260,7 +260,7 @@ let app = new Vue({
       // },
       {
         "description": "Lancaster 300",
-        "arrows": 3, "ends": 10, maxArrowScore: 11
+        "arrows": 3, "ends": 10, maxArrowScore: 10, xBonus: 1       // Lancaster X is 11
       },
       {
         "description": "Blueface 300",
@@ -306,7 +306,7 @@ let app = new Vue({
             "";
     },
 
-    // X,9,8,7,6,5,4,3,2,1,M
+    // X,10,9,8,7,6,5,4,3,2,1,M
     pointValues() {
       let values = ["M"];
       let i = 1;
@@ -576,7 +576,7 @@ let app = new Vue({
 
       for (let a=0; a < end.arrows.length; a++) {
         if (arrows[a] == "X") { // 10 normally. 11 for Lancaster, 5 for BF
-          end.score += this.tournament.type.maxArrowScore;
+          end.score += this.tournament.type.maxArrowScore + (this.tournament.type.xBonus|0);
           end.xCount++;
         } else {
           if (arrows[a] != "M") {  // miss
@@ -744,12 +744,12 @@ let app = new Vue({
       document.body.addEventListener("keydown", this.closeDialogOnESC );
     },
 
-    qrcode: function() {
-      let qrcode = new QRCode( document.getElementById("qrcode"),
-                               "http://jindo.dev.naver.com/collie");
+    //
+    qrcode: function( qrcodeURL ) {
+      let qrcode = new QRCode( document.getElementById("qrcode"), qrcodeURL);
 
       let qrcode2 = new QRCode( document.getElementById("qrcode"), {
-        text: "http://jindo.dev.naver.com/collie",
+        text: qrcodeURL,
         width: 256,
         height: 256,
         // typeNumber : 4,   // https://www.qrcode.com/en/codes/
@@ -759,7 +759,7 @@ let app = new Vue({
       });
 
       qrcode.clear();
-      qrcode.makeCode("http://naver.com");
+      qrcode.makeCode( qrcodeURL );
     },
 
 

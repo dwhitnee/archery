@@ -163,7 +163,7 @@
     <!-- enter scores for a single end -->
 
     <div v-if="isMode( ViewMode.SCORE_END )" class="scorecard">
-      End {{ scoringEndNumber+1 }}
+      End {{ scoringEndNumber+1 }} - {{ archer.name }}
       <div class="arrows">
         <div v-for="arrow in scoringEnd.arrows" class="arrowScore">
           {{ arrow | score }}
