@@ -2,7 +2,9 @@
 Copyright (c) 2023 <a href="http://dwhitnee.s3-website-us-east-1.amazonaws.com/">David Whitney</a>
 
 ## About
-This is a collection of Archery apps for tournaments and training.
+This is a collection of Archery apps for tournaments and training. All
+web-based, written in vanilla Javascript and VueJS. AWS DynamoDB and
+AWS Lambda are the database.
 
 ## Tournament Timer
 https://dwhitnee.github.io/archer/timer
