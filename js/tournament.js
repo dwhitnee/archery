@@ -1013,6 +1013,54 @@ let app = new Vue({
       }
     },
 
+    exportToCSV: function( tournament ) {
+      let csv = [tournament.name];
+
+      let heading = ["Category"];
+
+      if (tournament.type.rounds > 1) {
+        for (let r=0; r < tournament.type.rounds; r++) {
+          heading.push("Score "+(r+1));
+          heading.push("X");
+        }
+      }
+      heading.push("Total");
+      heading.push("X");
+
+      csv.push( heading );
+
+      for (let b=0; b < this.bows.length; b++) {
+        for (let a=0; a < this.ages.length; a++) {
+          for (let g=0; g < this.genders.length; g++) {
+
+            let archers = this.getArchersByClass(
+              this.bows[b], this.ages[a], this.genders[g] );
+            if (!archers.length) {
+              continue;
+            }
+            csv.push([]);
+            csv.push( [this.ages[a].full + " " + this.genders[g].full + " " + this.bows[b].full] );
+
+            for (let i=0; i < archers.length; i++) {
+              let archer = archers[i];
+              let row = [archer.name];
+              if (tournament.type.rounds > 1) {
+                for (let r=0; r < tournament.type.rounds; r++) {
+                  row.push( archer.rounds[r].score );
+                  row.push( archer.rounds[r].xCount );
+                }
+              }
+              row.push( archer.total.score );
+              row.push( archer.total.xCount );
+              // row.push( archer.total.arrowCount );
+
+              csv.push( row );
+            }
+          }
+        }
+      }
+      Util.exportToCSV( csv, tournament.name );
+    },
 
     //----------------------------------------------------------------------
     // SERVER CALLS

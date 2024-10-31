@@ -88,18 +88,17 @@ var Util = {
   // make a comma seprarated pile of data from a 2-D array
   // Doesn't handle " character well, but all others work, including commas and UTF-8
   //----------------------------------------
-  exportToCSV: function( data ) {
-    let filename = "tournament.csv";
+  exportToCSV: function( rows, filename ) {
 
-    const rows = [
-      ["name1", "city1", "here's a com,ma"],
-      ["name2", "city2", "more info", 69, "♥️", "Ångström"]
-    ];
+    // const rows = [
+    //   ["name1", "city1", "here's a com,ma"],
+    //   ["name2", "city2", "more info", 69, "♥️", "Ångström"]
+    // ];
 
     // quote every value so cells can contain anything
-    let csv = rows.map(row=> "\"".concat(row.join("\",\"")).concat("\"")).join("\n");
+    let csv = rows.map(row => "\"".concat(row.join("\",\"")).concat("\"")).join("\n");
 
-    this.downloadCSV( csv, "tournament.csv");
+    this.downloadCSV( csv, filename+".csv");
   },
 
   //----------------------------------------
