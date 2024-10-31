@@ -428,7 +428,13 @@ let app = new Vue({
           break;
         }
       }
-      this.scoreEnd( archer, ends[endNum], endNum);
+      if (endNum < ends.length) {
+        this.scoreEnd( archer, ends[endNum], endNum);
+      } else {
+        // go to score display page, not the calculator
+        this.mode = ViewMode.SCORE_SHEET;
+      }
+
     },
 
     // bring up calculator for given end
