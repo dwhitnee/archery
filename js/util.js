@@ -1,3 +1,4 @@
+/* global URL, Blob */
 /*jslint esversion: 8 */
 //----------------------------------------------------------------------
 // Misc useful functions
@@ -81,5 +82,36 @@ var Util = {
   setCookie: function( key, value ) {
     value = JSON.stringify( value );
     document.cookie = key+"="+value+"; path=/; max-age=99999999";
+  },
+
+  //----------------------------------------
+  // make a comma seprarated pile of data from a 2-D array
+  // Doesn't handle " character well, but all others work, including commas and UTF-8
+  //----------------------------------------
+  exportToCSV: function( rows, filename ) {
+
+    // const rows = [
+    //   ["name1", "city1", "here's a com,ma"],
+    //   ["name2", "city2", "more info", 69, "♥️", "Ångström"]
+    // ];
+
+    // quote every value so cells can contain anything
+    let csv = rows.map(row => "\"".concat(row.join("\",\"")).concat("\"")).join("\n");
+
+    this.downloadCSV( csv, filename+".csv");
+  },
+
+  //----------------------------------------
+  // force browser to download the data rather than just display it
+  // link bypasses popup blockers that window.open would trigger
+  //----------------------------------------
+  downloadCSV: function( csv, filename ) {
+    let blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' });
+    let url = URL.createObjectURL( blob );
+
+    let link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename );
+    link.click();
   }
 };

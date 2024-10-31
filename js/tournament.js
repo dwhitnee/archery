@@ -260,7 +260,7 @@ let app = new Vue({
       // },
       {
         "description": "Lancaster 300",
-        "arrows": 3, "ends": 10, maxArrowScore: 11
+        "arrows": 3, "ends": 10, maxArrowScore: 10, xBonus: 1       // Lancaster X is 11
       },
       {
         "description": "Blueface 300",
@@ -306,7 +306,7 @@ let app = new Vue({
             "";
     },
 
-    // X,9,8,7,6,5,4,3,2,1,M
+    // X,10,9,8,7,6,5,4,3,2,1,M
     pointValues() {
       let values = ["M"];
       let i = 1;
@@ -415,6 +415,29 @@ let app = new Vue({
       this.mode = ViewMode.SCORE_SHEET;
     },
 
+    // switch mode to first unscored end for this archer
+    // if we came from ARCHER_LIST then go straight to SCORE_END (first empty end)
+    scoreArcherNextEnd: function( archer ) {
+      this.archer = archer;
+
+      // find first end with unscored arrows
+      let ends = archer.rounds[this.round].ends;
+      let endNum = 0;
+      for (; endNum < ends.length; endNum++) {
+        if (!ends[endNum].arrows[0]) {
+          break;
+        }
+      }
+      if (endNum < ends.length) {
+        this.scoreEnd( archer, ends[endNum], endNum);
+      } else {
+        // go to score display page, not the calculator
+        this.mode = ViewMode.SCORE_SHEET;
+      }
+
+    },
+
+    // bring up calculator for given end
     scoreEnd: function( archer, end, endNumber ) {
       this.scoringEnd = end;
       this.scoringEndNumber = endNumber;
@@ -449,11 +472,13 @@ let app = new Vue({
       return b-a;
     },
 
+    // FIXME: need debounce on button clicks?
     deleteArrowScore() {
-      console.log("deleting last arrow " + this.currentArrow );
-      this.scoringEnd.arrows[--this.currentArrow] = null;
-
-      this.$forceUpdate();  // deep change to this.scoringEnd does not trigger update
+      if (this.currentArrow > 0) {
+        console.log("deleting last arrow " + this.currentArrow );
+        this.scoringEnd.arrows[--this.currentArrow] = null;
+        this.$forceUpdate();  // deep change to this.scoringEnd does not trigger update
+      }
     },
 
     archerInitialized: function( archer ) {
@@ -516,7 +541,10 @@ let app = new Vue({
         runningTotal += end.score|0;
         xCount += end.xCount|0;
         end.runningTotal = runningTotal;
-        arrowCount += end.arrows.length;
+
+        const scoredArrows = end.arrows.filter( a => (typeof(a) == "number" ||
+                                                      typeof(a) == "string"));  // "X"
+        arrowCount += scoredArrows.length;
       }
 
       // round totals
@@ -576,7 +604,7 @@ let app = new Vue({
 
       for (let a=0; a < end.arrows.length; a++) {
         if (arrows[a] == "X") { // 10 normally. 11 for Lancaster, 5 for BF
-          end.score += this.tournament.type.maxArrowScore;
+          end.score += this.tournament.type.maxArrowScore + (this.tournament.type.xBonus|0);
           end.xCount++;
         } else {
           if (arrows[a] != "M") {  // miss
@@ -663,10 +691,10 @@ let app = new Vue({
         await this.updateArcher( this.archers[i] );
       }
 
-      this.gotoArcherLlist();
+      this.gotoArcherList();
     },
 
-    gotoArcherLlist: function() {
+    gotoArcherList: function() {
       this.mode = ViewMode.ARCHER_LIST;
     },
 
@@ -744,12 +772,12 @@ let app = new Vue({
       document.body.addEventListener("keydown", this.closeDialogOnESC );
     },
 
-    qrcode: function() {
-      let qrcode = new QRCode( document.getElementById("qrcode"),
-                               "http://jindo.dev.naver.com/collie");
+    //
+    qrcode: function( qrcodeURL ) {
+      let qrcode = new QRCode( document.getElementById("qrcode"), qrcodeURL);
 
       let qrcode2 = new QRCode( document.getElementById("qrcode"), {
-        text: "http://jindo.dev.naver.com/collie",
+        text: qrcodeURL,
         width: 256,
         height: 256,
         // typeNumber : 4,   // https://www.qrcode.com/en/codes/
@@ -759,7 +787,7 @@ let app = new Vue({
       });
 
       qrcode.clear();
-      qrcode.makeCode("http://naver.com");
+      qrcode.makeCode( qrcodeURL );
     },
 
 
@@ -991,6 +1019,54 @@ let app = new Vue({
       }
     },
 
+    exportToCSV: function( tournament ) {
+      let csv = [[tournament.name]];
+
+      let heading = ["Category"];
+
+      if (tournament.type.rounds > 1) {
+        for (let r=0; r < tournament.type.rounds; r++) {
+          heading.push("Score "+(r+1));
+          heading.push("X");
+        }
+      }
+      heading.push("Total");
+      heading.push("X");
+
+      csv.push( heading );
+
+      for (let b=0; b < this.bows.length; b++) {
+        for (let a=0; a < this.ages.length; a++) {
+          for (let g=0; g < this.genders.length; g++) {
+
+            let archers = this.getArchersByClass(
+              this.bows[b], this.ages[a], this.genders[g] );
+            if (!archers.length) {
+              continue;
+            }
+            csv.push([]);
+            csv.push( [this.ages[a].full + " " + this.genders[g].full + " " + this.bows[b].full] );
+
+            for (let i=0; i < archers.length; i++) {
+              let archer = archers[i];
+              let row = [archer.name];
+              if (tournament.type.rounds > 1) {
+                for (let r=0; r < tournament.type.rounds; r++) {
+                  row.push( archer.rounds[r].score );
+                  row.push( archer.rounds[r].xCount );
+                }
+              }
+              row.push( archer.total.score );
+              row.push( archer.total.xCount );
+              // row.push( archer.total.arrowCount );
+
+              csv.push( row );
+            }
+          }
+        }
+      }
+      Util.exportToCSV( csv, tournament.name );
+    },
 
     //----------------------------------------------------------------------
     // SERVER CALLS
