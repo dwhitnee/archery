@@ -71,9 +71,9 @@
       </div>
       <div v-else class="resultsPage">
 
-        <h3>
+        <h3 title="Export to CSV" @click="exportToCSV( tournament )">
           {{ tournament.name }}
-          <div class="icon saveIcon" @click="exportToCSV( tournament )"></div>
+          <div class="icon saveIcon" style="font-size: 50%;"></div>
         </h3>
 
         <!-- results like  https://drive.google.com/file/d/1Zmz_iE0EUlASVKqjfVHt3Yms-moM1g9b/view   -->

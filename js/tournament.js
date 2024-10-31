@@ -1014,7 +1014,7 @@ let app = new Vue({
     },
 
     exportToCSV: function( tournament ) {
-      let csv = [tournament.name];
+      let csv = [[tournament.name]];
 
       let heading = ["Category"];
 
