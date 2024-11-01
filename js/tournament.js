@@ -584,7 +584,9 @@ let app = new Vue({
     // done scoring this archer, go directly to the next archer
     //----------------------------------------
     doneGoToNextArcher: async function( archer, end ) {
-      this.doneWithEnd( archer, end );
+      if (!await this.doneWithEnd( archer, end )) {
+        return;
+      }
 
       // get next archer
       let next = this.archers.indexOf( archer ) + 1;
@@ -600,8 +602,9 @@ let app = new Vue({
     // done scoring this archer, go back to scoresheet view
     //----------------------------------------
     doneGoToScoresheet: async function( archer, end ) {
-      this.doneWithEnd( archer, end );
-      this.showArcherScoresheet( archer );
+      if (await this.doneWithEnd( archer, end )) {
+        this.showArcherScoresheet( archer );
+      }
     },
 
     //----------------------------------------
@@ -618,11 +621,11 @@ let app = new Vue({
       if ((arrowsScored == 0) || (arrowsScored == end.arrows.length)) {
         this.calcEndTotals( archer, end );
         await this.updateArcher( archer );      // running totals calculated here, too
+        return true;
       } else {
         alert("Must score all arrows or no arrows");
-        return;
+        return false;
       }
-
     },
 
     //----------------------------------------
