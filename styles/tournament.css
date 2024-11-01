@@ -128,7 +128,8 @@ a {
   padding: .25em 0;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  /* justify-content: space-between; */
+  justify-content: end;  /* only one button on right */
   align-content: space-between;
   align-items: center;
 }
@@ -232,6 +233,7 @@ h3 {
 }
 .calculator {
   display: grid;
+  justify-items: stretch;
   /* grid-template-columns: repeat(auto-fill, minmax(7em, 1fr)); */
   grid-template-columns: 1fr 1fr 1fr 1fr;
   grid-gap: .5em;
@@ -239,14 +241,24 @@ h3 {
   padding: 1em;
   margin-top: 1em;
   border-radius: .25em;
+
+  grid-template-rows: auto;
+  /* grid-template-areas: */
+  /*   ". . . ." */
+  /*   ". . . ." */
+  /*   ". . . doneButton"; */
 }
+
 .calculator > button {
   width: inherit; /* 7em; */
   height: 4em;
   font-size: larger;
   outline: 2px solid black;
 }
-
+.calculator .doneButton {
+  /* grid-area: "doneButton"; */
+  grid-column: span 4;
+}
 .calculator .deleteIcon {
   transform: scale(2);
   place-self: center;

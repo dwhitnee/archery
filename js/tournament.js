@@ -163,6 +163,11 @@ Vue.filter('score', function (value) {
   }
 });
 
+// const router = createRouter({
+//   history: createWebHistory(),
+//   routes: [],
+// });
+
 // Vue-router 3
 var router = new VueRouter({
   mode: 'history',
@@ -412,9 +417,47 @@ let app = new Vue({
       return this.saveInProgress || this.loadingData;
     },
 
+    archerInitialized: function( archer ) {
+      return archer.rounds && archer.rounds[0] && archer.rounds[0].ends;
+    },
+
+    // init archer data struct
+    initArcher: function( archer, tournament ) {
+      if (!tournament) {
+        alert("No tournament specified - BUG"); debugger;
+      }
+
+      if (this.archerInitialized( archer )) {
+        alert("Archer already initialzed - BUG"); debugger;
+      }
+
+      archer.rounds = archer.rounds || [];
+      for (let r=0; r < tournament.type.rounds; r++) {
+        if (!archer.rounds[r]) {
+          archer.rounds[r] = {
+            // score: 0,
+            // xCount: 0,
+            ends : []
+          };
+          for (let e=0; e < tournament.type.ends; e++) {
+            archer.rounds[r].ends[e] = {
+              arrows:  [],
+              // score: 0,
+              // runningTotal: 0,
+              // xCount: 0
+
+            };
+            for (let a=0; a < tournament.type.arrows; a++) {
+              archer.rounds[r].ends[e].arrows[a] = null;  // not 0? ""?
+            }
+          }
+        }
+      }
+    },
+
 
     // switch mode to show an archer's score for the tournament
-    scoreArcher: function( archer ) {
+    showArcherScoresheet: function( archer ) {
       this.archer = archer;
       this.mode = ViewMode.SCORE_SHEET;
       this.setMessage( archer.name );
@@ -424,6 +467,7 @@ let app = new Vue({
     // if we came from ARCHER_LIST then go straight to SCORE_END (first empty end)
     scoreArcherNextEnd: function( archer ) {
       this.archer = archer;
+      this.setMessage( archer.name );
 
       // find first end with unscored arrows
       let ends = archer.rounds[this.round].ends;
@@ -433,13 +477,12 @@ let app = new Vue({
           break;
         }
       }
+      console.log("Scoring " + archer.name + " end " + endNum);
       if (endNum < ends.length) {
         this.scoreEnd( archer, ends[endNum], endNum);
       } else {
-        // go to score display page, not the calculator
-        this.mode = ViewMode.SCORE_SHEET;
+        this.showArcherScoresheet( archer ); // go to score display page, not the calculator
       }
-      this.setMessage( archer.name );
     },
 
     // bring up calculator for given end
@@ -491,45 +534,6 @@ let app = new Vue({
       }
     },
 
-    archerInitialized: function( archer ) {
-      return archer.rounds && archer.rounds[0] && archer.rounds[0].ends;
-    },
-
-
-    // init archer data struct
-    initArcher: function( archer, tournament ) {
-      if (!tournament) {
-        alert("No tournament specified - BUG"); debugger;
-      }
-
-      if (this.archerInitialized( archer )) {
-        alert("Archer already initialzed - BUG"); debugger;
-      }
-
-      archer.rounds = archer.rounds || [];
-      for (let r=0; r < tournament.type.rounds; r++) {
-        if (!archer.rounds[r]) {
-          archer.rounds[r] = {
-            // score: 0,
-            // xCount: 0,
-            ends : []
-          };
-          for (let e=0; e < tournament.type.ends; e++) {
-            archer.rounds[r].ends[e] = {
-              arrows:  [],
-              // score: 0,
-              // runningTotal: 0,
-              // xCount: 0
-
-            };
-            for (let a=0; a < tournament.type.arrows; a++) {
-              archer.rounds[r].ends[e].arrows[a] = null;  // not 0? ""?
-            }
-          }
-        }
-      }
-    },
-
     //----------------------------------------
     // Do the math for the whole round.
     // From scratch each time?  Seems like overkill, but probably worth it
@@ -576,6 +580,29 @@ let app = new Vue({
 
     },
 
+    //----------------------------------------
+    // done scoring this archer, go directly to the next archer
+    //----------------------------------------
+    doneGoToNextArcher: async function( archer, end ) {
+      this.doneWithEnd( archer, end );
+
+      // get next archer
+      let next = this.archers.indexOf( archer ) + 1;
+
+      if (this.archers[next]) {
+        this.scoreArcherNextEnd( this.archers[next] );
+      } else {
+        this.gotoArcherList();  // end of scoring
+      }
+    },
+
+    //----------------------------------------
+    // done scoring this archer, go back to scoresheet view
+    //----------------------------------------
+    doneGoToScoresheet: async function( archer, end ) {
+      this.doneWithEnd( archer, end );
+      this.showArcherScoresheet( archer );
+    },
 
     //----------------------------------------
     doneWithEnd: async function( archer, end ) {
@@ -591,8 +618,6 @@ let app = new Vue({
       if ((arrowsScored == 0) || (arrowsScored == end.arrows.length)) {
         this.calcEndTotals( archer, end );
         await this.updateArcher( archer );      // running totals calculated here, too
-
-        this.mode = ViewMode.SCORE_SHEET;
       } else {
         alert("Must score all arrows or no arrows");
         return;
@@ -627,6 +652,9 @@ let app = new Vue({
       // update the whole round
       this.computeRunningTotals( archer, this.round );
     },
+
+
+
 
     joinTournament: async function() {
       this.joinCode = this.joinCode.toUpperCase();
