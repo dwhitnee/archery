@@ -23,6 +23,8 @@
 
 
 // TODO:
+// brower history on nav: history.pushState(foo, null, "#newPlace");
+
 // archer data should be in cloud (how to uniquely ID?)
 // Round management. It's always round 0
 
@@ -171,8 +173,23 @@ Vue.filter('score', function (value) {
 // Vue-router 3
 var router = new VueRouter({
   mode: 'history',
-  routes: [ ]
+  routes: [
+    // { path: "/archery/tournament" },
+    // { path: "/archery/tournament/overview" }
+  ]
 });
+
+
+// to, from are the Location objects
+// {"path":"/~dwhitney/archery/tournament/"}
+// {"path":"/"}
+/*
+router.beforeEach((to, from) => {
+  console.log( JSON.stringify( to ) );
+  console.log( JSON.stringify( from ) );
+  // return false;   // explicitly return false to cancel the navigation
+});
+*/
 
 const ViewMode = {
   TOURNAMENT_START: "TOURNAMENT_START",
@@ -346,6 +363,24 @@ let app = new Vue({
       debugger;
     });
 
+    // Ask before leaving page (unfortunately, this includes the reload() button
+/*    let showConfirmation = function(e) {
+      (e || window.event).returnValue = "you sure?";
+      return "you sure?";
+    };
+    window.addEventListener("beforeunload", function (e) {
+      return showConfirmation(e);
+    });
+*/
+
+    // Should handle routing better instead
+    // prevent back button from being used? Bad, but prevents confusion
+    window.addEventListener('popstate', function(event) {
+      console.log("Preventing back button (Sorry): "+document.location );
+      event.stopImmediatePropagation();
+      history.go(1);
+    });
+
     Util.setNamespace("TS");  // tournamentScoring
 
     let tournamentId = this.$route.query.id;
@@ -461,6 +496,8 @@ let app = new Vue({
       this.archer = archer;
       this.mode = ViewMode.SCORE_SHEET;
       this.setMessage( archer.name );
+
+      history.pushState( {}, null, "#scoresheet");
     },
 
     // switch mode to first unscored end for this archer
@@ -494,6 +531,7 @@ let app = new Vue({
       this.currentArrow = end.arrows.filter((arrow) => arrow != null).length;
 
       this.mode = ViewMode.SCORE_END;
+      history.pushState( {}, null, "#end");
     },
 
     // calculator button was pushed, update end
@@ -737,6 +775,7 @@ let app = new Vue({
     gotoArcherList: function() {
       this.mode = ViewMode.ARCHER_LIST;
       this.setMessage( this.tournament.name );
+      history.pushState( {}, null, "#archers");
     },
 
     //----------------------------------------
@@ -1211,7 +1250,10 @@ let app = new Vue({
         if (!response.ok) { throw await response.json(); }
 
         let result = await response.json();
-        console.log("update resulted in " + JSON.stringify( result ));
+        // console.log("update resulted in " + JSON.stringify( result ));
+        if (result) {
+          console.log("update resulted in " + result.name + ", v" + result.version );
+        }
 
         // refresh our local data with whatever goodness the DB thinks
         // we should have (last updated, version)
