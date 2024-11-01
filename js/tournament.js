@@ -413,6 +413,7 @@ let app = new Vue({
     scoreArcher: function( archer ) {
       this.archer = archer;
       this.mode = ViewMode.SCORE_SHEET;
+      this.setMessage( archer.name );
     },
 
     // switch mode to first unscored end for this archer
@@ -434,7 +435,7 @@ let app = new Vue({
         // go to score display page, not the calculator
         this.mode = ViewMode.SCORE_SHEET;
       }
-
+      this.setMessage( archer.name );
     },
 
     // bring up calculator for given end
@@ -459,6 +460,8 @@ let app = new Vue({
       console.log("Arrow " + (this.currentArrow+1) + " is " + score );
       this.scoringEnd.arrows[this.currentArrow++] = score;
 
+      this.calcEndTotals( this.archer, this.scoringEnd );
+
       // sort scoring end high to low - sorry Lancaster
       this.scoringEnd.arrows.sort( this.compareArrowScores );
     },
@@ -477,6 +480,9 @@ let app = new Vue({
       if (this.currentArrow > 0) {
         console.log("deleting last arrow " + this.currentArrow );
         this.scoringEnd.arrows[--this.currentArrow] = null;
+
+        this.calcEndTotals( this.archer, this.scoringEnd );
+
         this.$forceUpdate();  // deep change to this.scoringEnd does not trigger update
       }
     },
@@ -579,7 +585,9 @@ let app = new Vue({
       }
 
       if ((arrowsScored == 0) || (arrowsScored == end.arrows.length)) {
-        await this.enterScoresForEnd( archer, end );
+        this.calcEndTotals( archer, end );
+        await this.updateArcher( archer );      // running totals calculated here, too
+
         this.mode = ViewMode.SCORE_SHEET;
       } else {
         alert("Must score all arrows or no arrows");
@@ -589,12 +597,12 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // Update the scores for a single end.  Then updated round running totals
+    // Compute the scores for a single end. Running totals done at update
     // @arg archer
     // @arg round - round number
     // @arg end - end number
     //----------------------------------------
-    enterScoresForEnd: async function( archer, end ) {
+    calcEndTotals: async function( archer, end ) {
       // scores for this end, e.g. ["X", "10", "9", "M", ...]
       let arrows = end.arrows;
 
@@ -612,11 +620,8 @@ let app = new Vue({
           }
         }
       }
-
-      // running totals calculated here, too
-      await this.updateArcher( archer );
-
-      // await archer.save();  // FIXME? class Archer { etc.. }
+      // update the whole round
+      this.computeRunningTotals( archer, this.round );
     },
 
     joinTournament: async function() {
@@ -696,6 +701,7 @@ let app = new Vue({
 
     gotoArcherList: function() {
       this.mode = ViewMode.ARCHER_LIST;
+      this.setMessage( this.tournament.name );
     },
 
     //----------------------------------------
@@ -815,6 +821,9 @@ let app = new Vue({
           tournament.type.rounds = 1;  // default
         }
       }
+      if (tournament) {
+        this.setMessage( tournament.name );
+      }
       return tournament;
     },
 
@@ -833,6 +842,9 @@ let app = new Vue({
       }
       if (tournament && tournament.type) {
         tournament.type.rounds = tournament.type.rounds || 1;  // at least one always
+      }
+      if (tournament) {
+        this.setMessage( tournament.name );
       }
       return tournament;
     },

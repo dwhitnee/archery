@@ -202,6 +202,11 @@ h3 {
   border: 1px solid black;
 }
 
+.archerName {
+  font-weight: bold;
+  padding-left: 1em;
+}
+
 .scorecard {
   margin-right: 1em;
   touch-action: manipulation;  /* no double tap zoom */
@@ -222,7 +227,9 @@ h3 {
   font-size: larger;
   text-align: center;
 }
-
+.arrowTotals {
+  background-color: wheat;
+}
 .calculator {
   display: grid;
   /* grid-template-columns: repeat(auto-fill, minmax(7em, 1fr)); */
