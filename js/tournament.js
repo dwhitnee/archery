@@ -345,20 +345,24 @@ let app = new Vue({
 
     let tournamentId = this.$route.query.id;
     this.league.id = this.$route.query.leagueId;
-    let groupId = this.$route.query.groupId || 0;  // scoring bale
+    let groupId = this.$route.query.groupId;  // scoring bale ("0" means all)
 
     if (tournamentId) {
       this.tournament = await this.getTournamentById( tournamentId );
       if (!this.tournament.type) {
         alert("There is no tournament named " + tournamentId );
       } else {
-        this.archers = await this.getArchers( tournamentId, groupId );
-        this.sortArchersForDisplay();
-        if (!this.archers[0]) {
-          this.groupName = groupId;
-          console.log("There is no scoring group named " + groupId );
-        } else {
-          this.groupName = this.archers[0].scoringGroup;
+        // Only load all archers if groupId="0", otherwise it's too
+        // easy for a user to load a whole tournament.
+        if (groupId !== undefined) {
+          this.archers = await this.getArchers( tournamentId, groupId );
+          this.sortArchersForDisplay();
+          if (!this.archers[0]) {
+            this.groupName = groupId;
+            console.log("There is no scoring group named " + groupId );
+          } else {
+            this.groupName = this.archers[0].scoringGroup;
+          }
         }
       }
     }
