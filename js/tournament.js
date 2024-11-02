@@ -23,6 +23,8 @@
 
 
 // TODO:
+// Fix Overview for multiple rounds.
+
 // brower history on nav: history.pushState(foo, null, "#newPlace");
 
 // archer data should be in cloud (how to uniquely ID?)
@@ -223,8 +225,6 @@ let app = new Vue({
     tournament: { },  // description of one day's shooting (target, distance, etc)
     league: {},       // only if this is a multi day event (with multiple "tournaments")
 
-    round: 0,     // which round of the tournament we are scoring (how is this determined? display only?)  Can we move around rounds?  Display only one round at a time?  All rounds?  How to edit and update previous rounds?
-
     archers: [],           // on a particular bale (scoring group)
     sortedArchers: [],     // For display only (broken down by division [FSLR-AF])
 
@@ -236,8 +236,11 @@ let app = new Vue({
 
     archer: {},     // current archer for ScoreSheet
     scoringEnd: {}, // current end of arrows being scored
-    currentArrow: 0,
+
+    currentArrow: 0,  // current number of scoring arrow, end, and round
+    currentEnd: 0,
     currentRound: 0,
+    isEndOfScoring: false,  // if this.archer has all arrows scored
 
     genders: [
       {full: "Male", abbrev: "M"},
@@ -286,7 +289,7 @@ let app = new Vue({
       },
       {
         "description": "Blueface 300",
-        "arrows": 5, "ends": 12, maxArrowScore: 5  // 3 rounds of 4 ends?
+        "arrows": 5, "ends": 4, maxArrowScore: 5, rounds: 3 // 3x4 ends, or one of 12?
       },
       // {
       //   "description": "Blueface 300 x2",
@@ -490,6 +493,42 @@ let app = new Vue({
       }
     },
 
+    //----------------------------------------
+    // find currentRound and currentEnd base on this.archer's scored arrows
+    // @return nothing, but which round and end we are in will get set in this.current*
+    //----------------------------------------
+    findCurrentEndForArcher: function( archer ) {
+      // find first end with unscored arrows
+
+      let rounds = archer.rounds;
+      let roundNum = 0, endNum = 0;
+      let found = false;
+
+      for (; roundNum < this.tournament.type.rounds; roundNum++) {
+        let ends = archer.rounds[roundNum].ends;
+        endNum = 0;
+        for (; endNum < ends.length; endNum++) {
+          if (!ends[endNum].arrows[0]) {
+            found = true;  // found an unscored end
+            break;
+          }
+        }
+        if (found) {
+          break;   // we're done, otherwise keep iterating
+        }
+      }
+
+      if (found) {
+        this.currentRound = roundNum;
+        this.currentEnd = endNum;
+        this.isEndOfScoring = false;
+      } else {
+        // there are no more unscored ends.
+        this.currentRound = this.tournament.type.rounds - 1;
+        this.currentEnd = this.tournament.type.ends - 1;
+        this.isEndOfScoring = true;
+      }
+    },
 
     // switch mode to show an archer's score for the tournament
     showArcherScoresheet: function( archer ) {
@@ -506,26 +545,21 @@ let app = new Vue({
       this.archer = archer;
       this.setMessage( archer.name );
 
-      // find first end with unscored arrows
-      let ends = archer.rounds[this.round].ends;
-      let endNum = 0;
-      for (; endNum < ends.length; endNum++) {
-        if (!ends[endNum].arrows[0]) {
-          break;
-        }
-      }
-      console.log("Scoring " + archer.name + " end " + endNum);
-      if (endNum < ends.length) {
-        this.scoreEnd( archer, ends[endNum], endNum);
-      } else {
+      this.findCurrentEndForArcher( archer );  // updates this.currentEnd, currentRound
+
+      console.log("Scoring " + archer.name +
+                  " round " + this.currentRound+1 + ", end " + this.currentEnd+1);
+
+      if (this.isEndOfScoring) {
         this.showArcherScoresheet( archer ); // go to score display page, not the calculator
+      } else {
+        this.scoreEnd( archer, archer.rounds[this.currentRound].ends[this.currentEnd] );
       }
     },
 
     // bring up calculator for given end
-    scoreEnd: function( archer, end, endNumber ) {
+    scoreEnd: function( archer, end ) {
       this.scoringEnd = end;
-      this.scoringEndNumber = endNumber;
 
       // which arrow we are scoring, ie, first null arrow
       this.currentArrow = end.arrows.filter((arrow) => arrow != null).length;
@@ -551,11 +585,11 @@ let app = new Vue({
       this.scoringEnd.arrows.sort( this.compareArrowScores );
     },
 
-    // "X" > [1-10] > "M"
+    // "M" < [1-10] < "X"
     compareArrowScores: function(a,b) {
       if (a == "M") { a = 0; }
       if (b == "M") { b = 0; }
-      if (a == "X") { a = this.tournament.type.maxArrowScore+1; }
+      if (a == "X") { a = this.tournament.type.maxArrowScore+1; }  // X > 10, but still 10 pts
       if (b == "X") { b = this.tournament.type.maxArrowScore+1; }
       return b-a;
     },
@@ -576,7 +610,7 @@ let app = new Vue({
     // Do the math for the whole round.
     // From scratch each time?  Seems like overkill, but probably worth it
     //----------------------------------------
-    computeRunningTotals: function( archer, roundNum ) {
+    computeRunningTotals: function( archer ) {
       let runningTotal = 0,  // for each end and total
           xCount = 0,        // total only
           arrowCount = 0;
@@ -585,24 +619,27 @@ let app = new Vue({
         this.initArcher( archer, this.tournament );
       }
 
-      let round = archer.rounds[roundNum];
+      for (let roundNum=0; roundNum < this.tournament.type.rounds; roundNum++) {
+        let round = archer.rounds[roundNum];
+        runningTotal = 0;
 
-      // running totals for each end
-      for (let endNum=0; endNum < round.ends.length; endNum++) {
-        let end = round.ends[endNum];
-        runningTotal += end.score|0;
-        xCount += end.xCount|0;
-        end.runningTotal = runningTotal;
+        // running totals for each end
+        for (let endNum=0; endNum < round.ends.length; endNum++) {
+          let end = round.ends[endNum];
+          runningTotal += end.score|0;
+          xCount += end.xCount|0;
+          end.runningTotal = runningTotal;
 
-        const scoredArrows = end.arrows.filter( a => (typeof(a) == "number" ||
-                                                      typeof(a) == "string"));  // "X"
-        arrowCount += scoredArrows.length;
+          const scoredArrows = end.arrows.filter( a => (typeof(a) == "number" ||  // [1-10]
+                                                        typeof(a) == "string"));  // M,X
+          arrowCount += scoredArrows.length;
+        }
+
+        // round totals
+        round.score = runningTotal;
+        round.arrowCount = arrowCount;
+        round.xCount = xCount;
       }
-
-      // round totals
-      round.score = runningTotal;
-      round.arrowCount = arrowCount;
-      round.xCount = xCount;
 
       // all round totals - do we need this?
       archer.total = {
@@ -691,7 +728,7 @@ let app = new Vue({
         }
       }
       // update the whole round
-      this.computeRunningTotals( archer, this.round );
+      this.computeRunningTotals( archer );
     },
 
 
@@ -1037,7 +1074,7 @@ let app = new Vue({
     //----------------------------------------
     updateArcher: async function( archer ) {
 
-      this.computeRunningTotals( archer, this.currentRound );
+      this.computeRunningTotals( archer );
 
       // save their order in the group (even if not in a sorted array)
       let i = this.archers.findIndex( a => (a.name == archer.name));

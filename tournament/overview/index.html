@@ -81,7 +81,7 @@
         <div class="categoryHeader scoreLine header">
           <div>Category</div>
           <div v-for="roundNum in tournament.type.rounds"  v-if="tournament.type.rounds > 1">
-            <div class="score">Score {{ roundNum+1 }} </div>
+            <div class="score">Score {{ roundNum }} </div>
             <div class="score">X</div>
           </div>
           <div class="score">Total</div>
@@ -99,9 +99,9 @@
               <div class="archerResultList">
                 <div v-for="archer in getArchersByClass( bow, age, gender )" class="scoreLine">
                   <div>{{ archer.name }}</div>
-                  <div v-for="roundNum in tournament.type.rounds"  v-if="tournament.type.rounds > 1">
-                    <div class="score">{{ archer.rounds[roundNum].score }}</div>
-                    <div class="score">{{ archer.rounds[roundNum].xCount }}</div>
+                  <div v-for="r in tournament.type.rounds"  v-if="tournament.type.rounds > 1">
+                    <div class="score">{{ archer.rounds[r-1].score }}</div>
+                    <div class="score">{{ archer.rounds[r-1].xCount }}</div>
                   </div>
                   <div class="score">{{ archer.total.score }}</div>
                   <div class="score small">/{{ archer.total.arrowCount }}</div>
