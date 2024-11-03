@@ -100,6 +100,18 @@ a {
   background-color: #ddd;
 }
 
+.table {
+  display: table;
+  table-layout: fixed;
+}
+.table > div {
+  display: table-row;
+}
+.table > div > div {
+  display: table-cell;
+  padding: .25em;
+}
+
 .archerResultList {
   display: table;
   width: 100%;
@@ -108,6 +120,11 @@ a {
 }
 .archerResultList .scoreLine {
   /* border: 1px solid black; */
+}
+
+.rowLead {
+  grid-column-start: span 2;  /* name takes two cells  in grid*/
+  width: 30%;  /* if table-cell */
 }
 
 #scoringGroupStartButton {
@@ -176,14 +193,19 @@ h3 {
   display: grid;
   grid-template-columns: 3fr 2fr 1fr 1fr;  /* name score xCount */
 }
-.scoreLine.header {
+.header {
   font-weight: bold;
   background-color: inherit;
   text-decoration: underline;
   margin: .5em 0;
 }
-.scoreLine > .score {
+.scoreLine > .score,
+.table > .score {
   text-align: right;
+}
+.dayScore {  /* evenly spaced values inside one cell */
+  display: flex;
+  justify-content: space-evenly;
 }
 
 .round {

@@ -78,34 +78,41 @@
 
         <!-- results like  https://drive.google.com/file/d/1Zmz_iE0EUlASVKqjfVHt3Yms-moM1g9b/view   -->
 
-        <div class="categoryHeader scoreLine header">
-          <div>Category</div>
-          <div v-for="roundNum in tournament.type.rounds"  v-if="tournament.type.rounds > 1">
-            <div class="score">Score {{ roundNum }} </div>
+        <div class="table">
+          <div class="header">
+            <div class="rowLead">Category</div>
+            <div v-for="roundNum in tournament.type.rounds"  v-if="tournament.type.rounds > 1">
+              <div class="dayScore">
+                <div class="score">Score {{ roundNum }} </div>
+                <div class="score">X</div>
+              </div>
+            </div>
+            <div class="score">Total</div>
             <div class="score">X</div>
+            <div class="score small"></div>
           </div>
-          <div class="score">Total</div>
-          <div class="score small"></div>
-          <div class="score">X</div>
         </div>
 
         <div v-for="bow in bows">
           <div v-for="age in ages">
             <div v-for="gender in genders">
-              <div v-if="getArchersByClass( bow, age, gender ).length"
-                   class="scoreLine header">
+
+              <div v-if="getArchersByClass( bow, age, gender ).length" class="header">
                 {{ age.full }}  {{ gender.full }}  {{ bow.full }}
               </div>
-              <div class="archerResultList">
-                <div v-for="archer in getArchersByClass( bow, age, gender )" class="scoreLine">
-                  <div>{{ archer.name }}</div>
-                  <div v-for="r in tournament.type.rounds"  v-if="tournament.type.rounds > 1">
-                    <div class="score">{{ archer.rounds[r-1].score }}</div>
-                    <div class="score">{{ archer.rounds[r-1].xCount }}</div>
+
+              <div class="table archerResultList" v-if="getArchersByClass( bow, age, gender ).length">
+                <div v-for="archer in getArchersByClass( bow, age, gender )">
+                  <div class="rowLead">{{ archer.name }}</div>
+                  <div v-for="r in tournament.type.rounds" v-if="tournament.type.rounds > 1">
+                    <div class="dayScore">
+                      <div class="score">{{ archer.rounds[r-1].score }}</div>
+                      <div class="score">{{ archer.rounds[r-1].xCount }}</div>
+                    </div>
                   </div>
                   <div class="score">{{ archer.total.score }}</div>
-                  <div class="score small">/{{ archer.total.arrowCount }}</div>
                   <div class="score">{{ archer.total.xCount }}</div>
+                  <div class="score small">/{{ archer.total.arrowCount }}</div>
                 </div>
               </div>
             </div>
