@@ -266,47 +266,47 @@ let app = new Vue({
    // { full: "Longbow",     abbrev: "LB",   nfaa: "Longbow" }
     ],
 
-    tournamentTypes: [
+    tournamentTypes: [   // TODO: add a "roll your own" here?
       {
-        "description": "WA Indoor 300",
-        "arrows": 3, "ends": 10, maxArrowScore: 10
+        description: "WA Indoor 300",
+        arrows: 3, ends: 10, maxArrowScore: 10, rounds:1
       },
       // {
-      //   "description": "WA indoor 600",
-      //   "arrows": 3, "ends": 10, maxArrowScore: 10, rounds: 2
+      //   "description": "WA indoor 600",   // Day one of a Nationals in Indoor FITA
+      //   arrows: 3, ends: 10, maxArrowScore: 10, rounds: 2
       // },
       // {
-      //   "description": "Vegas 900",
-      //   "arrows": 3, "ends": 10, maxArrowScore: 10, rounds: 3
-      // },
-      // {
-      //   "description": "WA indoor 1200",
-      //   "arrows": 3, "ends": 10, maxArrowScore: 10, rounds: 4,
-      // },
       {
-        "description": "Lancaster 300",
-        "arrows": 3, "ends": 10, maxArrowScore: 10, xBonus: 1       // Lancaster X is 11
+        description: "Lancaster 300",
+        arrows: 3, ends: 10, maxArrowScore: 10, rounds: 1, xBonus: 1 // Lancaster X is 11
       },
       {
-        "description": "Blueface 300",
-        "arrows": 5, "ends": 4, maxArrowScore: 5, rounds: 3 // 3x4 ends, or one of 12?
+        description: "Blueface 300",
+        arrows: 5, ends: 12, maxArrowScore: 5, rounds: 1
       },
-      // {
-      //   "description": "Blueface 300 x2",
-      //   "arrows": 5, "ends": 12, maxArrowScore: 5, rounds: 2
-      // },
       {
-        "description": "Outdoor 720",
-        "arrows": 6, "ends": 6, maxArrowScore: 10, rounds: 2
+        description: "Outdoor 720",
+        arrows: 6, ends: 6, maxArrowScore: 10, rounds: 2
       },
-      // {
-      //   "description": "Outdoor 1440",
-      //   "arrows": 6, "ends": 6, maxArrowScore: 10, rounds: 4
-      // },
       {
-        "description": "NFAA 900",
-        "arrows": 5, "ends": 5, maxArrowScore: 10, rounds: 3
+        description: "NFAA 900",
+        arrows: 6, ends: 5, maxArrowScore: 10, rounds: 3
       }
+      // {
+      //   description: "Blueface 300 x2",   // League?
+      //   arrows: 5, ends: 12, maxArrowScore: 5, rounds: 2
+      // },
+      // {
+      //   description: "Outdoor 1440",   // "League"? Nationals
+      //   arrows: 6, ends: 6, maxArrowScore: 10, rounds: 4
+      // },
+      //   description: "Vegas 900",   // "League"
+      //   arrows: 3, ends: 10, maxArrowScore: 10, rounds: 3
+      // },
+      // {
+      //   description: "WA indoor 1200",    // FITA or National (this would be a "League")
+      //   arrows: 3, ends: 10, maxArrowScore: 10, rounds: 4,
+      // },
     ],
 
 
@@ -622,6 +622,7 @@ let app = new Vue({
       for (let roundNum=0; roundNum < this.tournament.type.rounds; roundNum++) {
         let round = archer.rounds[roundNum];
         runningTotal = 0;
+        xCount = 0;
 
         // running totals for each end
         for (let endNum=0; endNum < round.ends.length; endNum++) {

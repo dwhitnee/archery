@@ -60,6 +60,7 @@
           <option disabled value="">select one</option>
           <option v-for="type in tournamentTypes" :value="type">
             {{ type.description }} ({{ type.arrows}} arrows/{{ type.ends}} ends)
+            {{ type.rounds>1 ? "x " + type.rounds: "" }}
           </option>
         </select>
       </div>
