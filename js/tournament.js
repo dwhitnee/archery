@@ -41,7 +41,7 @@
 // hamburger menu
 //    Create Tournament
 //    Show QR COde
-//     Show results
+//    Show results
 
 // Tournament Admin page - what does it look like?
 //    show tournament results
