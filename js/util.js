@@ -118,7 +118,12 @@ var Util = {
   // Display a QRCode in the named HTML element (default to id="qrcode")
   generateQRCode: function( qrcodeURL, elementId ) {
     elementId = elementId || "qrcode";
-    let qrcode = new QRCode( document.getElementById( elementId ), qrcodeURL);
+    let el = document.getElementById( elementId );
+    el.replaceChildren();  // toss old QR codes
+
+    let qrcode = new QRCode( el, qrcodeURL);
+    qrcode.clear();            // this doesn't clear anything?
+    qrcode.makeCode( qrcodeURL );
 
     /*
     let qrcode2 = new QRCode( document.getElementById("qrcode"), {
@@ -131,8 +136,6 @@ var Util = {
       correctLevel : QRCode.CorrectLevel.H  // high (L,M,H)
     });
 */
-    qrcode.clear();
-    qrcode.makeCode( qrcodeURL );
   },
 
 };
