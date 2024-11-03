@@ -211,6 +211,10 @@ h3 {
   flex-basis: 4em;  /* help line up items in a score box */
   text-align: right;
 }
+.dayScore > .score:nth-child(2) {  /* second child */
+  text-align: center;
+}
+
 .round {
   display: table;
   width: 100%;
