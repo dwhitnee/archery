@@ -15,6 +15,7 @@ html,body {
 .small {
   font-size: smaller;
   color: #888;
+  /* flex-grow: 1; */
 }
 .center {
   text-align: center;
