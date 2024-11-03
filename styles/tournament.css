@@ -207,7 +207,10 @@ h3 {
   display: flex;
   justify-content: space-evenly;
 }
-
+.dayScore > .score {
+  flex-basis: 4em;  /* help line up items in a score box */
+  text-align: right;
+}
 .round {
   display: table;
   width: 100%;
