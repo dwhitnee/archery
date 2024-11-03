@@ -1,4 +1,4 @@
-/* global URL, Blob */
+/* global URL, Blob, QRCode */
 /*jslint esversion: 8 */
 //----------------------------------------------------------------------
 // Misc useful functions
@@ -113,5 +113,26 @@ var Util = {
     link.setAttribute("href", url);
     link.setAttribute("download", filename );
     link.click();
-  }
+  },
+
+  // Display a QRCode in the named HTML element (default to id="qrcode")
+  generateQRCode: function( qrcodeURL, elementId ) {
+    elementId = elementId || "qrcode";
+    let qrcode = new QRCode( document.getElementById( elementId ), qrcodeURL);
+
+    /*
+    let qrcode2 = new QRCode( document.getElementById("qrcode"), {
+      text: qrcodeURL,
+      width: 256,
+      height: 256,
+      // typeNumber : 4,   // https://www.qrcode.com/en/codes/
+      colorDark : "#000000",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.H  // high (L,M,H)
+    });
+*/
+    qrcode.clear();
+    qrcode.makeCode( qrcodeURL );
+  },
+
 };

@@ -52,8 +52,10 @@
         </div></b>
       </div>
 
-      <div class="loginMenu">
+      <div class="qrCodeButton">
+        <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')">QR</a>
       </div>
+
     </div>
 
 
@@ -134,6 +136,18 @@
 
     <div id="dialogBackdrop"></div>
 
+    <dialog id="showQRCode">
+      <button class="close" @click="closeDialog( $event )"></button>
+
+      <div>
+        <div>
+          Scan QR Code to create a new scoring bale group
+        </div>
+        <div id="qrcode"></div>
+      </div>
+
+    </dialog>
+
 
     <dialog id="settings">
       <button class="close" @click="closeDialog( $event )"></button>
@@ -179,6 +193,7 @@
   <script src="../../js/vue-2.7.15.min.js"></script>
   <script src="../../js/vue-router-3.1.3.min.js"></script>
 
+  <script src="../../js/qrcode.min.js"></script>
   <script src="../../js/util.js"></script>
   <script src="../../js/tournament.js"></script>
 

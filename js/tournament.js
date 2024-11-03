@@ -1,4 +1,4 @@
-/*global fetch, Vue, VueRouter, Util, QRCode */
+/*global fetch, Vue, VueRouter, Util */
 /*jslint esversion: 8 */
 //-----------------------------------------------------------------------
 //  Copyright 2024, David Whitney
@@ -23,27 +23,31 @@
 
 
 // TODO:
-// archer data should be in cloud (how to uniquely ID?)
-
+// Can archer data be in cloud with unique ID? (just name currently)
 // archer ID is name?  How to avoid dupes at creation? Steal other archer?
 //  Enforce each archer on unique phone? Steal vs overwrite?
 
-// way to ensure no skipped (blank) ends - can't select beyond last scored end?
-
 // Prod CORS on API-Gateway
-
-// Tournament Display
-//   Handicap system? (only on League?)
 
 // Error handling: try/catch on awaits on DB side?
 
-// archer needs secondary index on tournamentId and group (for multiple results)
+// Done? archer needs secondary index on tournamentId and group (for multiple results)
 // unique PK is tourArcherID or touramentId + name
 
 // League: create league page that shows all current archers daily scores and total
 //   - page can also create a new tournament day in the league
+//   Handicap system? (only on League?)
 
-// fix archerList padding (create vs display), not lined up, add padding override for create?)
+// hamburger menu
+//    Create Tournament
+//    Show QR COde
+//     Show results
+
+// Tournament Admin page - what does it look like?
+//    show tournament results
+//    import archers (CSV, what format?)
+//    edit target assignments
+//    display QR Code for tournament, for each pre-created bale
 
 //----------------------------------------------------------------------
 //  OVERVIEW
@@ -745,6 +749,13 @@ let app = new Vue({
 
 
 
+    // generate the tournament home page (where you can create a new scoring bale
+    generateTouramentQRCode: function() {
+      let url = window.location.origin + window.location.pathname;
+      url = url.match( /(.*tournament)/ )[0];
+      url += "?id=" + this.tournament.id;
+      Util.generateQRCode( url, "qrcode" );
+    },
 
     joinTournament: async function() {
       this.joinCode = this.joinCode.toUpperCase();
@@ -899,24 +910,6 @@ let app = new Vue({
       let backdrop = document.getElementById("dialogBackdrop");
       backdrop.addEventListener('click', this.closeDialogOnOutsideClick );
       document.body.addEventListener("keydown", this.closeDialogOnESC );
-    },
-
-    //
-    qrcode: function( qrcodeURL ) {
-      let qrcode = new QRCode( document.getElementById("qrcode"), qrcodeURL);
-
-      let qrcode2 = new QRCode( document.getElementById("qrcode"), {
-        text: qrcodeURL,
-        width: 256,
-        height: 256,
-        // typeNumber : 4,   // https://www.qrcode.com/en/codes/
-        colorDark : "#000000",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.H  // high (L,M,H)
-      });
-
-      qrcode.clear();
-      qrcode.makeCode( qrcodeURL );
     },
 
 
