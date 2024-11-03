@@ -33,8 +33,7 @@
 // Prod CORS on API-Gateway
 
 // Tournament Display
-//   List all archers and scores, sorted by division (or not)
-//   Handicap system?
+//   Handicap system? (only on League?)
 
 // Error handling: try/catch on awaits on DB side?
 
@@ -230,10 +229,10 @@ let app = new Vue({
     nextSequenceId: 0, // ID just for local testing
 
     archer: {},     // current archer for ScoreSheet
-    scoringEnd: {}, // current end of arrows being scored
+    scoringEnd: {}, // current end of arrows being scored (object, not index)
 
-    currentArrow: 0,  // current number of scoring arrow, end, and round
-    currentEnd: 0,
+    currentArrow: 0,  // These are indexes, not objects. Poorly named, d'oh
+    currentEnd: 0,    // current number of scoring arrow, end, and round
     currentRound: 0,
     isEndOfScoring: false,  // if this.archer has all arrows scored
 
@@ -264,7 +263,7 @@ let app = new Vue({
     tournamentTypes: [   // TODO: add a "roll your own" here?
       {
         description: "WA Indoor 300",
-        arrows: 3, ends: 10, maxArrowScore: 10, rounds:1
+        arrows: 3, ends: 10, maxArrowScore: 10, rounds:1, swapTargetsEnd: 5
       },
       // {
       //   "description": "WA indoor 600",   // Day one of a Nationals in Indoor FITA
@@ -273,11 +272,12 @@ let app = new Vue({
       // {
       {
         description: "Lancaster 300",
-        arrows: 3, ends: 10, maxArrowScore: 10, rounds: 1, xBonus: 1 // Lancaster X is 11
+        arrows: 3, ends: 20, maxArrowScore: 10, rounds: 1,
+        xBonus: 1, swapTargetsEnd: 10         // Lancaster X is 11
       },
       {
         description: "Blueface 300",
-        arrows: 5, ends: 12, maxArrowScore: 5, rounds: 1
+        arrows: 5, ends: 12, maxArrowScore: 5, rounds: 1, swapTargetsEnd: 6
       },
       {
         description: "Outdoor 720",
@@ -677,6 +677,11 @@ let app = new Vue({
         this.scoreArcherNextEnd( this.archers[next] );
       } else {
         this.gotoArcherList();  // end of scoring
+        if (this.tournament.type.swapTargetsEnd &&
+            this.tournament.type.swapTargetsEnd == this.currentEnd+1)
+        {
+          alert("HALFWAY DONE! Swap top and bottom targets?");
+        }
       }
     },
 
