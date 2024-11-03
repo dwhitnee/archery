@@ -23,12 +23,7 @@
 
 
 // TODO:
-// Fix Overview for multiple rounds.
-
-// brower history on nav: history.pushState(foo, null, "#newPlace");
-
 // archer data should be in cloud (how to uniquely ID?)
-// Round management. It's always round 0
 
 // archer ID is name?  How to avoid dupes at creation? Steal other archer?
 //  Enforce each archer on unique phone? Steal vs overwrite?
@@ -553,13 +548,24 @@ let app = new Vue({
       if (this.isEndOfScoring) {
         this.showArcherScoresheet( archer ); // go to score display page, not the calculator
       } else {
-        this.scoreEnd( archer, archer.rounds[this.currentRound].ends[this.currentEnd] );
+        this.scoreEnd( archer, archer.rounds[this.currentRound].ends[this.currentEnd],
+                       this.currentEnd );
       }
     },
 
+    //----------------------------------------
     // bring up calculator for given end
-    scoreEnd: function( archer, end ) {
-      this.scoringEnd = end;
+    // TODO: prevent going past latest unscored end?
+    //----------------------------------------
+    scoreEnd: function( archer, end, endNum ) {
+      this.findCurrentEndForArcher( archer );
+
+      if (endNum > this.currentEnd) {
+        this.scoringEnd = archer.rounds[this.currentRound].ends[this.currentEnd];
+      } else {
+        this.scoringEnd = end;
+        this.currentEnd = endNum;
+      }
 
       // which arrow we are scoring, ie, first null arrow
       this.currentArrow = end.arrows.filter((arrow) => arrow != null).length;
