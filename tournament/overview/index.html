@@ -140,12 +140,14 @@
       <button class="close" @click="closeDialog( $event )"></button>
 
       <div>
+
         <div>
           Scan QR Code to create a new scoring bale group
         </div>
         <div id="qrcode"></div>
-      </div>
+        <a :href="resultsURL()">Live Results</a>
 
+      </div>
     </dialog>
 
 

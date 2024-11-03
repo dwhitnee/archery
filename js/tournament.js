@@ -748,13 +748,23 @@ let app = new Vue({
     },
 
 
+    //----------------------------------------
+    // generate URLs for QR codes or for display
+    //----------------------------------------
+    baseURL: function() {
+      let url = window.location.origin + window.location.pathname;
+      return url.match( /(.*tournament)/ )[0];
+    },
+    tournamentURL: function() {
+      return this.baseURL() + "?id=" + this.tournament.id;
+    },
+    resultsURL: function() {
+      return this.baseURL() + "/overview?id=" + this.tournament.id + "&groupId=0";
+    },
 
     // generate the tournament home page (where you can create a new scoring bale
     generateTouramentQRCode: function() {
-      let url = window.location.origin + window.location.pathname;
-      url = url.match( /(.*tournament)/ )[0];
-      url += "?id=" + this.tournament.id;
-      Util.generateQRCode( url, "qrcode" );
+      Util.generateQRCode( this.tournamentURL(), "qrcode" );
     },
 
     joinTournament: async function() {
