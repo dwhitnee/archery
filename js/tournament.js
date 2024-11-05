@@ -23,6 +23,11 @@
 
 
 // TODO:
+// Sort out what each page should look like (what's on overview? What's on tournament/
+// What if no tournament specified, what should each page do?
+//   tournament => create or join
+//   overview => select from recent tournaments?
+
 // Can archer data be in cloud with unique ID? (just name currently)
 // archer ID is name?  How to avoid dupes at creation? Steal other archer?
 //  Enforce each archer on unique phone? Steal vs overwrite?
@@ -240,6 +245,8 @@ let app = new Vue({
     currentRound: 0,
     isEndOfScoring: false,  // if this.archer has all arrows scored
 
+    ignoreAgeGender: false,  // if true, only "bow" matters not age or gender
+
     genders: [
       {full: "Male", abbrev: "M"},
       {full: "Female", abbrev: "F"}  // nope, not going there.
@@ -391,7 +398,7 @@ let app = new Vue({
 
     if (tournamentId) {
       this.tournament = await this.getTournamentById( tournamentId );
-      if (!this.tournament.type) {
+      if (!this.tournament || !this.tournament.type) {
         alert("There is no tournament named " + tournamentId );
       } else {
         // Only load all archers if groupId="0", otherwise it's too
@@ -1105,40 +1112,93 @@ let app = new Vue({
       }
     },
 
-    //----------------------------------------------------------------------
-    // just archers in given division
-    // Just for display, sorted by score.
-    //----------------------------------------------------------------------
-    getArchersByClass: function( bow, age, gender ) {
-      // FSLR-AF
-      return this.sortedArchers[bow.abbrev + "-" + age.abbrev + gender.abbrev] || [];
+    //----------------------------------------
+    // return all permutations of bow, gender, and age
+    // we want a 2-D array of archers, sorted by either bow or bow/age/gender (then by score)
+    //----------------------------------------
+    getAllCompetitionClasses: function() {
+      let outClasses = [];
+
+      if (this.ignoreAgeGender) {
+        for (let b=0; b < this.bows.length; b++) {
+          outClasses.push( { bow: this.bows[b] } );
+        }
+      } else {
+        for (let b=0; b < this.bows.length; b++) {
+          for (let a=0; a < this.ages.length; a++) {
+            for (let g=0; g < this.genders.length; g++) {
+              outClasses.push( {
+                bow: this.bows[b],
+                age: this.ages[a],
+                gender: this.genders[g]
+              } );
+            }
+          }
+        }
+      }
+      return outClasses;
     },
 
+    //----------------------------------------------------------------------
+    // just archers in given division. Cached results (see findArchersByClass)
+    // Just for display, sorted by score.
+    //----------------------------------------------------------------------
+    getArchersByClass: function( cls ) {
+      if (this.ignoreAgeGender) {
+        return this.sortedArchers[cls.bow.abbrev] || [];
+      } else {      // FSLR-AF
+        return this.sortedArchers[cls.bow.abbrev + "-" + cls.age.abbrev + cls.gender.abbrev] || [];
+      }
+    },
+
+    toggleAgeGender: function() {
+      // this.ignoreAgeGender = !this.ignoreAgeGender;
+      this.sortedArchers = [];
+      this.sortArchersForDisplay();
+    },
+
+    // either split this array by Bow, or by Bow-Age-Gender
     sortArchersForDisplay: function() {
       for (let b = 0; b < this.bows.length; b++) {
-        for (let a = 0; a < this.ages.length; a++) {
-          for (let g = 0; g < this.genders.length; g++) {
-            const division =
-                  this.bows[b].abbrev + "-" + this.ages[a].abbrev + this.genders[g].abbrev;
-            this.sortedArchers[division] = this.findArchersByClass(
-              this.bows[b], this.ages[a], this.genders[g] );
+
+        if (!this.ignoreAgeGender) {
+          for (let a = 0; a < this.ages.length; a++) {
+            for (let g = 0; g < this.genders.length; g++) {
+              const division =
+                    this.bows[b].abbrev + "-" + this.ages[a].abbrev + this.genders[g].abbrev;
+              this.sortedArchers[division] = this.findArchersByClass(
+                this.bows[b], this.ages[a], this.genders[g] );
+            }
           }
+        } else {
+          const division = this.bows[b].abbrev;
+          this.sortedArchers[division] = this.findArchersByClass( this.bows[b] );
         }
       }
       this.$forceUpdate();
     },
 
+
+    // search through all archers to build array of like archers
+    // use getArchersByClass() to get cached version for display
     findArchersByClass( bow, age, gender ) {
       let outArchers = [];
 
-      for (let i=0; i< this.archers.length; i++) {
+      for (let i=0; i < this.archers.length; i++) {
         let archer = this.archers[i];
         // ex: FSLR-AM
-        if ((archer.bow == bow.abbrev) &&
-            (archer.age == age.abbrev) &&
-            (archer.gender == gender.abbrev))
-        {
-          outArchers.push( archer );
+
+        if (this.ignoreAgeGender) {
+          if (archer.bow == bow.abbrev) {
+            outArchers.push( archer );
+          }
+        } else {
+          if ((archer.bow == bow.abbrev) &&
+              (archer.age == age.abbrev) &&
+              (archer.gender == gender.abbrev))
+          {
+            outArchers.push( archer );
+          }
         }
       }
 
@@ -1157,6 +1217,29 @@ let app = new Vue({
       }
     },
 
+
+    addArchersToCSV: function( tournament, archers, csv) {
+
+      for (let i=0; i < archers.length; i++) {
+        let archer = archers[i];
+        let row = [archer.name];
+        if (tournament.type.rounds > 1) {
+          for (let r=0; r < tournament.type.rounds; r++) {
+            row.push( archer.rounds[r].score );
+            row.push( archer.rounds[r].xCount );
+          }
+        }
+        row.push( archer.total.score );
+        row.push( archer.total.xCount );
+        // row.push( archer.total.arrowCount );
+
+        csv.push( row );
+      }
+    },
+
+    //----------------------------------------
+    // create 2D array of archers sorted by classification
+    //----------------------------------------
     exportToCSV: function( tournament ) {
       let csv = [[tournament.name]];
 
@@ -1173,32 +1256,38 @@ let app = new Vue({
 
       csv.push( heading );
 
-      for (let b=0; b < this.bows.length; b++) {
-        for (let a=0; a < this.ages.length; a++) {
-          for (let g=0; g < this.genders.length; g++) {
+      // either the class list is bows, or bowXageXGender
+      if (this.ignoreAgeGender) {
+        for (let b=0; b < this.bows.length; b++) {
 
-            let archers = this.getArchersByClass(
-              this.bows[b], this.ages[a], this.genders[g] );
-            if (!archers.length) {
-              continue;
-            }
-            csv.push([]);
-            csv.push( [this.ages[a].full + " " + this.genders[g].full + " " + this.bows[b].full] );
+          let archers = this.getArchersByClass( this.bows[b] );
+          if (!archers.length) {
+            continue;
+          }
+          csv.push([]);
+          csv.push( [this.bows[b].full] );
 
-            for (let i=0; i < archers.length; i++) {
-              let archer = archers[i];
-              let row = [archer.name];
-              if (tournament.type.rounds > 1) {
-                for (let r=0; r < tournament.type.rounds; r++) {
-                  row.push( archer.rounds[r].score );
-                  row.push( archer.rounds[r].xCount );
-                }
+          this.addArchersToCSV( tournament, archers, csv );
+        }
+
+      } else {
+
+
+        for (let b=0; b < this.bows.length; b++) {
+          for (let a=0; a < this.ages.length; a++) {
+            for (let g=0; g < this.genders.length; g++) {
+
+              let archers = this.getArchersByClass(
+                this.bows[b], this.ages[a], this.genders[g] );
+              if (!archers.length) {
+                continue;
               }
-              row.push( archer.total.score );
-              row.push( archer.total.xCount );
-              // row.push( archer.total.arrowCount );
+              csv.push([]);
+              csv.push( [this.ages[a].full + " " +
+                         this.genders[g].full + " " +
+                         this.bows[b].full] );
 
-              csv.push( row );
+              this.addArchersToCSV( tournament, archers, csv );
             }
           }
         }

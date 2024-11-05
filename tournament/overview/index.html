@@ -59,24 +59,23 @@
     </div>
 
 
-    <!-- pick a tournament or create a scoring group -->
-    <div v-if="isMode( ViewMode.TOURNAMENT_START )">
+    <div v-if="!tournament || !tournament.type">
+      No tournament selected
+    </div>
+    <div v-else>
 
-      <div v-if="!tournament.id" class="joinTournament">
-        <label for="tournamentId"><b>Tournament code:</b></label>
-        <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
-               v-model.trim="joinCode" @keyup.enter.prevent="joinTournament()" />
-        <button class="btn btn-primary btn-sm" @click="joinTournament()">
-          Join Tournament
-        </button>
-
-      </div>
-      <div v-else class="resultsPage">
+      <div class="resultsPage">
 
         <h3 title="Export to CSV" @click="exportToCSV( tournament )">
           {{ tournament.name }}
           <div class="icon saveIcon" style="font-size: 50%;"></div>
         </h3>
+
+        <div>
+          <label class="form-check-label" for="ignoreAgeGender">Remove age and gender?</label>
+          <input type="checkbox" id="ignoreAgeGender"
+                 v-model.trim="ignoreAgeGender" @change="toggleAgeGender()"  />
+        </div>
 
         <!-- results like  https://drive.google.com/file/d/1Zmz_iE0EUlASVKqjfVHt3Yms-moM1g9b/view   -->
 
@@ -99,37 +98,38 @@
           </div>
         </div>
 
-        <div v-for="bow in bows">
-          <div v-for="age in ages">
-            <div v-for="gender in genders">
+        <div v-for="classification in getAllCompetitionClasses()">
 
-              <div v-if="getArchersByClass( bow, age, gender ).length" class="header">
-                {{ age.full }}  {{ gender.full }}  {{ bow.full }}
+          <div v-if="getArchersByClass( classification ).length" class="header">
+            <div v-if="ignoreAgeGender">
+              {{ classification.bow.full }}
+            </div>
+            <div v-else>
+              {{ classification.age.full }}  {{ classification.gender.full }}  {{ classification.bow.full }}
+            </div>
+          </div>
+
+          <div class="table archerResultList" v-if="getArchersByClass( classification ).length">
+            <div v-for="archer in getArchersByClass( classification )">
+              <div class="rowLead">{{ archer.name }}</div>
+              <div v-for="r in tournament.type.rounds" v-if="tournament.type.rounds > 1">
+                <div class="dayScore">
+                  <div class="score">{{ archer.rounds[r-1].score }}</div>
+                  <div class="score">{{ archer.rounds[r-1].xCount }}</div>
+                </div>
               </div>
-
-              <div class="table archerResultList" v-if="getArchersByClass( bow, age, gender ).length">
-                <div v-for="archer in getArchersByClass( bow, age, gender )">
-                  <div class="rowLead">{{ archer.name }}</div>
-                  <div v-for="r in tournament.type.rounds" v-if="tournament.type.rounds > 1">
-                    <div class="dayScore">
-                      <div class="score">{{ archer.rounds[r-1].score }}</div>
-                      <div class="score">{{ archer.rounds[r-1].xCount }}</div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="dayScore">
-                      <div class="score">{{ archer.total.score }}</div>
-                      <div class="score">{{ archer.total.xCount }}</div>
-                      <div class="score small">/{{ archer.total.arrowCount }}</div>
-                    </div>
-                  </div>
+              <div>
+                <div class="dayScore">
+                  <div class="score">{{ archer.total.score }}</div>
+                  <div class="score">{{ archer.total.xCount }}</div>
+                  <div class="score small">/{{ archer.total.arrowCount }}</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
       </div>
+
     </div>
 
     <!-- Settings-->

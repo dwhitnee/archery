@@ -43,7 +43,7 @@
       <div>
         <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
         <div v-else>
-          <a href="create" class="settings icon settingsIcon"
+          <a href="" class="settings icon settingsIcon"
              title="Create new tournament"></a>
         </div>
       </div>
@@ -76,7 +76,7 @@
       <div v-else class="scoringGroup">
 
         <div>Welcome to the {{ tournament.name }}!</div>
-        <div>Use code  "{{ tournament.code }}" to join</div>
+        <div>Use code  "{{ tournament.code }}" to join or</div>
 
         <div v-if="!groupName">
 
