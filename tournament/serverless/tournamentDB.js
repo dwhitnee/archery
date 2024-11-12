@@ -20,6 +20,7 @@ const TournamentCodeIndex = "tournamentDateCode-index";  // secondary on code+da
 
 const ArcherTableName = "TS_Archers";           // PK on name (+tournament)
 const ArcherGroupIndex = "scoringGroup-index";  // secondary index on tournament (+bale)
+const ArcherNameIndex = "nameAndTournament-index";  // secondary index on archer name
 
 const LeagueTableName = "TS_Leagues";           // PK on name (+tournament)
 const LeagueDateIndex = "date-index";           // secondary index on tournament (+bale)
@@ -27,6 +28,7 @@ const LeagueDateIndex = "date-index";           // secondary index on tournament
 // row in AtomicCounters
 const TournamentSequence = "TS_Tournaments_sequence";
 const LeagueSequence = "TS_League_sequence";
+const ArcherSequence = "TS_Archer_sequence";
 
 
 let db = require('./dynamoDB');  // All the Dynamo stuff
@@ -83,19 +85,23 @@ module.exports = {
     let argNames =  { "#name": "name" };     // in case "name" is a reserved word
     let args =      { ":name": archerName };
 
-    return await db.getRecordsByQuery( ArcherTableName, query, argNames, args );
+    return await db.getRecordsBySecondaryIndex( ArcherTableName, ArcherNameIndex, query, args);
+    // return await db.getRecordsByQuery( ArcherTableName, query, argNames, args );
   },
 
-  // Keys (archer.tournamentId, archer.name) are presumed to be present
-  updateArcher: async function( archer ) {
-    return await db.saveRecord( ArcherTableName, archer );   // really, overwrite archer
+
+  // Secondary keys (archer.tournamentId, archer.name) are presumed to be present
+  updateArcher: async function( data ) {
+    if (!data.id) {
+      data.id = await atomicCounter.getNextValueInSequence( ArcherSequence );
+      console.log("Next ID: " + data.id );
+    }
+
+    return await db.saveRecord( ArcherTableName, data );   // really, overwrite archer
   },
-  deleteArcher: async function( tournamentId, archerName ) {
-    let keys = {
-      "tournamentId": tournamentId,
-      "name": archerName
-    };
-    return await db.deleteRecordByKeys( ArcherTableName, keys );
+
+  deleteArcher: async function( id ) {
+    return await db.deleteRecord( ArcherTableName, id );
   },
 
 
@@ -154,9 +160,6 @@ module.exports = {
   //----------------------------------------
   updateTournament: async function( data ) {
     if (!data.id) {
-      // run this only once, put this in the catch?
-      // await atomicCounter.createSequence( TournamentSequence );
-
       data.id = await atomicCounter.getNextValueInSequence( TournamentSequence );
       console.log("Next ID: " + data.id );
     }
@@ -211,7 +214,6 @@ module.exports = {
   updateLeague: async function( data ) {
     if (!data.id) {
       data.id = await atomicCounter.getNextValueInSequence( LeagueSequence );
-      console.log("Next ID: " + data.id );
     }
     return await db.saveRecord( LeagueTableName, data ); // really, overwrite
   },
@@ -220,6 +222,10 @@ module.exports = {
     return await db.deleteRecord( LeagueTableName, id );
   },
 
+
+  //----------------------------------------
+  // Utility routines
+  //----------------------------------------
 
   random: function( max ) { return Math.floor(max * Math.random());  },
 

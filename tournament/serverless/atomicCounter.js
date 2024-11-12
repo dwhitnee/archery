@@ -37,28 +37,28 @@ module.exports = {
       return response.Attributes.counter;  // here's the new unique ID
     }
     catch (e) {
-      console.error("Counter failed to increment: " + e );
+      console.error("Counter failed to increment: " + JSON.stringify( e ));
 
       // Create sequence maybe? We don't want to reset an existing
       // sequence but the most likely reason for failure is lack of creation...
-/*
-      console.info("Creating sequence and trying again: " + sequenceName);
+
+      console.info("t and trying again: " + sequenceName);
       await this.createSequence( sequenceName );
       const response = await dynamoDB.send( new UpdateCommand( dbParams ));
       return response.Attributes.counter;
-*/
     }
     return undefined;
   },
 
   //----------------------------------------------------------------------
   // must be run once for each sequence needed
-  // How to prevent this from being run on an existing sequence?
+  // TEST: prevent this from being run on an existing sequence
   //----------------------------------------------------------------------
   createSequence: async function( sequenceName ) {
     let dbParams = {
       TableName: "AtomicCounters",
-      Item: { id: sequenceName, counter: 1 }     // ex: "Tournaments"
+      Item: { id: sequenceName, counter: 1 },           // ex: "Tournaments"
+      ConditionExpression: "attribute_not_exists(id)"   // don't overwrite existing seq.
     };
 
     try {
@@ -67,7 +67,7 @@ module.exports = {
       console.log("Created sequence " + sequenceName );
     }
     catch (e) {
-      console.error("Sequence failed to be created: " + e );
+      console.error("Sequence failed to be created (already esists?): " + e );
     }
   }
 

@@ -112,6 +112,8 @@ resources:
       Properties:
         TableName: TS_Archers
         AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: N
           - AttributeName: tournamentId
             AttributeType: N
           - AttributeName: scoringGroup
@@ -120,10 +122,8 @@ resources:
             AttributeType: S
 
         KeySchema:
-          - AttributeName: name
+          - AttributeName: id
             KeyType: HASH
-          - AttributeName: tournamentId
-            KeyType: RANGE
 
         ProvisionedThroughput:
           ReadCapacityUnits: 1
@@ -135,6 +135,18 @@ resources:
               - AttributeName: tournamentId
                 KeyType: HASH
               - AttributeName: scoringGroup
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+          - IndexName: nameAndTournament-index
+            KeySchema:
+              - AttributeName: name
+                KeyType: HASH
+              - AttributeName: tournamentId
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
