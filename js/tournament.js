@@ -103,6 +103,10 @@
     // there is only one current round.
 
 
+archer (so name can be changed, necessary? Old item destroyed, I think that's OK)
+    id PK
+    tournamentId, scoringGroup SK
+    name, tournamentId SK
 
 
     // SELECT * WHERE tournament="XYZ" and group="14" ORDER BY scoringGroupOrder
@@ -211,6 +215,7 @@ let app = new Vue({
   // Data Model (drives the View, update these values only
   //----------------------------------------
   data: {
+    goneFishing: true,
     message: "Lets do a tournament",
     saveInProgress: false,    // prevent other actions while this is going on
     loadingData: false,    // prevent other actions while this is going on
@@ -472,7 +477,9 @@ let app = new Vue({
       }
 
       if (this.archerInitialized( archer )) {
-        alert("Archer already initialzed - BUG"); debugger;
+        // alert("Archer already initialzed - BUG"); debugger;
+        console.log("Archer already initialzed - " + archer.name);
+        return;
       }
 
       archer.rounds = archer.rounds || [];
@@ -815,18 +822,30 @@ let app = new Vue({
       }
     },
 
-    // open scoring page for this archer
-    selectArcher: function( archer ) {
+    //----------------------------------------
+    // Change archer info
+    // the problem is "name" is the PK so a second record gets created
+    // Options: delete and recreate
+    //   make name not PK (but queryable Seconday index) what becomes PK? a new ID?
+    //   Only make non-name attributes editable
+    //----------------------------------------
+    editArcher: function( archer ) {
       // deprecated? No way to press and hold vs drag an archer?
+      this.newArcher = archer;
+      // this doesnt work until PK is immutable (or we do delete/recreate)
+      console.log("clicked " + archer.name );
     },
 
 
     addNewArcher: async function( event ) {
       this.newArcher.tournamentId = this.tournament.id;
       this.newArcher.scoringGroup = this.groupName;
-      this.initArcher( this.newArcher, this.tournament );
 
-      this.archers.push( this.newArcher );   // add archer to list (order matters)
+      if (!this.archerInitialized( this.newArcher )) {
+        this.initArcher( this.newArcher, this.tournament );
+        this.archers.push( this.newArcher );   // add archer to list (order matters)
+      }
+
       await this.updateArcher( this.newArcher );  // save and update metadata
 
       this.newArcher = {};
@@ -1030,7 +1049,7 @@ let app = new Vue({
         this.league.id = this.nextSequenceId++;
         Util.saveData("league"+ this.league.id, this.league );
       } else {
-        await this.saveLagueToDB( this.league );  // ID created in DB
+        await this.saveLeagueToDB( this.league );  // ID created in DB
       }
     },
 

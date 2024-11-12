@@ -37,6 +37,10 @@
 
 <body>
   <div id="tournamentApp" class="appGrid" v-cloak>
+    <h1 v-if="goneFishing">Sorry, down for upgrades. Come back again soon for new features!</h1>
+    <div v-else>
+
+
     <div v-if="updateInProgress()" class="loading spinner-border spinner-border-lg"></div>
 
     <div class="menuBar">
@@ -59,7 +63,6 @@
       </div>
 
     </div>
-
 
     <!-- pick a tournament or create a scoring group -->
     <div v-if="isMode( ViewMode.TOURNAMENT_START )">
@@ -94,7 +97,8 @@
           <draggable v-model="archers" class="archerList" ghost-class="sort-ghost"
                      group="people" @start="drag=true" @end="drag=false">
             <div v-for="archer in archers" :key="archer.id"
-                 @touchstart="selectArcher( archer )" @click="selectArcher( archer)">
+                 @touchstart="editArcher( archer ); openDialog('addArcher') "
+                 @click="editArcher( archer ); openDialog('addArcher') ">
               <div class="icon reorderIcon"></div>
               <div class="ellipsis">
                 {{ archer.name }} ({{ archer.bow }}-{{ archer.age }}{{ archer.gender }})
@@ -103,7 +107,10 @@
           </draggable>
 
           <div>
-            <a href="#" @click="openDialog('addArcher')">&#65291; Add archer to scoring group</a>
+            <button class="btn btn-primary btn-lg"
+                     id="addArcherToScoringGroupButton" @click="openDialog('addArcher')">
+              + Add Archer
+            </button>
           </div>
 
           <div>
@@ -337,6 +344,7 @@
       </div>
 
     </dialog>
+  </div>
   </div>
 
 
