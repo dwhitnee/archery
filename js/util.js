@@ -121,21 +121,20 @@ var Util = {
     let el = document.getElementById( elementId );
     el.replaceChildren();  // toss old QR codes
 
-    let qrcode = new QRCode( el, qrcodeURL);
+    // let qrcode = new QRCode( el, qrcodeURL);
+
+    let qrcode = new QRCode( el, {
+      text: qrcodeURL,
+      width: 192,
+      height: 192,
+      // typeNumber : 4,   // https://www.qrcode.com/en/codes/
+      // colorDark : "#000000",
+      // colorLight : "#ffffff",
+      // correctLevel : QRCode.CorrectLevel.H  // high (L,M,H)
+    });
+
     qrcode.clear();            // this doesn't clear anything?
     qrcode.makeCode( qrcodeURL );
-
-    /*
-    let qrcode2 = new QRCode( document.getElementById("qrcode"), {
-      text: qrcodeURL,
-      width: 256,
-      height: 256,
-      // typeNumber : 4,   // https://www.qrcode.com/en/codes/
-      colorDark : "#000000",
-      colorLight : "#ffffff",
-      correctLevel : QRCode.CorrectLevel.H  // high (L,M,H)
-    });
-*/
   },
 
 };

@@ -47,8 +47,9 @@
       <div>
         <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
         <div v-else>
-          <a href="" class="settings icon settingsIcon"
-             title="Create new tournament"></a>
+          <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')"
+             class="settings icon settingsIcon" style="filter: inherit"
+             title="Tournament settings"></a>
         </div>
       </div>
 
@@ -59,7 +60,7 @@
       </div>
 
       <div class="qrCodeButton">
-        <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')">QR</a>
+        <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')"></a>
       </div>
 
     </div>
@@ -310,7 +311,7 @@
         <button
             :disabled=" !newArcher.name || !newArcher.bow || !newArcher.gender ||! newArcher.age"
             class="btn btn-primary btn-med" @click="addNewArcher(event )">
-          Add Archer
+          Confirm
         </button>
 
       </div>
