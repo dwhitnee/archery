@@ -23,6 +23,7 @@
 
   o getArcherAllResults( name )             // all of "Brandy Allison"s scores
   o getArchers( tournamentId, [groupId] )   // All archers on a scoring bale or in a tournament
+  o getArchersForLeague( tournamentId )     // All archer records in any tournament in this league
   o updateArcher( tournamentId, archerId )
   o deleteArcher( tournamentId, archerId )  // no PK so can't delete...easily
 
@@ -81,16 +82,23 @@ let message = require('./responseHandler');  // HTTP message handling
 let db = {
 
   //----------------------------------------------------------------------
-  // All archers for given coach [optional]
+  // All archer scoring data in tournament or league
   // @param: tournamentId
-  // @param: groupId - scoring bale
+  // @param: groupId - scoring bale [optional]
+  // or
+  // @param: leagueId - league of tournaments with archers to combine
   //----------------------------------------------------------------------
   getArchers: async function( request ) {
-    message.verifyParam( request, "tournamentId");  // throws on error
-    message.verifyParam( request, "groupId");
-
     let query = request.queryStringParameters;
-    return await tournamentDB.getArchersByScoringGroup( query.tournamentId, query.groupId );
+
+    if (query.leagueId) {
+      return await tournamentDB.getArchersByLeague( query.leagueId );
+    } else {
+      message.verifyParam( request, "tournamentId");  // throws on error
+      message.verifyParam( request, "groupId");
+
+      return await tournamentDB.getArchersByScoringGroup( query.tournamentId, query.groupId );
+    }
   },
 
   //----------------------------------------------------------------------
@@ -117,17 +125,14 @@ let db = {
 
   //----------------------------------------------------------------------
   // Remove archer from tournament
-  //
-  // @param tournament
-  // @param archerName
+  // @param id
   // @return nothing
   //----------------------------------------------------------------------
   deleteArcher: async function( request ) {
-    message.verifyParam( request, "tournamentId");
-    message.verifyParam( request, "archerName");
+    message.verifyParam( request, "id");
 
     let params = JSON.parse( request.body );
-    return await tournamentDB.deleteArcher( params.tournamentId, params.archerName );
+    return await tournamentDB.deleteArcher( params.id );
   },
 
 
@@ -142,6 +147,7 @@ let db = {
   //----------------------------------------------------------------------
   getTournament: async function( request ) {
     let query = request.queryStringParameters;
+
     if (query.id) {
       return await tournamentDB.getTournamentById( query.id | 0 );  // id is numeric, not str
     } else {
@@ -152,7 +158,7 @@ let db = {
   },
 
   //----------------------------------------------------------------------
-  // Get all tournaments since given date ("2024/01/01")
+  // Get all tournaments since given date ("2024-01-01")
   // @param: date
   //----------------------------------------------------------------------
   getTournaments: async function( request ) {
@@ -196,7 +202,7 @@ let db = {
   },
 
   //----------------------------------------------------------------------
-  // Get all leagues since given date ("2024/01/01")
+  // Get all leagues since given date ("2024-01-01")
   // Get all recent leagues? Unexpired leagues  FIXME
   // @param: date
   //----------------------------------------------------------------------

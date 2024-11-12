@@ -258,6 +258,17 @@
     </dialog>
 
 
+    <!-- populate with archer names - link to classification as well? TODO-->
+    <!-- limit to archer names from the league? -->
+
+    <datalist id="archerList">
+      <option value="Brandy Allison"></option>
+      <option value="Chocolate"></option>
+      <option value="Strawberry"></option>
+      <option value="Vanilla"></option>
+    </datalist>
+
+
     <dialog id="addArcher">
       <button class="close" @click="closeDialog( $event )"></button>
 
@@ -265,7 +276,8 @@
         <h3>Add archer to your scoring group</h3>
 
         <div><label for="archer">Name:</b></label></div>
-        <div><input id="archerName" size=20 type="text" placeholder="Brady Ellison...."
+        <div><input id="archerName" size=20 type="text"
+        list="archerList" placeholder="Brady Ellison...."
                  v-model.trim="newArcher.name" />
         </div>
 

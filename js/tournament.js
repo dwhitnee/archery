@@ -23,6 +23,9 @@
 
 
 // TODO:
+// When name typed in and matched (auto complete class) (search for archers in league?)
+// auto populate rest of archer if name found (need in-browser DB of all archers)
+
 // Sort out what each page should look like (what's on overview? What's on tournament/
 // What if no tournament specified, what should each page do?
 //   tournament => create or join
@@ -66,19 +69,17 @@
     // how to select by code? (ie, join a tournament)
     tournament {
       id: 42069,     // PK
-      date: "1/1/2024", // secondady HK with code
+      date: "1/1/2024", // secondary HK with code
       code: "XYZ",      // secondary Index on code and date (to replace tournamentCodes)
 
       leagueId: 0,      // if part of a multiday event (mail in, league, multiday?)
       description: "Peanut Farmer 1000",
       type: { "WA 300", ends: 10, arrows: 3, rounds: 1 }
-
     }
 
     // SELECT id from TOURNAMENTS where leagueId=6;
     // SELECT scores from ARCHERS where tournamentId in above;
 
-    // should league be denormalilzed into tournament?  FIXME
     // will need maxScores to calculate totals safely/correctly
     league {
       id: 6
@@ -111,13 +112,15 @@ archer (so name can be changed, necessary? Old item destroyed, I think that's OK
 
     // SELECT * WHERE tournament="XYZ" and group="14" ORDER BY scoringGroupOrder
     archerTournament: {
-      tournamentId: 42069,   // HK
+      id: 143,               // PK (so name can be changed)
 
-      scoringGroup: 14,      // RK   bale #, could represent several bales
+      leagueId: 6,           // secondary HK
+      tournamentId: 42069,   // HK
+      scoringGroup: 14,      // RK   bale #, could represent several/all bales
+
       scoringGroupOrder: 2,  // (1-4) priority of archers in group
 
-      // id: 69,   // (1-999) or "bradyellison"?  unique only to tournament, not globally
-      name: "Brandy Allison",   // secondary HK for stats?
+      name: "Brandy Allison",   // secondary HK for stats (RK is tournamentId)
       bow: "FSLR",
       ageGender: "AM",
 
@@ -143,14 +146,6 @@ archer (so name can be changed, necessary? Old item destroyed, I think that's OK
         },
         // round 2...
       ]
-  OR
-          ends: [["9","9","9"], ["X","8","7",.]
-          // computed
-          endScore: [27, 25, ...]
-          endXCount: [0,1...]
-          runningTotal: [27, 52, ...]
-          roundScore: 300,
-          roundXCount: 29,
  }
 */
 //  ----------------------------------------------------------------------
@@ -215,14 +210,13 @@ let app = new Vue({
   // Data Model (drives the View, update these values only
   //----------------------------------------
   data: {
-    goneFishing: true,
+    goneFishing: false,
     message: "Lets do a tournament",
     saveInProgress: false,    // prevent other actions while this is going on
     loadingData: false,    // prevent other actions while this is going on
     adminView: false,
 
     mode: ViewMode.TOURNAMENT_START,    // what page to show
-    foo: "foo",
     joinCode: "",  // tournament to join (XYZX)
 
     // a tournament is a set of rounds and a set of archer scoring
@@ -481,6 +475,8 @@ let app = new Vue({
         console.log("Archer already initialzed - " + archer.name);
         return;
       }
+
+      archer.leagueId = this.league.id|0;
 
       archer.rounds = archer.rounds || [];
       for (let r=0; r < tournament.type.rounds; r++) {
@@ -1043,7 +1039,7 @@ let app = new Vue({
       // end-date - don't allow any more tournaments to be added
       // start-date - Show recent leagues (within the last two months?)
 
-      this.league.date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
+      // this.league.date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
 
       if (localMode) {
         this.league.id = this.nextSequenceId++;
@@ -1082,26 +1078,23 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // FIXME - show results-to-date for league?
+    // Use case: show results-to-date for league, also pre-populate archer name for new league day
     // list of archers with weekly scores, overall score, current handicap
+    //----------------------------------------
     getArchersForLeague: async function( leagueId ) {
-      // load tournaments for league
-      let tournaments = await this.loadTournamentsForLeague( leagueId );
-      let archers = {};
+      // list of archer records, archerId will be duplicated
+      let archerRecords = await this.loadLeagueArchersFromDB( leagueId );
 
-      // make hash keyed by archer name (which wont work for existing archer display algorithms
       // what is best way to display archer, scores, total, and handicap?
       // for a handicap league there may not be archer classes, just one big list of archers
-      for (let i=0; i < tournaments.length; i++) {
-        let newArchers = await this.loadArchersFromDB( tournaments[i].id, 0 ) || [];
-        // add archers to list de-dupe and add scores
-        newArchers.forEach( (archer) => {
-          if (!archers[archer.name]) {
-            archers[archer.name] = [];
-          }
-          archers[archer.name].push( archer );
-        });
-      }
+      let archers = [];
+
+      archerRecords.forEach( (archer) => {
+        if (!archers[archer.name]) {
+          archers[archer.name] = [];
+        }
+        archers[archer.name].push( archer );
+      });
 
       // iterate over archers and compute handicap and total score
       // FIXME: how does this work for a two day regular tournament?
@@ -1275,42 +1268,26 @@ let app = new Vue({
 
       csv.push( heading );
 
-      // either the class list is bows, or bowXageXGender
-      if (this.ignoreAgeGender) {
-        for (let b=0; b < this.bows.length; b++) {
+      let bowClasses = this.getAllCompetitionClasses();
 
-          let archers = this.getArchersByClass( this.bows[b] );
-          if (!archers.length) {
-            continue;
-          }
-          csv.push([]);
-          csv.push( [this.bows[b].full] );
-
-          this.addArchersToCSV( tournament, archers, csv );
+      for (let c=0; c < bowClasses.length; c++) {
+        let cls = bowClasses[c];
+        let archers = this.getArchersByClass( cls );
+        if (!archers.length) {
+          continue;
+        }
+        csv.push([]);
+        if (this.ignoreAgeGender) {
+          csv.push( [cls.bow.full] );
+        } else {
+          csv.push( [cls.age.full + " " +
+                     cls.gender.full + " " +
+                     cls.bow.full] );
         }
 
-      } else {
-
-
-        for (let b=0; b < this.bows.length; b++) {
-          for (let a=0; a < this.ages.length; a++) {
-            for (let g=0; g < this.genders.length; g++) {
-
-              let archers = this.getArchersByClass(
-                this.bows[b], this.ages[a], this.genders[g] );
-              if (!archers.length) {
-                continue;
-              }
-              csv.push([]);
-              csv.push( [this.ages[a].full + " " +
-                         this.genders[g].full + " " +
-                         this.bows[b].full] );
-
-              this.addArchersToCSV( tournament, archers, csv );
-            }
-          }
-        }
+        this.addArchersToCSV( tournament, archers, csv );
       }
+
       Util.exportToCSV( csv, tournament.name );
     },
 
@@ -1350,6 +1327,13 @@ let app = new Vue({
     //----------------------------------------
     async loadArchersFromDB( tournamentId, groupId ) {
       let serverCmd = "archers?tournamentId=" + tournamentId + "&groupId=" + groupId;
+      return await this.loadObjectsFromDB( serverCmd );
+    },
+    //----------------------------------------
+    // load all archer records for this league
+    //----------------------------------------
+    async loadLeagueArchersFromDB( leagueId ) {
+      let serverCmd = "archers?leagueId=" + leagueId;
       return await this.loadObjectsFromDB( serverCmd );
     },
 

@@ -96,8 +96,6 @@ resources:
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: N
-          - AttributeName: date
-            AttributeType: S
 
         KeySchema:
           - AttributeName: id
@@ -113,6 +111,8 @@ resources:
         TableName: TS_Archers
         AttributeDefinitions:
           - AttributeName: id
+            AttributeType: N
+          - AttributeName: leagueId
             AttributeType: N
           - AttributeName: tournamentId
             AttributeType: N
@@ -148,6 +148,16 @@ resources:
                 KeyType: HASH
               - AttributeName: tournamentId
                 KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+          - IndexName: league-index
+            KeySchema:
+              - AttributeName: leagueId
+                KeyType: HASH
             Projection:
               ProjectionType: ALL
             ProvisionedThroughput:

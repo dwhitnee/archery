@@ -223,7 +223,7 @@ module.exports = {
     }
 
     if (!dbParams.Item.createdDate) {
-      dbParams.Item.createdDate = now.toISOString();  // can't update a key
+      dbParams.Item.createdDate = now.toISOString();
     }
 
     console.log("PUT request: " +  JSON.stringify( dbParams ));

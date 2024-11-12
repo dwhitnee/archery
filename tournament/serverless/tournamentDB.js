@@ -17,9 +17,11 @@
 
 const TournamentTableName = "TS_Tournaments";            // PK on id
 const TournamentCodeIndex = "tournamentDateCode-index";  // secondary on code+date
+// const TournamentLeagueIndex = "tournamentLeague-index";  // secondary on leagueId
 
 const ArcherTableName = "TS_Archers";           // PK on name (+tournament)
 const ArcherGroupIndex = "scoringGroup-index";  // secondary index on tournament (+bale)
+const ArcherLeagueIndex = "league-index";       // secondary index on league
 const ArcherNameIndex = "nameAndTournament-index";  // secondary index on archer name
 
 const LeagueTableName = "TS_Leagues";           // PK on name (+tournament)
@@ -51,7 +53,7 @@ module.exports = {
   //----------------------------------------
   // Get archers in a tournament [optional: group]
   // @param tournamentId
-  // @param groupId: bale or scoring group
+  // @param groupId: bale or scoring group [optional]
   //----------------------------------------
   getArchersByScoringGroup: async function( tournamentId, groupId ) {
 
@@ -73,6 +75,25 @@ module.exports = {
 
     // sorted by position in group
     archers.sort( (a,b) => a.scoringGroupOrder - b.scoringGroupOrder);
+
+    return archers;
+  },
+
+  //----------------------------------------
+  // Get archer scoring records in all tournaments in a league
+  // @param leagueId
+  //----------------------------------------
+  getArchersByLeague: async function( leagueId ) {
+    let query = "leageId = :leagueId";
+    let args = {
+      ':leagueId': leagueId|0,  // ensure numeric
+    };
+
+    let archers =
+        await db.getRecordsBySecondaryIndex( ArcherTableName, ArcherLeagueIndex, query, args );
+
+    // sort by creationDate ascending
+    archers.sort( (a,b) => a.createdDate.localeCompare( b.createdDate ));
 
     return archers;
   },
@@ -194,8 +215,8 @@ module.exports = {
     if (!date) {
       return await db.getAllRecords( LeagueTableName );
     } else {
-      let argNames =  { "#date": "date" };  // Naming variables avoids reserved words
-      let filter = "#date > :date";
+      let argNames =  { "#createdDate": "createdDate" };  // Naming variables avoids reserved words
+      let filter = "#createdDate < :date";
       let args = { ":date": date };
 
       let leagues = await db.getRecordsByFilterScan( LeagueTableName,
