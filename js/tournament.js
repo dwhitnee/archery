@@ -23,6 +23,9 @@
 
 
 // TODO:
+// change reload to stop after tournament done
+// change behavior if /tournament or /overview
+
 // When name typed in and matched (auto complete class) (search for archers in league?)
 // auto populate rest of archer if name found (need in-browser DB of all archers)
 
@@ -38,9 +41,6 @@
 // Prod CORS on API-Gateway
 
 // Error handling: try/catch on awaits on DB side?
-
-// Done? archer needs secondary index on tournamentId and group (for multiple results)
-// unique PK is tourArcherID or touramentId + name
 
 // League: create league page that shows all current archers daily scores and total
 //   - page can also create a new tournament day in the league
@@ -390,15 +390,22 @@ let app = new Vue({
     });
 
     Util.setNamespace("TS");  // tournamentScoring
+    // should this be a prefs object?
+    this.ignoreAgeGender = Util.loadData("ignoreAgeGender");
 
     let tournamentId = this.$route.query.id;
-    this.league.id = this.$route.query.leagueId;
+    let leagueId = this.$route.query.leagueId;
     let groupId = this.$route.query.groupId;  // scoring bale ("0" means all)
+
+    // FIXME - need different behavior for each page
+    // /tournament/: no groupId=0
+    // /overview/: assume groupId=0 and reload until tournament done
 
     if (tournamentId) {
       this.tournament = await this.getTournamentById( tournamentId );
+      leagueId = leagueId || this.tournament.leagueId;
       if (!this.tournament || !this.tournament.type) {
-        alert("There is no tournament named " + tournamentId );
+        alert("There is no tournament " + tournamentId );
       } else {
         // Only load all archers if groupId="0", otherwise it's too
         // easy for a user to load a whole tournament.
@@ -413,6 +420,9 @@ let app = new Vue({
           }
         }
       }
+    }
+    if (leagueId) {
+      this.league = await this.getLeagueById( leagueId );
     }
 
     // debugging only
@@ -808,11 +818,18 @@ let app = new Vue({
         alert("Cannot modify an existing tournament. You must make a new one");
         return;
       }
+      this.tournament.leagueId = this.league.id |0;
       await this.saveTournament();
 
       if (this.tournament.id) {
         console.log("tournament created " + JSON.stringify( this.tournament ));
-        window.location.href += "../?id=" + this.tournament.id;  // redirect to tournament page
+        // window.location.href += "../?id=" + this.tournament.id;  // redirect to tournament page
+        window.location.pathname += "../";  // redirect to tournament page
+        if (!window.location.search) {
+          window.location.search = "?id=" + this.tournament.id;
+        } else {
+          window.location.search += "&id=" + this.tournament.id;
+        }
       } else {
         alert("Failed to create tournament");
       }
@@ -976,17 +993,17 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    getTournamentById: async function( tournamentId ) {
+    getTournamentById: async function( id ) {
       let tournament = {};
 
-      if (!tournamentId) {
+      if (!id) {
         console.error("Tried to get null tournament"); debugger;
         return tournament;
       }
       if (localMode) {
-        tournament = Util.loadData("tournament"+ tournamentId) || {};
+        tournament = Util.loadData("tournament"+ id) || {};
       } else {
-        tournament = await this.loadTournamentByIdFromDB( tournamentId ) || {};
+        tournament = await this.loadTournamentByIdFromDB( id ) || {};
       }
       if (tournament && tournament.type) {
         tournament.type.rounds = tournament.type.rounds || 1;  // at least one always
@@ -995,6 +1012,25 @@ let app = new Vue({
         this.setMessage( tournament.name );
       }
       return tournament;
+    },
+
+    //----------------------------------------
+    getLeagueById: async function( id ) {
+      let league = {};
+
+      if (!id) {
+        console.error("Tried to get null league"); debugger;
+        return league;
+      }
+      if (localMode) {
+        league = Util.loadData("league"+ id) || {};
+      } else {
+        league = await this.loadLeagueByIdFromDB( id ) || {};
+      }
+      if (league.id) {
+        this.setMessage( league.name );
+      }
+      return league;
     },
 
     //----------------------------------------
@@ -1164,7 +1200,7 @@ let app = new Vue({
     },
 
     toggleAgeGender: function() {
-      // this.ignoreAgeGender = !this.ignoreAgeGender;
+      Util.saveData("ignoreAgeGender", this.ignoreAgeGender);
       this.sortedArchers = [];
       this.sortArchersForDisplay();
     },
@@ -1319,7 +1355,7 @@ let app = new Vue({
     //----------------------------------------
     // load all archers in this tournament and/or on a given bale (scoring group)
     //----------------------------------------
-    async loadLeagueFromDB( id ) {
+    async loadLeagueByIdFromDB( id ) {
       return await this.loadObjectsFromDB("league?id=" + id );
     },
     //----------------------------------------

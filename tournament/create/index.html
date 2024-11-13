@@ -38,10 +38,8 @@
     <div class="createTournamentGrid">
       <h3>Create New Tournament</h3>
 
-      <div v-if="league.id">
-        <label style="color: red; font-weight: bold">
-          This tournament is part of league "{{ league.name }}"
-        </label>
+      <div v-if="league.id" class="header" style="color: red">
+        This tournament is part of league "{{ league.name }}"
       </div>
 
       <div>
