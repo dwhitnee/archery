@@ -84,7 +84,7 @@ module.exports = {
   // @param leagueId
   //----------------------------------------
   getArchersByLeague: async function( leagueId ) {
-    let query = "leageId = :leagueId";
+    let query = "leagueId = :leagueId";
     let args = {
       ':leagueId': leagueId|0,  // ensure numeric
     };

@@ -405,7 +405,16 @@ let app = new Vue({
       groupId = 0;
     }
 
-    if (tournamentId) {
+    if (leagueId && window.location.pathname.match( /league\/overview/ )) {
+
+      this.league = await this.getLeagueById( leagueId );
+      this.tournament = { type: { rounds: this.league.maxDays|0 + 1 } };  // make renderer happy
+      this.archers = await this.getArchersForLeague( leagueId );  // this returns a map
+      this.sortArchersForDisplay();
+      // need a virtual tournament of numDays*rounds
+
+    } else if (tournamentId) {
+
       this.tournament = await this.getTournamentById( tournamentId );
       leagueId = leagueId || this.tournament.leagueId;
       if (!this.tournament || !this.tournament.type) {
@@ -422,18 +431,17 @@ let app = new Vue({
           } else {
             this.groupName = this.archers[0].scoringGroup;
           }
+          if (leagueId) {
+            this.league = await this.getLeagueById( leagueId );
+          }
         }
       }
     }
-    if (leagueId) {
-      this.league = await this.getLeagueById( leagueId );
-    }
 
     // only auto reload the results page, and stop when tournament done
-    if (window.location.pathname.match( /overview/ )) {
+    if (window.location.pathname.match( /tournament\/overview/ )) {
       this.doAutoReload( 1 );
     }
-
 
     // debugging only
     let foo = this;
@@ -1143,8 +1151,19 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // handicap is 80% of the distance to perfect
+    // (ex: a 270/300 would have a handicap of 0.8/arrow or 2.4 per end or 24 per round)
+    // (perfect-you)/#arrows*80%
+    //----------------------------------------
+    calcHandicap: function( tournament, archer ) {
+      let perfectScore = tournament.type.maxArrowScore * archer.total.arrowCount;
+      return .80 * (perfectScore - archer.total.score)/archer.total.arrowCount;
+    },
+
+    //----------------------------------------
     // Use case: show results-to-date for league, also pre-populate archer name for new league day
-    // list of archers with weekly scores, overall score, current handicap
+    // List of archers with weekly scores, overall score, current handicap
+    // Create a virtual tournament object where the rounds are all the rounds shot in the league
     //----------------------------------------
     getArchersForLeague: async function( leagueId ) {
       // list of archer records, archerId will be duplicated
@@ -1154,16 +1173,25 @@ let app = new Vue({
       // for a handicap league there may not be archer classes, just one big list of archers
       let archers = [];
 
-      archerRecords.forEach( (archer) => {
-        if (!archers[archer.name]) {
-          archers[archer.name] = [];
+      archerRecords.forEach( (oneArcherDay) => {
+        let id = oneArcherDay.name;   // name should be the same, id changes each day
+        if (!archers[id]) {
+          archers[id] = oneArcherDay;
+        } else {
+          // add this day's rounds and totals to the pile
+          archers[id].rounds = archers[id].rounds.concat( oneArcherDay.rounds );
+          archers[id].total.score += oneArcherDay.total.score;
+          archers[id].total.xCount += oneArcherDay.total.xCount;
+          archers[id].total.arrowCount += oneArcherDay.total.arrowCount;
+          // archers[id].total.handicap = this.calcHandicap( this.tournament, archers[id] );
         }
-        archers[archer.name].push( archer );
       });
 
-      // iterate over archers and compute handicap and total score
       // FIXME: how does this work for a two day regular tournament?
-      // eg, changing bales each day
+      // eg, changing bales each day.  Does this matter?
+
+      // convert name keyed map back to (sortable) array
+      return [...Object.values( archers )];      // same asArray.from( archers.values() );
     },
 
 
@@ -1255,21 +1283,17 @@ let app = new Vue({
       this.$forceUpdate();
     },
 
-
     // search through all archers to build array of like archers
     // use getArchersByClass() to get cached version for display
     findArchersByClass( bow, age, gender ) {
       let outArchers = [];
 
-      for (let i=0; i < this.archers.length; i++) {
-        let archer = this.archers[i];
-        // ex: FSLR-AM
-
-        if (this.ignoreAgeGender) {
+      this.archers.forEach(( archer ) => {
+        if (this.ignoreAgeGender) {           // ex: FSLR
           if (archer.bow == bow.abbrev) {
             outArchers.push( archer );
           }
-        } else {
+        } else {                              // ex: FSLR-AM
           if ((archer.bow == bow.abbrev) &&
               (archer.age == age.abbrev) &&
               (archer.gender == gender.abbrev))
@@ -1277,7 +1301,7 @@ let app = new Vue({
             outArchers.push( archer );
           }
         }
-      }
+      });
 
       outArchers.sort( this.compareArcherScores );
       return outArchers;
