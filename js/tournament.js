@@ -24,13 +24,10 @@
 
 // TODO:
 // TEST league - create league, start tournament, see if QR code and bale creation works)
-//  auto-complete name and class for league archers (so typos don't happen)
-//  vertical style bars for league overview
 //  Try multi round tournament (in league)
 
-// make up my mind about gear icon vs Admin link vs QR link
-// fix CSV for league
 // cancel out of league (button?) (opt into league, how?)
+// Home button - goes to tournament/ (with no id's)
 
 // When name typed in and matched (auto complete class) (search for archers in league?)
 // auto populate rest of archer if name found (need in-browser DB of all archers)
@@ -418,7 +415,10 @@ let app = new Vue({
     if (leagueId && !tournamentId && window.location.pathname.match( /overview/ )) {
 
       // Display-wise, a league is like a "tournament" where each round is a tournament.
-      this.tournament = { type: { rounds: this.league.maxDays|0 } }; // make renderer happy
+      this.tournament = {
+        name: this.league.name,      // make renderer and CSV happy
+        type: { rounds: this.league.maxDays|0 }
+      };
       this.archers = await this.getArchersForLeague( leagueId );
       this.sortArchersForDisplay();
 
@@ -1352,21 +1352,26 @@ let app = new Vue({
     },
 
 
+    //----------------------------------------
+    // @Updates "csv" in place (a 2-D array of archers and scores)
+    //----------------------------------------
     addArchersToCSV: function( tournament, archers, csv) {
-
       for (let i=0; i < archers.length; i++) {
         let archer = archers[i];
         let row = [archer.name];
         if (tournament.type.rounds > 1) {
           for (let r=0; r < tournament.type.rounds; r++) {
-            row.push( archer.rounds[r].score );
-            row.push( archer.rounds[r].xCount );
+            if (archer.rounds[r]) {       // round might not be complete
+              row.push( archer.rounds[r].score );
+              row.push( archer.rounds[r].xCount );
+            } else {
+              row.push("");               // but keep formating right for last column
+              row.push("");
+            }
           }
         }
         row.push( archer.total.score );
         row.push( archer.total.xCount );
-        // row.push( archer.total.arrowCount );
-
         csv.push( row );
       }
     },

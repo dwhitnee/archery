@@ -44,8 +44,7 @@
       <div>
         <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
         <div v-else>
-          <a :href='"../create?leagueId=" + league.id'
-              class="settings icon settingsIcon" title="Create new tournament"></a>
+          <a :href='"../create?leagueId=" + league.id' title="Create new tournament">Admin</a>
         </div>
       </div>
 
@@ -55,8 +54,9 @@
         </div></b>
       </div>
 
-      <div class="qrCodeButton">
-        <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')">QR</a>
+      <div >
+        <a href="#"  @click="generateTouramentQRCode(); openDialog('showQRCode')"
+           class="settings icon settingsIcon" title="Tournament info"></a>
       </div>
 
     </div>

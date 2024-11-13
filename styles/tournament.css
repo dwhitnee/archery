@@ -72,6 +72,10 @@ a {
   text-decoration: inherit;
 }
 
+.settings.icon {
+  filter: inherit;  /* Make gear black, not white */
+}
+
 #qrcode {
   padding: 2em;
 }
