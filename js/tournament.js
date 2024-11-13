@@ -834,7 +834,9 @@ let app = new Vue({
 
     // generate the tournament home page (where you can create a new scoring bale
     generateTouramentQRCode: function() {
-      Util.generateQRCode( this.tournamentURL(), "qrcode" );
+      if (this.tournament.id) {
+        Util.generateQRCode( this.tournamentURL(), "qrcode" );
+      }
     },
 
     joinTournament: async function() {
