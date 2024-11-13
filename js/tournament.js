@@ -28,6 +28,10 @@
 //  vertical style bars for league overview
 //  Try multi round tournament (in league)
 
+// make up my mind about gear icon vs Admin link vs QR link
+// fix CSV for league
+// cancel out of league (button?) (opt into league, how?)
+
 // When name typed in and matched (auto complete class) (search for archers in league?)
 // auto populate rest of archer if name found (need in-browser DB of all archers)
 
