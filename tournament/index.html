@@ -215,8 +215,15 @@
         <div>
           Scan QR Code to score a new bale/group
         </div>
-        <div id="qrcode"><b>[ Join a tournament to see the scoring QR code ]</b></div>
-        <a :href="resultsURL()">Live Results</a>
+        <div id="qrcode">
+          <b>[ Join a tournament to see the scoring QR code ]</b>
+        </div>
+        <div>
+          <a v-if="tournament.id" :href="resultsURL()">Live Tournament Results</a>
+        </div>
+        <div>
+          <a v-if="league.id" :href="leagueResultsURL()">Overall League Results</a>
+        </div>
 
       </div>
     </dialog>

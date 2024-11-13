@@ -29,9 +29,6 @@
 // cancel out of league (button?) (opt into league, how?)
 // Home button - goes to tournament/ (with no id's)
 
-// When name typed in and matched (auto complete class) (search for archers in league?)
-// auto populate rest of archer if name found (need in-browser DB of all archers)
-
 // Sort out what each page should look like (what's on overview? What's on tournament/
 // What if no tournament specified, what should each page do?
 //   tournament => create or join
@@ -830,11 +827,10 @@ let app = new Vue({
       return this.baseURL() + "?id=" + this.tournament.id;
     },
     resultsURL: function() {
-      if (this.tournament.id) {
-        return this.baseURL() + "/overview?id=" + this.tournament.id;
-      } else {
-        return this.baseURL() + "/overview?leagueId=" + this.league.id;
-      }
+      return this.baseURL() + "/overview?id=" + this.tournament.id;
+    },
+    leagueResultsURL: function() {
+      return this.baseURL() + "/overview?leagueId=" + this.league.id;
     },
 
     // generate the tournament home page (where you can create a new scoring bale
