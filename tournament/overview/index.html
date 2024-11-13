@@ -112,7 +112,7 @@
           </div>
 
           <div class="table archerResultList" v-if="getArchersByClass( classification ).length">
-            <div v-for="archer in getArchersByClass( classification )">
+            <div class="resultLine" v-for="archer in getArchersByClass( classification )">
               <div class="rowLead">{{ archer.name }}</div>
               <div v-for="r in tournament.type.rounds" v-if="tournament.type.rounds > 1">
                 <div class="dayScore">

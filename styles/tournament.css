@@ -6,8 +6,14 @@ html,body {
 }
 
 :root {
-  --blue: #1e90ff;
   --white: #ffffff;
+  --beige1: #f1a177;
+  --beige2: #fadfd1;
+  --beige3: #f8f3f0;
+  --grey: #c1b9b9;
+  --evencol: #85cbccbb;
+  --oddcol: #a8dee0bb;
+  --total: #a7d676bb;
 }
 .foo {
   color: var(--blue);
@@ -97,9 +103,24 @@ a {
   margin-bottom: .5em;
   border-radius: .5em;
 }
-.archerList > div:nth-child(even),
 .archerResultList > div:nth-child(even) {
   background-color: #ddd;
+}
+.resultLine > div:nth-child(1),
+.header > div:nth-child(1) {   /* vertical bars for league overview */
+  background-color: inherit !important;
+}
+.resultLine > div:nth-child(odd),
+.header > div:nth-child(odd) {   /* vertical bars for league overview */
+  background-color: var(--oddcol);
+}
+.resultLine > div:nth-child(even),
+.header > div:nth-child(even) {   /* vertical bars for league overview */
+  background-color:  var(--evencol);
+}
+.resultLine > div:nth-last-child(1),
+.header > div:nth-last-child(1) {   /* vertical bars for league overview */
+  background-color: var(--total);
 }
 
 .table {

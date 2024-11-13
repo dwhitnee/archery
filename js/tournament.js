@@ -23,8 +23,9 @@
 
 
 // TODO:
-// change reload to stop after tournament done
-// change behavior if /tournament or /overview
+// TEST league - create league, start tournament, see if QR code and bale creation works)
+//  auto-complete name and class for league archers (so typos don't happen)
+//  vertical style bars for league overview
 
 // When name typed in and matched (auto complete class) (search for archers in league?)
 // auto populate rest of archer if name found (need in-browser DB of all archers)
@@ -436,12 +437,11 @@ let app = new Vue({
             this.league = await this.getLeagueById( leagueId );
           }
         }
+        // only auto reload the results page, and stop when tournament done
+        if (window.location.pathname.match( /overview/ )) {
+          this.doAutoReload( 1 );
+        }
       }
-    }
-
-    // only auto reload the results page, and stop when tournament done
-    if (window.location.pathname.match( /tournament\/overview/ )) {
-      this.doAutoReload( 1 );
     }
 
     // debugging only
