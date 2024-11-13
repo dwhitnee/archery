@@ -26,6 +26,7 @@
 // TEST league - create league, start tournament, see if QR code and bale creation works)
 //  auto-complete name and class for league archers (so typos don't happen)
 //  vertical style bars for league overview
+//  Try multi round tournament (in league)
 
 // When name typed in and matched (auto complete class) (search for archers in league?)
 // auto populate rest of archer if name found (need in-browser DB of all archers)
