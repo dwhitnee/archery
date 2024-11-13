@@ -2,7 +2,6 @@
 <head>
   <title>Tournament Scoring</title>
   <meta charset="utf-8" />
-  <!--  <meta http-equiv="refresh" content="60" > FIXME, stop when tourney done -->
 
   <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
         crossorigin="anonymous"/>
@@ -62,15 +61,15 @@
     </div>
 
 
-    <div v-if="!tournament || !tournament.type">
-      No tournament selected
+    <div v-if="(!league || !league.id) && (!tournament || !tournament.id)">
+      No tournament or league selected
     </div>
     <div v-else>
 
       <div class="resultsPage">
 
         <h3 title="Export to CSV" @click="exportToCSV( tournament )">
-          {{ tournament.name }}
+          {{ tournament.name || league.name }} Results
           <div class="icon saveIcon" style="font-size: 50%;"></div>
         </h3>
 
@@ -95,7 +94,7 @@
               <div class="dayScore">
                 <div class="score">Total</div>
                 <div class="score">X</div>
-                <div class="score small"></div>
+                <div v-if="tournament && tournament.id" class="score small"></div>
               </div>
             </div>
           </div>
@@ -117,15 +116,17 @@
               <div class="rowLead">{{ archer.name }}</div>
               <div v-for="r in tournament.type.rounds" v-if="tournament.type.rounds > 1">
                 <div class="dayScore">
-                  <div class="score">{{ archer.rounds[r-1].score }}</div>
-                  <div class="score">{{ archer.rounds[r-1].xCount }}</div>
+                  <div v-if="archer.rounds[r-1]" class="score">{{ archer.rounds[r-1].score }}</div>
+                  <div v-if="archer.rounds[r-1]" class="score">{{ archer.rounds[r-1].xCount }}</div>
                 </div>
               </div>
               <div>
                 <div class="dayScore">
                   <div class="score">{{ archer.total.score }}</div>
                   <div class="score">{{ archer.total.xCount }}</div>
-                  <div class="score small">/{{ archer.total.arrowCount }}</div>
+                  <div v-if="tournament && tournament.id" class="score small">
+                    /{{ archer.total.arrowCount }}
+                  </div>
                 </div>
               </div>
             </div>

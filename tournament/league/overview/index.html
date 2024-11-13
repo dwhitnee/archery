@@ -61,15 +61,15 @@
     </div>
 
 
-    <div v-if="!league || !league.id">
-      No leagues selected
+    <div v-if="(!league || !league.id) && (!tournament || !tournament.id)">
+      No tournament or league selected
     </div>
     <div v-else>
 
       <div class="resultsPage">
 
         <h3 title="Export to CSV" @click="exportToCSV( tournament )">
-          {{ league.name }} Results
+          {{ tournament.name || league.name }} Results
           <div class="icon saveIcon" style="font-size: 50%;"></div>
         </h3>
 
@@ -94,6 +94,7 @@
               <div class="dayScore">
                 <div class="score">Total</div>
                 <div class="score">X</div>
+                <div v-if="tournament && tournament.id" class="score small"></div>
               </div>
             </div>
           </div>
@@ -123,6 +124,9 @@
                 <div class="dayScore">
                   <div class="score">{{ archer.total.score }}</div>
                   <div class="score">{{ archer.total.xCount }}</div>
+                  <div v-if="tournament && tournament.id" class="score small">
+                    /{{ archer.total.arrowCount }}
+                  </div>
                 </div>
               </div>
             </div>
