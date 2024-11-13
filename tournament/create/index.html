@@ -67,8 +67,48 @@
               :disabled=" !tournament.name ||! tournament.type">
         Create Tournament
       </button>
-
     </div>
+
+
+    <div class="createTournamentGrid">
+      <h3>Create New League</h3>
+      <div style="font-size: smaller; margin-bottom: 1em">
+        A league is a collection of scoring tournaments that occur over
+        several days. Create a new league tournament on the next page.
+      </div>
+      <div>
+        <label class="form-check-label" for="leagueDesc">Description:</label>
+      </div>
+      <div>
+        <input type="text" id="leagueDesc"
+               placeholder="Example: Nock Point Multicolor Mail-in"
+               style="width: 100%"
+               v-model.trim="league.name"  />
+      </div>
+
+      <div>
+        <label class="form-check-label" for="maxdays"
+               title="Don't keep scores beyond this number of events">
+          Maximum scoring rounds per archer:
+        </label>
+      </div>
+      <div>
+        <input size="5" type="text" id="maxTournamentDays"
+               placeholder="6" v-model.trim="league.maxDays"  />
+      </div>
+
+      <div>
+        <label class="form-check-label" for="doHandicap">Calculate handicap?</label>
+        <input type="checkbox" id="doHandicap" v-model.trim="league.doHandicap"  />
+      </div>
+
+      <button class="btn btn-primary btn-sm" @click="createLeague( $event )"
+              :disabled=" !league.name ||! league.maxDays">
+        Create League
+      </button>
+    </div>
+
+
   </div>
 
 

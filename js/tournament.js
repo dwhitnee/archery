@@ -407,11 +407,14 @@ let app = new Vue({
       groupId = 0;
     }
 
+    if (leagueId) {
+      this.league = await this.getLeagueById( leagueId );
+    }
+
     // league overview page (page is same as tournament)
     if (leagueId && !tournamentId && window.location.pathname.match( /overview/ )) {
 
-      this.league = await this.getLeagueById( leagueId );
-      this.tournament = { type: { rounds: this.league.maxDays|0 + 1 } };  // make renderer happy
+      this.tournament = { type: { rounds: this.league.maxDays|0 + 1 } }; // make renderer happy
       this.archers = await this.getArchersForLeague( leagueId );  // this returns a map
       this.sortArchersForDisplay();
       // need a virtual tournament of numDays*rounds
