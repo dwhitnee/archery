@@ -818,7 +818,11 @@ let app = new Vue({
       return this.baseURL() + "?id=" + this.tournament.id;
     },
     resultsURL: function() {
-      return this.baseURL() + "/overview?id=" + this.tournament.id + "&groupId=0";
+      if (this.tournament.id) {
+        return this.baseURL() + "/overview?id=" + this.tournament.id;
+      } else {
+        return this.baseURL() + "/overview?leagueId=" + this.league.id;
+      }
     },
 
     // generate the tournament home page (where you can create a new scoring bale
