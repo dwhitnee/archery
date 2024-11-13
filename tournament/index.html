@@ -262,11 +262,11 @@
     <!-- populate with archer names - link to classification as well? TODO-->
     <!-- limit to archer names from the league? -->
 
-    <datalist id="archerList">
-      <option value="Brandy Allison"></option>
+    <datalist id="archerNames">
+      <option v-for="name in Object.keys(leagueArchersMap)" :value="name"></option>
       <option value="Chocolate"></option>
       <option value="Strawberry"></option>
-      <option value="Vanilla"></option>
+      <option value="Liliko'i"></option>
     </datalist>
 
 
@@ -277,8 +277,10 @@
         <h3>Add archer to your scoring group</h3>
 
         <div><label for="archer">Name:</b></label></div>
-        <div><input id="archerName" size=20 type="text"
-        list="archerList" placeholder="Brady Ellison...."
+        <div>
+          <input id="archerName" size=20 type="text"
+                 list="archerNames" placeholder="Brady Ellison...."
+                 @change="prepopulateArcher()"
                  v-model.trim="newArcher.name" />
         </div>
 

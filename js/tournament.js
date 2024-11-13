@@ -235,6 +235,7 @@ let app = new Vue({
 
     archers: [],           // on a particular bale (scoring group)
     sortedArchers: [],     // For display only (broken down by division [FSLR-AF])
+    leagueArchersMap: [],  // for auto-complete (all current archers in this league)
 
     newGroupName: "",  // temp for data entry
     groupName: "",     // immutable key for this scoring group
@@ -404,34 +405,37 @@ let app = new Vue({
     let leagueId = this.$route.query.leagueId;
     let groupId = this.$route.query.groupId;  // scoring bale ("0" means all)
 
-    // FIXME - need different behavior for each page
-    // /tournament/: no groupId=0
-
     if (window.location.pathname.match( /overview/ )) {
-      groupId = 0;
+      groupId = 0;  // show all archers on overview page by default
     }
 
+    // put first so create pages work
     if (leagueId) {
       this.league = await this.getLeagueById( leagueId );
     }
 
-    // league overview page (page is same as tournament)
+    // league overview page
     if (leagueId && !tournamentId && window.location.pathname.match( /overview/ )) {
 
-      this.tournament = { type: { rounds: this.league.maxDays|0 + 1 } }; // make renderer happy
-      this.archers = await this.getArchersForLeague( leagueId );  // this returns a map
+      // Display-wise, a league is like a "tournament" where each round is a tournament.
+      this.tournament = { type: { rounds: this.league.maxDays|0 } }; // make renderer happy
+      this.archers = await this.getArchersForLeague( leagueId );
       this.sortArchersForDisplay();
-      // need a virtual tournament of numDays*rounds
 
-    } else if (tournamentId) {
+    } else if (tournamentId) {  // a tournament overview (group=0) or scoring page (group=N)
 
       this.tournament = await this.getTournamentById( tournamentId );
-      leagueId = leagueId || this.tournament.leagueId;
-      if (!this.tournament || !this.tournament.type) {
-        alert("There is no tournament " + tournamentId );
-      } else {
-        // Only load all archers if groupId="0", otherwise it's too
-        // easy for a user to load a whole tournament.
+
+      if (this.tournament && this.tournament.type) {
+
+        leagueId = leagueId || this.tournament.leagueId;
+        if (leagueId) {
+          this.league = await this.getLeagueById( leagueId );  // redundant?
+          // populate auto-complete map for current league archers
+          await this.getArchersForLeague( leagueId );
+        }
+
+        // scoring bale page
         if (groupId !== undefined) {
           this.archers = await this.getArchers( tournamentId, groupId );
           this.sortArchersForDisplay();
@@ -441,14 +445,15 @@ let app = new Vue({
           } else {
             this.groupName = this.archers[0].scoringGroup;
           }
-          if (leagueId) {
-            this.league = await this.getLeagueById( leagueId );
-          }
         }
+
         // only auto reload the results page, and stop when tournament done
         if (window.location.pathname.match( /overview/ )) {
           this.doAutoReload( 1 );
+
         }
+      } else {
+        alert("There is no tournament " + tournamentId );
       }
     }
 
@@ -901,6 +906,16 @@ let app = new Vue({
       console.log("clicked " + archer.name );
     },
 
+    prepopulateArcher: function() {
+      let existingArcher = this.leagueArchersMap[this.newArcher.name];
+
+      if (existingArcher) {
+        console.log("Found " + JSON.stringify(existingArcher.name ));
+        this.newArcher.bow = existingArcher.bow;
+        this.newArcher.gender = existingArcher.gender;
+        this.newArcher.age = existingArcher.age;
+      }
+    },
 
     addNewArcher: async function( event ) {
       this.newArcher.tournamentId = this.tournament.id;
@@ -1204,6 +1219,9 @@ let app = new Vue({
 
       // FIXME: how does this work for a two day regular tournament?
       // eg, changing bales each day.  Does this matter?
+
+      // keep this map, keyed by name for auto-populating
+      this.leagueArchersMap = archers;
 
       // convert name keyed map back to (sortable) array
       return [...Object.values( archers )];      // same asArray.from( archers.values() );
