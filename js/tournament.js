@@ -316,7 +316,8 @@ let app = new Vue({
 
 
     showCredits: false,
-    version: "0.1"  // create a tournament
+    // version: "0.1"  // create a tournament
+    version: "0.2"  // archer editable, league creation works
   },
 
   //----------------------------------------
@@ -399,7 +400,10 @@ let app = new Vue({
 
     // FIXME - need different behavior for each page
     // /tournament/: no groupId=0
-    // /overview/: assume groupId=0 and reload until tournament done
+
+    if (window.location.pathname.match( /overview/ )) {
+      groupId = 0;
+    }
 
     if (tournamentId) {
       this.tournament = await this.getTournamentById( tournamentId );
@@ -424,6 +428,12 @@ let app = new Vue({
     if (leagueId) {
       this.league = await this.getLeagueById( leagueId );
     }
+
+    // only auto reload the results page, and stop when tournament done
+    if (window.location.pathname.match( /overview/ )) {
+      this.doAutoReload( 1 );
+    }
+
 
     // debugging only
     let foo = this;
@@ -636,6 +646,27 @@ let app = new Vue({
       }
     },
 
+    // total arrows to shoot
+    arrowsPerTournament: function() {
+      return this.tournament.type.arrows * this.tournament.type.ends * this.tournament.type.rounds;
+    },
+
+    // have all archers' arrows been scored
+    isTournamentDone: function() {
+      for (let i = 0; i < this.archers.length; i++) {
+        if (this.archers[i].total.arrowCount != this.arrowsPerTournament()) {
+          return false;
+        }
+      }
+      return true;
+    },
+
+    doAutoReload: function( minutes ) {
+      if (!this.isTournamentDone()) {
+        setTimeout( function () { window.location.reload(); }, minutes*60*1000); // once a minute
+      }
+    },
+
     //----------------------------------------
     // Do the math for the whole round.
     // From scratch each time?  Seems like overkill, but probably worth it
@@ -720,8 +751,6 @@ let app = new Vue({
 
     //----------------------------------------
     doneWithEnd: async function( archer, end ) {
-      // TODO: verify all arrows scored? Or all or nothing perhaps?
-
       let arrowsScored = 0;
       for (let i=0; i < end.arrows.length; i++) {
         if (end.arrows[i] != null) {
