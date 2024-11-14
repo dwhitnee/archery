@@ -38,6 +38,8 @@
 
 //  List tournaments/results publically
 
+// history - use state object to navigate to { mode: ViewMode.SCORE_SHEET, archer: 2, end: 6 }
+
 // Can archer data be in cloud with unique ID? (just name currently)
 // archer ID is name?  How to avoid dupes at creation? Steal other archer?
 //  Enforce each archer on unique phone? Steal vs overwrite?
@@ -487,6 +489,31 @@ let app = new Vue({
       return this.mode == mode;
     },
 
+    makeHistory: function( pageTitle, url ) {
+      document.title = pageTitle;
+      let state = {
+        viewmode: this.mode,
+        archer: this.archer,
+        end: this.scoringEnd,
+        endNum: this.currentEnd
+      };
+      history.pushState( state, null, "#archers");
+    },
+
+    // try to recreate where we were in the app
+    popHistory: function( state ) {
+      this.archer = state.archer;
+      if (state.mode == ViewMode.SCORE_END) {
+        this.scoreEnd( state.archer, state.end, state.endNum );
+      }
+      if (state.mode == ViewMode.SCORE_SHEET) {
+        this.showArcherScoresheet( state.archer );
+      }
+      if (state.mode == ViewMode.ARCHER_LIST) {
+        this.gotoArcherList();
+      }
+    },
+
     // http://[...]/archery/tournament/?id=5&groupId=42
     // for this to work, archer.round would need tournamentId cached in it
     getScoringGroupURL: function( round ) {
@@ -600,7 +627,7 @@ let app = new Vue({
       this.mode = ViewMode.SCORE_SHEET;
       this.setMessage( archer.name );
 
-      history.pushState( {}, null, "#scoresheet");
+      this.makeHistory( archer.name, "#scoresheet");
     },
 
     // switch mode to first unscored end for this archer
@@ -645,7 +672,8 @@ let app = new Vue({
       this.currentArrow = end.arrows.filter((arrow) => arrow != null).length;
 
       this.mode = ViewMode.SCORE_END;
-      history.pushState( {}, null, "#end");
+
+      this.makeHistory( archer.name + " end " + endNum, "#end");
     },
 
     // calculator button was pushed, update end
@@ -971,7 +999,8 @@ let app = new Vue({
     gotoArcherList: function() {
       this.mode = ViewMode.ARCHER_LIST;
       this.setMessage( this.tournament.name );
-      history.pushState( {}, null, "#archers");
+
+      this.makeHistory("Archer list", "#archers");
     },
 
     //----------------------------------------
