@@ -712,6 +712,7 @@ let app = new Vue({
         let round = archer.rounds[roundNum];
         runningTotal = 0;
         xCount = 0;
+        arrowCount = 0;
 
         // running totals for each end
         for (let endNum=0; endNum < round.ends.length; endNum++) {
