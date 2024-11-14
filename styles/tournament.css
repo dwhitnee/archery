@@ -110,20 +110,22 @@ a {
 .archerResultList > div:nth-child(even) {
   background-color: #ddd;
 }
+
+/* vertical bars for league overview */
 .resultLine > div:nth-child(1),
-.header > div:nth-child(1) {   /* vertical bars for league overview */
-  background-color: inherit !important;
+.table .header > div:nth-child(1) {
+  background-color: inherit !important;  /* leave first column alone */
 }
 .resultLine > div:nth-child(odd),
-.header > div:nth-child(odd) {   /* vertical bars for league overview */
+.table .header > div:nth-child(odd) {
   background-color: var(--oddcol);
 }
 .resultLine > div:nth-child(even),
-.header > div:nth-child(even) {   /* vertical bars for league overview */
+.table .header > div:nth-child(even) {
   background-color:  var(--evencol);
 }
 .resultLine > div:nth-last-child(1),
-.header > div:nth-last-child(1) {   /* vertical bars for league overview */
+.table .header > div:nth-last-child(1) {
   background-color: var(--total);
 }
 

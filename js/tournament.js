@@ -276,15 +276,14 @@ let app = new Vue({
         description: "WA Indoor 300",
         arrows: 3, ends: 10, maxArrowScore: 10, rounds:1, swapTargetsEnd: 5
       },
-      // {
-      //   "description": "WA indoor 600",   // Day one of a Nationals in Indoor FITA
-      //   arrows: 3, ends: 10, maxArrowScore: 10, rounds: 2
-      // },
-      // {
+      {
+        "description": "WA indoor 600",   // One day of an Indoor FITA (use league for 2-day)
+        arrows: 3, ends: 10, maxArrowScore: 10, rounds: 2
+      },
       {
         description: "Lancaster 300",
-        arrows: 3, ends: 20, maxArrowScore: 10, rounds: 1,
-        xBonus: 1, swapTargetsEnd: 10         // Lancaster X is 11
+        arrows: 3, ends: 20, maxArrowScore: 10, rounds: 1, swapTargetsEnd: 10,
+        xBonus: 1,    // Lancaster X is 11
       },
       {
         description: "Blueface 300",
@@ -295,7 +294,7 @@ let app = new Vue({
         arrows: 6, ends: 6, maxArrowScore: 10, rounds: 2
       },
       {
-        description: "NFAA 900",
+        description: "NFAA American 900",
         arrows: 6, ends: 5, maxArrowScore: 10, rounds: 3
       }
       // {
