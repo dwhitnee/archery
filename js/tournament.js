@@ -388,10 +388,15 @@ let app = new Vue({
 
     // Should handle routing better instead
     // prevent back button from being used? Bad, but prevents confusion
+    let app = this;
     window.addEventListener('popstate', function(event) {
-      console.log("Preventing back button (Sorry): "+document.location );
-      event.stopImmediatePropagation();
-      history.go(1);
+      if (event.state) {
+        app.popHistory( event.state );  // too much risk of obsolete date being saved
+      } else {
+        console.log("Preventing back button (Sorry): "+ JSON.stringify( event ));
+        event.stopImmediatePropagation();
+        history.go(1);
+      }
     });
 
     Util.setNamespace("TS");  // tournamentScoring
@@ -489,6 +494,7 @@ let app = new Vue({
       return this.mode == mode;
     },
 
+    // try to handle browser history. Doesn't seem to work
     makeHistory: function( pageTitle, url ) {
       document.title = pageTitle;
       let state = {
@@ -497,21 +503,27 @@ let app = new Vue({
         end: this.scoringEnd,
         endNum: this.currentEnd
       };
-      history.pushState( state, null, "#archers");
+      history.pushState( state, pageTitle, "#archers");  // state doesn't seem to get propagated
     },
 
+    //----------------------------------------
     // try to recreate where we were in the app
+    // This has too many chances to save stale data
+    //----------------------------------------
     popHistory: function( state ) {
-      this.archer = state.archer;
-      if (state.mode == ViewMode.SCORE_END) {
+      this.gotoArcherList();
+/*
+      this.archer = state.archer;  // no, obsolete data (version)
+      if (state.viewmode == ViewMode.SCORE_END) {
         this.scoreEnd( state.archer, state.end, state.endNum );
       }
-      if (state.mode == ViewMode.SCORE_SHEET) {
+      if (state.viewmode == ViewMode.SCORE_SHEET) {
         this.showArcherScoresheet( state.archer );
       }
-      if (state.mode == ViewMode.ARCHER_LIST) {
+      if (state.viewmode == ViewMode.ARCHER_LIST) {
         this.gotoArcherList();
       }
+*/
     },
 
     // http://[...]/archery/tournament/?id=5&groupId=42
@@ -673,7 +685,7 @@ let app = new Vue({
 
       this.mode = ViewMode.SCORE_END;
 
-      this.makeHistory( archer.name + " end " + endNum, "#end");
+      this.makeHistory( archer.name + " end " + (+endNum + 1), "#end");
     },
 
     // calculator button was pushed, update end
