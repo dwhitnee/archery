@@ -24,32 +24,34 @@
 
 // TODO:
 // TEST league - create league, start tournament, see if QR code and bale creation works)
-//  Try multi round tournament (in league)
+//  Try multi round tournament (in league? why?)
+//  - FITA
+//  - mail-in
+//  - 900 round
 
 // tournament create/ cancel out of league (button?) (opt into league, how?)
 // Home button - goes to tournament/ (with no id's)
 
-// Sort out what each page should look like (what's on overview? What's on tournament/
-// What if no tournament specified, what should each page do?
 //   tournament => create or join
 //   overview => select from recent tournaments?
+//   admin => list tournaments, list leagues
+
+//  List tournaments/results publically
 
 // Can archer data be in cloud with unique ID? (just name currently)
 // archer ID is name?  How to avoid dupes at creation? Steal other archer?
 //  Enforce each archer on unique phone? Steal vs overwrite?
 
+// Security
+//   prevent geoloc editing? how?
+//   lock scoringGroup to one phone browser? (what if phone dies?)
+//   admin req'ed to click results into scoringGroup?
+
 // Prod CORS on API-Gateway
 
 // Error handling: try/catch on awaits on DB side?
 
-// League: create league page that shows all current archers daily scores and total
-//   - page can also create a new tournament day in the league
-//   Handicap system? (only on League?)
-
-// hamburger menu
-//    Create Tournament
-//    Show QR COde
-//    Show results
+//   Handicap system? (only on League?) end handicap = 80% * score/arrows * arrowsPerEnd
 
 // Tournament Admin page - what does it look like?
 //    show tournament results
@@ -512,6 +514,11 @@ let app = new Vue({
       return archer.rounds && archer.rounds[0] && archer.rounds[0].ends;
     },
 
+    isArcherFinished: function( archer ) {
+      let now = new Date();
+      return archer.completeDate && (now.toISOString() > archer.completeDate);
+    },
+
     // init archer data struct
     initArcher: function( archer, tournament ) {
       if (!tournament) {
@@ -620,6 +627,11 @@ let app = new Vue({
     // TODO: prevent going past latest unscored end?
     //----------------------------------------
     scoreEnd: function( archer, end, endNum ) {
+      if (this.isArcherFinished( archer )) {
+        alert("Cannot edit because scoring round is over");
+        return;   // no more scoring hanky panky after tournament is over
+      }
+
       this.findCurrentEndForArcher( archer );
 
       if (endNum > this.currentEnd) {
@@ -1253,6 +1265,12 @@ let app = new Vue({
       // save their order in the group (even if not in a sorted array)
       let i = this.archers.findIndex( a => (a.name == archer.name));
       archer.scoringGroupOrder = (i<0)? 0 : i;
+
+      if (this.isEndOfScoring) {  // put expiration date on archer (+1 hour for safety)
+        let done = new Date();
+        done.setMinutes(done.getMinutes() + 60);
+        archer.completeDate = done.toISOString();
+      }
 
       if (localMode) {
         // hacky way to store single archer in a group, stomp the whole thing
