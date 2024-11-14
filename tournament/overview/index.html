@@ -116,7 +116,8 @@
             <div class="resultLine" v-for="archer in getArchersByClass( classification )">
               <div class="rowLead">{{ archer.name }}</div>
               <div v-for="r in tournament.type.rounds" v-if="tournament.type.rounds > 1">
-                <div class="dayScore">
+                <div class="dayScore"
+                     @click="location.href = getScoringGroupURL( archer.rounds[r-1] )">
                   <div v-if="archer.rounds[r-1]" class="score">{{ archer.rounds[r-1].score }}</div>
                   <div v-if="archer.rounds[r-1]" class="score">{{ archer.rounds[r-1].xCount }}</div>
                 </div>

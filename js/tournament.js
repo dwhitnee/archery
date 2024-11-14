@@ -26,7 +26,7 @@
 // TEST league - create league, start tournament, see if QR code and bale creation works)
 //  Try multi round tournament (in league)
 
-// cancel out of league (button?) (opt into league, how?)
+// tournament create/ cancel out of league (button?) (opt into league, how?)
 // Home button - goes to tournament/ (with no id's)
 
 // Sort out what each page should look like (what's on overview? What's on tournament/
@@ -277,7 +277,7 @@ let app = new Vue({
         arrows: 3, ends: 10, maxArrowScore: 10, rounds:1, swapTargetsEnd: 5
       },
       {
-        "description": "WA indoor 600",   // One day of an Indoor FITA (use league for 2-day)
+        description: "WA indoor 600",   // One day of an Indoor FITA (use league for 2-day)
         arrows: 3, ends: 10, maxArrowScore: 10, rounds: 2
       },
       {
@@ -449,7 +449,7 @@ let app = new Vue({
 
         }
       } else {
-        alert("There is no tournament " + tournamentId );
+        alert("Could not load tournament " + tournamentId );
       }
     }
 
@@ -485,6 +485,12 @@ let app = new Vue({
       return this.mode == mode;
     },
 
+    // http://[...]/archery/tournament/?id=5&groupId=42
+    // for this to work, archer.round would need tournamentId
+    getScoringGroupURL: function( round ) {
+      return window.location.origin + window.location.pathname + "../" +
+        "?id=" + round.tournamentId + "&groupId=" + round.scoringGroup;
+    },
     setGroupName: function() {
       this.groupName = this.newGroupName;
       window.location.search += "&groupId=" + this.groupName;
@@ -863,7 +869,7 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // save tournament to DB.
+    // save tournament to DB and redirect to tournament URL
     //----------------------------------------
     createTournament: async function( event ) {
       if (this.tournament.id) {
@@ -874,14 +880,16 @@ let app = new Vue({
       await this.saveTournament();
 
       if (this.tournament.id) {
-        console.log("tournament created " + JSON.stringify( this.tournament ));
-        // window.location.href += "../?id=" + this.tournament.id;  // redirect to tournament page
-        window.location.pathname += "../";  // redirect to tournament page
-        if (!window.location.search) {
-          window.location.search = "?id=" + this.tournament.id;
+        let args = window.location.search;
+        if (!args) {
+          args = "?id=" + this.tournament.id;
         } else {
-          window.location.search += "&id=" + this.tournament.id;
+          args += "&id=" + this.tournament.id;
         }
+        // redirect to tournament page
+        window.location.href =
+          window.location.origin + window.location.pathname + "../" + args;
+
       } else {
         alert("Failed to create tournament");
       }
@@ -1186,9 +1194,10 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // Use case: show results-to-date for league, also pre-populate archer name for new league day
+    // Use case: show results-to-date for league, also pre-populate
+    // archer name for new league day
     // List of archers with weekly scores, overall score, current handicap
-    // Create a virtual tournament object where the rounds are all the rounds shot in the league
+    // Create a virtual tournament object where the rounds are all the rounds shot in league
     //----------------------------------------
     getArchersForLeague: async function( leagueId ) {
       // list of archer records, archerId will be duplicated
@@ -1200,6 +1209,11 @@ let app = new Vue({
 
       archerRecords.forEach( (oneArcherDay) => {
         let id = oneArcherDay.name;   // name should be the same, id changes each day
+        for (let r=0; r < oneArcherDay.rounds.length; r++) {
+          /* cache tournament info for later reference (admin link) */
+          oneArcherDay.rounds[r].tournamentId = oneArcherDay.tournamentId;
+          oneArcherDay.rounds[r].scoringGroup = oneArcherDay.scoringGroup;
+        }
         if (!archers[id]) {
           archers[id] = oneArcherDay;
         } else {

@@ -92,8 +92,12 @@ module.exports = {
     let archers =
         await db.getRecordsBySecondaryIndex( ArcherTableName, ArcherLeagueIndex, query, args );
 
-    // sort by creationDate ascending
-    archers.sort( (a,b) => a.createdDate.localeCompare( b.createdDate ));
+    // sort by creationDate ascending - doesn't work, archers could be created out of order
+    // archers.sort( (a,b) => a.createdDate.localeCompare( b.createdDate ));
+
+    // sort by tournamentId ascending (assures right order of results because
+    // tournament createdDate is what we care about, not archer createdDate)
+    archers.sort( (a,b) => a.tournamentId - b.tournamentId );
 
     return archers;
   },
