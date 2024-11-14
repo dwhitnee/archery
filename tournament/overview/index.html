@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-  <title>Tournament Scoring</title>
+  <title>Tournament Results</title>
   <meta charset="utf-8" />
 
   <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
@@ -14,10 +14,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
   <!-- various browser and app icons -->
-  <link rel="icon" type="image/svg+xml"  sizes="any" href="../media/icon.svg" />
-  <link rel="mask-icon" href="../media/mask.svg" color="#FFFF00" />
-  <link rel="apple-touch-icon" href="../media/apple-touch-icon.png" />
-  <link rel="apple-touch-startup-image" href="../media/apple-touch-icon.png" />
+  <link rel="icon" type="image/svg+xml"  sizes="any" href="../../media/icon.svg" />
+  <link rel="mask-icon" href="../../media/mask.svg" color="#FFFF00" />
+  <link rel="apple-touch-icon" href="../../media/apple-touch-icon.png" />
+  <link rel="apple-touch-startup-image" href="../../media/apple-touch-icon.png" />
   <meta name="theme-color" content="#ffff00" />
 
   <!-- Open Graph (social metadata) -->
@@ -70,7 +70,7 @@
       <div class="resultsPage">
 
         <h3 title="Export to CSV" @click="exportToCSV( tournament )">
-          {{ tournament.name || league.name }} Results
+          {{ tournament.name || league.name }} results
           <div class="icon saveIcon" style="font-size: 50%;"></div>
         </h3>
 
@@ -96,6 +96,7 @@
                 <div class="score">Total</div>
                 <div class="score">X</div>
                 <div v-if="tournament && tournament.id" class="score small"></div>
+                <div v-else>avg</div>
               </div>
             </div>
           </div>
@@ -123,11 +124,15 @@
                 </div>
               </div>
               <div>
-                <div class="dayScore">
+                <div class="dayScore"
+                     @click="location.href = getScoringGroupURL( archer )">
                   <div class="score">{{ archer.total.score }}</div>
                   <div class="score">{{ archer.total.xCount }}</div>
                   <div v-if="tournament && tournament.id" class="score small">
                     {{ archer.total.arrowCount }}/
+                  </div>
+                  <div v-else>
+                    {{ ( archer.total.score / archer.rounds.length ).toFixed(1) }}
                   </div>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-  <title>Tournament Scoring</title>
+  <title>Tournament Admin</title>
   <meta charset="utf-8" />
 
   <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" crossorigin="anonymous"/>
@@ -78,16 +78,22 @@
       </div>
       <div v-else class="scoringGroup">
 
-        <div>Welcome to the {{ tournament.name }}!</div>
-        <div>Use code  "{{ tournament.code }}" to join or</div>
+        <div>
+          Create <b>{{ tournament.name }}</b> score cards here
+        </div>
+        <div>
+          Other bales can join with code  "<b>{{ tournament.code }}</b>"
+          or click the gear icon for a <b>QR code</b>
+        </div>
 
         <div v-if="!groupName">
-
-          Name your scoring group:
-          <input size="10" type="text" id="groupName"
-                 placeholder="Bale 6" v-model.trim="newGroupName"
-                 @keyup.enter.prevent="setGroupName( )" />
-          <button class="btn btn-primary btn-sm" @click="setGroupName()">Save</button>
+          <div>
+            First, come up with a name for your scoring group:
+            <input size="10" type="text" id="groupName"
+                   placeholder="e.g., Bale 6" v-model.trim="newGroupName"
+                   @keyup.enter.prevent="setGroupName( )" />
+            <button class="btn btn-primary btn-sm" @click="setGroupName()">Save</button>
+          </div>
 
         </div>
         <div  v-else>

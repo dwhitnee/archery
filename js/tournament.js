@@ -486,10 +486,14 @@ let app = new Vue({
     },
 
     // http://[...]/archery/tournament/?id=5&groupId=42
-    // for this to work, archer.round would need tournamentId
+    // for this to work, archer.round would need tournamentId cached in it
     getScoringGroupURL: function( round ) {
-      return window.location.origin + window.location.pathname + "../" +
-        "?id=" + round.tournamentId + "&groupId=" + round.scoringGroup;
+      if (round.tournamentId) {
+        return window.location.origin + window.location.pathname + "../" +
+          "?id=" + round.tournamentId + "&groupId=" + round.scoringGroup;
+      } else {
+        return "#";
+      }
     },
     setGroupName: function() {
       this.groupName = this.newGroupName;
@@ -1381,6 +1385,9 @@ let app = new Vue({
         }
         row.push( archer.total.score );
         row.push( archer.total.xCount );
+        if (tournament.type.rounds > 2) {
+          row.push( (archer.total.score / archer.rounds.length).toFixed(1) );
+        }
         csv.push( row );
       }
     },
@@ -1401,7 +1408,9 @@ let app = new Vue({
       }
       heading.push("Total");
       heading.push("X");
-
+      if (tournament.type.rounds > 2) {
+        heading.push("average");
+      }
       csv.push( heading );
 
       let bowClasses = this.getAllCompetitionClasses();
