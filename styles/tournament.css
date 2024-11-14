@@ -160,6 +160,11 @@ a {
   width: 99%;  /* padding a little weird at 100% for some reason */
 }
 
+.average {
+  font-size: smaller;
+  color: gray;
+}
+
 .icon {
   display: inline-block;
 }

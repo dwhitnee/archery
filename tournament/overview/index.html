@@ -96,7 +96,7 @@
                 <div class="score">Total</div>
                 <div class="score">X</div>
                 <div v-if="tournament && tournament.id" class="score small"></div>
-                <div v-else>avg</div>
+                <div v-else class="average">avg </div>
               </div>
             </div>
           </div>
@@ -131,7 +131,7 @@
                   <div v-if="tournament && tournament.id" class="score small">
                     {{ archer.total.arrowCount }}/
                   </div>
-                  <div v-else>
+                  <div v-else class="average">
                     {{ ( archer.total.score / archer.rounds.length ).toFixed(1) }}
                   </div>
                 </div>
