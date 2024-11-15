@@ -141,6 +141,11 @@
         </div>
       </div>
 
+      <div title="Export to CSV" style="padding: 1em; display: flex">
+          Export to CSV
+          <div class="icon saveIcon" @click="exportToCSV()"></div>
+      </div>
+
       <div v-if="!teamViewWeek" style="padding: 2em;">
         <a href="#" @click="showTeamWeek()">Show weekly team arrow counts</a>
       </div>

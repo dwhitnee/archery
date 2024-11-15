@@ -1160,6 +1160,40 @@ let app = new Vue({
       this.loadingData = false;
     },
 
-  },
+    exportToCSV: function() {
+      let arrows = this.data.arrows;
 
+      let csv = [[this.year + " Arrow counts for " + this.user.name]];
+      csv.push( this.days.concat("Total"));
+
+      // fill first week ending Sunday (probaly skip a couple days)
+      let daysSinceMonday = this.getFillerDays();  // If Jan 1 is Wed, this is two
+
+
+      // fill first odd shaped week
+      let i=0, w1=0, firstWeek = [];
+
+      for (; w1 < daysSinceMonday; w1++) {
+        firstWeek[w1] = "";  // firstWeek filler until Jan1
+      }
+      for (; w1 < 7-daysSinceMonday; w1++) {
+        firstWeek[w1] = arrows[i++];
+      }
+      firstWeek[7] = this.getWeekTotalFromDayOfYear(0);
+      csv.push( firstWeek );
+
+      while (i < 52*7) {
+        let week = [];
+        for (let w=0; w < 7; w++) {
+          week[w] = arrows[i++];
+        }
+
+        week[7] = this.getWeekTotalFromDayOfYear(i-1);
+        csv.push( week );
+      }
+
+      Util.exportToCSV( csv, "arrow counts");
+    }
+
+  },
 });
