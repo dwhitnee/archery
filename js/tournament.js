@@ -32,6 +32,11 @@
 // tournament create/ cancel out of league (button?) (opt into league, how?)
 // Home button - goes to tournament/ (with no id's)
 
+// Click score to see scorecard from Overview
+//   What does this mean? One round? All rounds? One day (what is a "day"?)
+
+//  Fill in Scott's League data
+
 //   tournament => create or join
 //   overview => select from recent tournaments?
 //   admin => list tournaments, list leagues
@@ -220,6 +225,10 @@ let app = new Vue({
     loadingData: false,    // prevent other actions while this is going on
     adminView: false,
 
+    displayOnly: false,
+    displayArcher: {},    // just to look at, not edit
+    displayRounds: [],
+
     mode: ViewMode.TOURNAMENT_START,    // what page to show
     joinCode: "",  // tournament to join (XYZX)
 
@@ -403,6 +412,9 @@ let app = new Vue({
     // should this be a prefs object?
     this.ignoreAgeGender = Util.loadData("ignoreAgeGender");
 
+    // weak auth - TODO, allow editing only if user came through bale creation page?
+    this.displayOnly = false || this.$route.query.do;
+
     let tournamentId = this.$route.query.id;
     let leagueId = this.$route.query.leagueId;
     let groupId = this.$route.query.groupId;  // scoring bale ("0" means all)
@@ -530,8 +542,10 @@ let app = new Vue({
     // for this to work, archer.round would need tournamentId cached in it
     getScoringGroupURL: function( round ) {
       if (round.tournamentId) {
+
         return window.location.origin + window.location.pathname + "../" +
-          "?id=" + round.tournamentId + "&groupId=" + round.scoringGroup;
+          "?id=" + round.tournamentId +
+          "&groupId=" + round.scoringGroup;
       } else {
         return "#";
       }
@@ -551,6 +565,10 @@ let app = new Vue({
 
     archerInitialized: function( archer ) {
       return archer.rounds && archer.rounds[0] && archer.rounds[0].ends;
+    },
+
+    isEditingAllowed: function() {
+      return !this.displayOnly;
     },
 
     isArcherFinished: function( archer ) {
@@ -669,6 +687,10 @@ let app = new Vue({
       if (this.isArcherFinished( archer )) {
         alert("Cannot edit because scoring round is over");
         return;   // no more scoring hanky panky after tournament is over
+      }
+      if (this.isEditingAllowed()) {
+        console.log("read only");
+        return;   // no more scoring hanky panky unless you are the actual scorer
       }
 
       this.findCurrentEndForArcher( archer );

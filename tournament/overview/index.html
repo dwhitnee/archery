@@ -118,14 +118,17 @@
               <div class="rowLead">{{ archer.name }}</div>
               <div v-for="r in tournament.type.rounds" v-if="tournament.type.rounds > 1">
                 <div class="dayScore"
-                     @click="location.href = getScoringGroupURL( archer.rounds[r-1] )">
+                     @click="displayRounds = [archer.rounds[r-1]];
+                             currentRound = r; openDialog('scorecardDialog')">
+                     <!-- @click="if (admin) { location.href = getScoringGroupURL( archer.rounds[r-1] ); } "> -->
                   <div v-if="archer.rounds[r-1]" class="score">{{ archer.rounds[r-1].score }}</div>
                   <div v-if="archer.rounds[r-1]" class="score">{{ archer.rounds[r-1].xCount }}</div>
                 </div>
               </div>
               <div>
                 <div class="dayScore"
-                     @click="location.href = getScoringGroupURL( archer )">
+                     @click="displayRounds = archer.rounds; currentRound = 0;openDialog('scorecardDialog')">
+                     <!-- @click="if (admin) { location.href = getScoringGroupURL( archer )}"> -->
                   <div class="score">{{ archer.total.score }}</div>
                   <div class="score">{{ archer.total.xCount }}</div>
                   <div v-if="tournament && tournament.id" class="score small">
@@ -166,6 +169,32 @@
         </div>
 
       </div>
+    </dialog>
+
+
+    <dialog id="scorecardDialog">
+      <button class="close" @click="closeDialog( $event )"></button>
+
+      <div v-for="(round, index) in displayRounds" class="round">
+        <h3 style="display: table-caption; padding-left: 1em;">
+          round {{ currentRound || index+1 }}
+        </h3>
+
+        <div class="end" style="color: gray">
+          <div>end</div>
+          <div v-for="arrow in round.ends[0].arrows"></div>
+          <div>sum</div>
+          <div>total</div>
+        </div>
+
+        <div v-for="(end,index) in round.ends" class="end">
+          <div>{{ index+1 }}</div>
+          <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow | score }} </div>
+          <div class="score">{{ end.score | score }}</div>
+          <div class="score">{{ end.runningTotal | score }}</div>
+        </div>
+      </div>
+
     </dialog>
 
 
