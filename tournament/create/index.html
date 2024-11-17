@@ -47,14 +47,14 @@
       </div>
       <div>
         <input size="30" type="text" id="tournyDesc" placeholder="Example: Nock Point Tuesday Mail-in..."
-               v-model.trim="tournament.name"  />
+               v-model.trim="newTournament.name"  />
       </div>
 
       <div>
         <label class="form-check-label" for="tournamentType">Type:</label>
       </div>
       <div>
-        <select id="tournamentType" v-model="tournament.type">
+        <select id="tournamentType" v-model="newTournament.type">
           <option disabled value="">select one</option>
           <option v-for="type in tournamentTypes" :value="type">
             {{ type.description }} ({{ type.arrows}} arrows/{{ type.ends}} ends)
@@ -64,7 +64,7 @@
       </div>
 
       <button class="btn btn-primary btn-sm" @click="createTournament( $event )"
-              :disabled=" !tournament.name ||! tournament.type">
+              :disabled=" !newTournament.name || !newTournament.type">
         Create Tournament
       </button>
     </div>
@@ -83,7 +83,7 @@
         <input type="text" id="leagueDesc"
                placeholder="Example: Nock Point Multicolor Mail-in"
                style="width: 100%"
-               v-model.trim="league.name"  />
+               v-model.trim="newLeague.name"  />
       </div>
 
       <div>
@@ -94,16 +94,16 @@
       </div>
       <div>
         <input size="5" type="text" id="maxTournamentDays"
-               placeholder="6" v-model.trim="league.maxDays"  />
+               placeholder="6" v-model.trim="newLeague.maxDays"  />
       </div>
 
       <div>
         <label class="form-check-label" for="doHandicap">Calculate handicap?</label>
-        <input type="checkbox" id="doHandicap" v-model.trim="league.doHandicap"  />
+        <input type="checkbox" id="doHandicap" v-model.trim="newLeague.doHandicap"  />
       </div>
 
       <button class="btn btn-primary btn-sm" @click="createLeague( $event )"
-              :disabled=" !league.name ||! league.maxDays">
+              :disabled=" !newLeague.name ||! newLeague.maxDays">
         Create League
       </button>
     </div>

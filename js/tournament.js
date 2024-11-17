@@ -34,16 +34,16 @@
 
 // Click score to see scorecard from Overview
 //   What does this mean? One round? All rounds? One day (what is a "day"?)
+//   Change score display from rounds to archer (just show all rounds, don't bother with single round (what about league?)
 
 //  Fill in Scott's League data
+// sort league archers by name AND bow
 
 //   tournament => create or join
 //   overview => select from recent tournaments?
 //   admin => list tournaments, list leagues
 
 //  List tournaments/results publically
-
-// history - use state object to navigate to { mode: ViewMode.SCORE_SHEET, archer: 2, end: 6 }
 
 // Can archer data be in cloud with unique ID? (just name currently)
 // archer ID is name?  How to avoid dupes at creation? Steal other archer?
@@ -53,6 +53,7 @@
 //   prevent geoloc editing? how?
 //   lock scoringGroup to one phone browser? (what if phone dies?)
 //   admin req'ed to click results into scoringGroup?
+//   how does betweenEnds prevent two browsers at once. Hand off?
 
 // Prod CORS on API-Gateway
 
@@ -247,8 +248,10 @@ let app = new Vue({
     newGroupName: "",  // temp for data entry
     groupName: "",     // immutable key for this scoring group
 
-    newArcher: {},     // candidate new archer data model for UI before saving
-    nextSequenceId: 0, // ID just for local testing
+    newArcher: {},      // candidate new archer data model for UI before saving
+    newTournament: {},  // /create - model for UI before saving
+    newLeague: {},      // /create - model for UI before saving
+    nextSequenceId: 0,  // ID just for local testing
 
     archer: {},     // current archer for ScoreSheet
     scoringEnd: {}, // current end of arrows being scored (object, not index)
@@ -688,7 +691,7 @@ let app = new Vue({
         alert("Cannot edit because scoring round is over");
         return;   // no more scoring hanky panky after tournament is over
       }
-      if (this.isEditingAllowed()) {
+      if (!this.isEditingAllowed()) {
         console.log("read only");
         return;   // no more scoring hanky panky unless you are the actual scorer
       }
@@ -938,10 +941,12 @@ let app = new Vue({
     // save tournament to DB.
     //----------------------------------------
     createLeague: async function( event ) {
-      await this.saveLeague( this.league );
+      await this.saveLeague( this.newLeague );
+      this.league = this.newLeague;
 
-      if (this.league.id) {  // redirect to tournament page
-        window.location.href += "../create?leagueId=" + this.league.id;
+      if (this.league.id) {  // redirect to tournament page (remove args)
+        window.location.href = window.location.origin + window.location.pathname +
+          "../create?leagueId=" + this.league.id;
       } else {
         alert("Failed to create League. Whoops");
       }
@@ -951,23 +956,14 @@ let app = new Vue({
     // save tournament to DB and redirect to tournament URL
     //----------------------------------------
     createTournament: async function( event ) {
-      if (this.tournament.id) {
-        alert("Cannot modify an existing tournament. You must make a new one");
-        return;
-      }
-      this.tournament.leagueId = this.league.id |0;
-      await this.saveTournament();
+      this.newTournament.leagueId = this.league.id |0;
+      await this.saveTournament( this.newTournament );
+      this.tournament = this.newTournament;
 
       if (this.tournament.id) {
-        let args = window.location.search;
-        if (!args) {
-          args = "?id=" + this.tournament.id;
-        } else {
-          args += "&id=" + this.tournament.id;
-        }
         // redirect to tournament page
-        window.location.href =
-          window.location.origin + window.location.pathname + "../" + args;
+        window.location.href = window.location.origin + window.location.pathname +
+          "../?id=" + this.tournament.id;
 
       } else {
         alert("Failed to create tournament");
@@ -1197,26 +1193,26 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    saveTournament: async function() {
-      if (!this.tournament || !this.tournament.name) {
+    saveTournament: async function( tournament ) {
+      if (!tournament || !tournament.name) {
         return;
       }
 
       // this should take place server-side? No, use the locale of the adhoc app user
-      this.tournament.date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
+      tournament.date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
 
       if (localMode) {
-        this.tournament.code = this.generateTournamentId();
-        this.tournament.id = this.tournament.code;
-        Util.saveData("tournament"+ this.tournament.id, this.tournament );
+        tournament.code = this.generateTournamentId();
+        tournament.id = tournament.code;
+        Util.saveData("tournament"+ tournament.id, tournament );
       } else {
-        await this.saveTournamentToDB( this.tournament );  // ID/Code created in DB
+        await this.saveTournamentToDB( tournament );  // ID/Code created in DB
       }
     },
 
     //----------------------------------------
-    saveLeague: async function() {
-      if (!this.league || !this.league.name) {
+    saveLeague: async function( league ) {
+      if (!league || !league.name) {
         return;
       }
 
@@ -1225,13 +1221,13 @@ let app = new Vue({
       // end-date - don't allow any more tournaments to be added
       // start-date - Show recent leagues (within the last two months?)
 
-      // this.league.date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
+      // league.date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
 
       if (localMode) {
-        this.league.id = this.nextSequenceId++;
-        Util.saveData("league"+ this.league.id, this.league );
+        league.id = this.nextSequenceId++;
+        Util.saveData("league"+ league.id, league );
       } else {
-        await this.saveLeagueToDB( this.league );  // ID created in DB
+        await this.saveLeagueToDB( league );  // ID created in DB
       }
     },
 
