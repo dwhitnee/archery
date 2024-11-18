@@ -27,6 +27,11 @@ html,body {
   text-align: center;
 }
 
+.preventSelect { /* no cut/paste in draggables, eg */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .ellipsis {
   display: inline-block;
   width: 75%;

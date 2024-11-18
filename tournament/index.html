@@ -100,10 +100,9 @@
 
           <b>Scoring group: {{ groupName }}</b>
 
-          <draggable v-model="archers" class="archerList" ghost-class="sort-ghost"
+          <draggable v-model="archers" class="archerList preventSelect" ghost-class="sort-ghost"
                      group="people" @start="drag=true" @end="drag=false">
             <div v-for="archer in archers" :key="archer.id"
-                 @touchstart="editArcher( archer ); openDialog('addArcher') "
                  @click="editArcher( archer ); openDialog('addArcher') ">
               <div class="icon reorderIcon"></div>
               <div class="ellipsis">
@@ -112,11 +111,12 @@
             </div>
           </draggable>
 
-          <div>
+          <div style="display: flex">
             <button class="btn btn-primary btn-lg"
                      id="addArcherToScoringGroupButton" @click="openDialog('addArcher')">
               + Add Archer
             </button>
+            <div style="padding: .5em 0 0 2em">drag to re-order, click to edit</div>
           </div>
 
           <div>
