@@ -405,16 +405,19 @@ let app = new Vue({
 
     // Should handle routing better instead
     // prevent back button from being used? Bad, but prevents confusion
-    let app = this;
-    window.addEventListener('popstate', function(event) {
-      if (event.state) {
-        app.popHistory( event.state );  // too much risk of obsolete date being saved
-      } else {
-        console.log("Preventing back button (Sorry): "+ JSON.stringify( event ));
-        event.stopImmediatePropagation();
-        history.go(1);
-      }
-    });
+    // Only use on /tournament page (create, overview are normal)
+    if (window.location.pathname.match( /tournament\/$/ )) {
+      let app = this;
+      window.addEventListener('popstate', function(event) {
+        if (event.state) {
+          app.popHistory( event.state );  // too much risk of obsolete date being saved
+        } else {
+          console.log("Preventing back button (Sorry): "+ JSON.stringify( event ));
+          event.stopImmediatePropagation();
+          history.go(1);
+        }
+      });
+    }
 
     Util.setNamespace("TS");  // tournamentScoring
     // should this be a prefs object?
