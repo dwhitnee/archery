@@ -69,9 +69,10 @@
 
       <div class="resultsPage">
 
-        <h3 title="Export to CSV" @click="exportToCSV( tournament )">
+        <h3 title="Export to CSV">
           {{ tournament.name || league.name }} results
-          <div class="icon saveIcon" style="font-size: 50%;"></div>
+          <div class="icon saveIcon" style="font-size: 50%;"
+                @click="exportToCSV( tournament)"></div>
         </h3>
 
         <div style="padding-bottom: 1em">

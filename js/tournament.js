@@ -36,12 +36,17 @@
 //   What does this mean? One round? All rounds? One day (what is a "day"?)
 //   Change score display from rounds to archer (just show all rounds, don't bother with single round (what about league?)
 
-//  Fill in Scott's League data
-// sort league archers by name AND bow
+//  Backfill method
+// sort league archers by name AND bow (If compound for some rounds, recurve for others)
 
 //   tournament => create or join
 //   overview => select from recent tournaments?
 //   admin => list tournaments, list leagues
+
+// tournament list page
+// league list page
+// today's tournaments page?
+// what does prepopulate look like? (list of archers/class, precreate bales)
 
 //  List tournaments/results publically
 

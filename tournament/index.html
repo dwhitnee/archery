@@ -82,8 +82,8 @@
           Create <b>{{ tournament.name }}</b> score cards here
         </div>
         <div>
-          Other bales can join with code  "<b>{{ tournament.code }}</b>"
-          or click the gear icon for a <b>QR code</b>
+          Other bales can join with code  "<b>{{ tournament.code }}</b>" or the
+          <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')">QR code</a>
         </div>
 
         <div v-if="!groupName">
