@@ -393,16 +393,6 @@ let app = new Vue({
       debugger;
     });
 
-    // Ask before leaving page (unfortunately, this includes the reload() button
-/*    let showConfirmation = function(e) {
-      (e || window.event).returnValue = "you sure?";
-      return "you sure?";
-    };
-    window.addEventListener("beforeunload", function (e) {
-      return showConfirmation(e);
-    });
-*/
-
     // Should handle routing better instead
     // prevent back button from being used? Bad, but prevents confusion
     // Only use on /tournament page (create, overview are normal)
@@ -1413,6 +1403,20 @@ let app = new Vue({
         }
       }
       this.$forceUpdate();
+    },
+
+    //----------------------------------------
+    // map of archers keyed by bale name
+    //----------------------------------------
+    getArchersByScoringGroup: function() {
+      let bales = [];
+      this.archers.forEach( (archer) => {
+        if (!bales[archer.scoringGroup]) {
+          bales[archer.scoringGroup] = [];
+        }
+        bales[archer.scoringGroup].push( archer );
+      });
+      return bales;
     },
 
     // search through all archers to build array of like archers
