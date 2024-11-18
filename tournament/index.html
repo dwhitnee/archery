@@ -82,8 +82,8 @@
           Create <b>{{ tournament.name }}</b> score cards here
         </div>
         <div>
-          Other bales can join with code  "<b>{{ tournament.code }}</b>" or the
-          <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')">QR code</a>
+          Other bales can join using the code  "<b>{{ tournament.code }}</b>" or the
+          <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')"><b>QR code</b></a>
         </div>
 
         <div v-if="!groupName">
@@ -116,7 +116,7 @@
                      id="addArcherToScoringGroupButton" @click="openDialog('addArcher')">
               + Add Archer
             </button>
-            <div style="padding: .5em 0 0 2em">drag to re-order, click to edit</div>
+            <div style="padding: .5em 0 0 2em">drag archers to re-order, tap to edit</div>
           </div>
 
           <div>
@@ -360,7 +360,9 @@
           <div v-if="showCredits">
             Author: <ul><li>David Whitney</li></ul>
             Testers: <ul>
-            <li>your name here!</li>
+            <li>Everyone at the Nock Point Sunday League</li>
+            <li>Diane Cochran</li>
+            <li>Bala Dodoye-Alali</li>
           </ul>
           Credits:
           <ul>

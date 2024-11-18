@@ -38,8 +38,11 @@
     <div class="createTournamentGrid">
       <h3>Create New Tournament</h3>
 
-      <div v-if="league.id" class="header" style="color: red">
+      <div v-if="league.id" style="color: red; font-weight: bold">
         This tournament is part of league "{{ league.name }}"
+        <a class="small" href="#" @click="location.href=location.origin+location.pathname">
+          (No it isn't!)
+        </a>
       </div>
 
       <div>
@@ -56,7 +59,8 @@
       <div>
         <select id="tournamentType" v-model="newTournament.type">
           <option disabled value="">select one</option>
-          <option v-for="type in tournamentTypes" :value="type">
+          <option v-for="type in
+            tournamentTypes" :value="type">
             {{ type.description }} ({{ type.arrows}} arrows/{{ type.ends}} ends)
             {{ type.rounds>1 ? "x " + type.rounds: "" }}
           </option>
