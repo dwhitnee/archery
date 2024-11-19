@@ -66,12 +66,14 @@
     </div>
 
     <div v-else>
-      Bales
-      <div class="resultsPage">
+      <h3>
+        Bales for {{ tournament.name }}
+      </h3>
 
+      <div class="resultsPage">
         <div v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )">
           <div>
-            {{ scoringGroup }}
+            <a :href="getScoringGroupURLByName( scoringGroup ) ">{{ scoringGroup }}</a>
           </div>
 
           <div class="table archerResultList">

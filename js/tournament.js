@@ -539,6 +539,12 @@ let app = new Vue({
 */
     },
 
+    getScoringGroupURLByName: function( scoringGroup ) {
+      return window.location.origin + window.location.pathname + "../" +
+        "?id=" + this.tournament.id +
+        "&groupId=" + scoringGroup;
+    },
+
     // http://[...]/archery/tournament/?id=5&groupId=42
     // for this to work, archer.round would need tournamentId cached in it
     getScoringGroupURL: function( round ) {
