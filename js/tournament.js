@@ -583,6 +583,11 @@ let app = new Vue({
       return archer.completeDate && (now.toISOString() > archer.completeDate);
     },
 
+    // Ex: "FSLR-AF", "BBR-SM", "FS-U12M"
+    getArcherClassification: function( archer ) {
+      return archer.bow + "-" + archer.age + archer.gender;
+    },
+
     // init archer data struct
     initArcher: function( archer, tournament ) {
       if (!tournament) {
@@ -975,17 +980,11 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // Change archer info
-    // the problem is "name" is the PK so a second record gets created
-    // Options: delete and recreate
-    //   make name not PK (but queryable Seconday index) what becomes PK? a new ID?
-    //   Only make non-name attributes editable
+    // Change archer info, but keep original data around for comparison
     //----------------------------------------
     editArcher: function( archer ) {
-      // deprecated? No way to press and hold vs drag an archer?
       this.newArcher = archer;
-      // this doesnt work until PK is immutable (or we do delete/recreate)
-      console.log("clicked " + archer.name );
+      this.oldArcher = window.structuredClone( archer );  // deep copy
     },
 
     prepopulateArcher: function() {
@@ -999,21 +998,38 @@ let app = new Vue({
       }
     },
 
+    //----------------------------------------
+    // Save or update an archer record from the UI
+    // If this is an update, audit log the previous values.
+    //----------------------------------------
     addNewArcher: async function( event ) {
-      this.newArcher.tournamentId = this.tournament.id;
-      this.newArcher.scoringGroup = this.groupName;
+      let archer = this.newArcher;  // update using the data in the UI
 
-      if (!this.archerInitialized( this.newArcher )) {
-        this.initArcher( this.newArcher, this.tournament );
-        this.archers.push( this.newArcher );   // add archer to list (order matters)
+      archer.tournamentId = this.tournament.id;
+      archer.scoringGroup = this.groupName;
+
+      if (!this.archerInitialized( archer )) {         // create new archer
+        this.initArcher( archer, this.tournament );
+        this.archers.push( archer );   // add archer to list (order matters)
+      } else {
+        if (JSON.stringify( archer ) != JSON.stringify( this.oldArcher )) {
+          // udpate, log previous values
+          archer.auditlog = archer.auditlog || "";
+          archer.auditlog += this.oldArcher.updatedDate + ":" +
+            this.oldArcher.name + ":" +          // log previous entry
+            this.getArcherClassification( this.oldArcher ) + ", ";
+        }
       }
 
-      await this.updateArcher( this.newArcher );  // save and update metadata
+      await this.updateArcher( archer );  // save and update metadata
 
       this.newArcher = {};
 
-      // hack to dismiss modal, maybe store dialog element when opening?
-      this.closeDialogElement( event.target.parentElement.parentElement );
+      // dismiss enclosing dialog
+      this.closeDialogElement( event.target.closest("dialog") );
+
+      // HACK to dismiss modal, maybe store dialog element when opening?
+      // this.closeDialogElement( event.target.parentElement.parentElement );
     },
 
     removeArcherFromBale: function( archer ) {
