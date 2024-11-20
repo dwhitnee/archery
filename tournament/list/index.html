@@ -78,7 +78,10 @@
 
           <div class="table archerResultList">
             <div class="resultLine" v-for="archer in getArchersByScoringGroup()[scoringGroup]">
-              <div class="rowLead">{{ archer.name }}</div>
+              <div class="rowLead">
+                {{ archer.name }} ({{ getClassification( archer ) }})
+                <div class="small">{{ archer.auditlog }}</div>
+              </div>
             </div>
           </div>
         </div>

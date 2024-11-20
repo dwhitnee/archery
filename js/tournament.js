@@ -229,7 +229,7 @@ let app = new Vue({
     message: "Lets do a tournament",
     saveInProgress: false,    // prevent other actions while this is going on
     loadingData: false,    // prevent other actions while this is going on
-    adminView: false,
+    isAdmin: false,
 
     displayOnly: false,
     displayArcher: {},    // just to look at, not edit
@@ -584,7 +584,7 @@ let app = new Vue({
     },
 
     // Ex: "FSLR-AF", "BBR-SM", "FS-U12M"
-    getArcherClassification: function( archer ) {
+    getClassification: function( archer ) {
       return archer.bow + "-" + archer.age + archer.gender;
     },
 
@@ -1017,7 +1017,7 @@ let app = new Vue({
           archer.auditlog = archer.auditlog || "";
           archer.auditlog += this.oldArcher.updatedDate + ":" +
             this.oldArcher.name + ":" +          // log previous entry
-            this.getArcherClassification( this.oldArcher ) + ", ";
+            this.getClassification( this.oldArcher ) + ", ";
         }
       }
 
@@ -1027,9 +1027,6 @@ let app = new Vue({
 
       // dismiss enclosing dialog
       this.closeDialogElement( event.target.closest("dialog") );
-
-      // HACK to dismiss modal, maybe store dialog element when opening?
-      // this.closeDialogElement( event.target.parentElement.parentElement );
     },
 
     removeArcherFromBale: function( archer ) {
@@ -1064,7 +1061,8 @@ let app = new Vue({
     // @input button click that caused the close (ie, button),
     //    assumes it's the immediate child of the dialog
     closeDialog( event ) {
-      this.closeDialogElement( event.target.parentElement );
+      // this.closeDialogElement( event.target.parentElement );
+      this.closeDialogElement( event.target.closest("dialog") );
     },
     // @input dialog element itself
     openDialogElement( dialog ) {
