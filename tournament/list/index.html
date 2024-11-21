@@ -62,7 +62,21 @@
     </div>
 
     <div v-if="!tournament || !tournament.id">
-      No tournament or league selected
+
+      All Leagues in last 30 days
+      <ul>
+        <li v-for="lid in Object.keys( admin.leagues )">
+          {{ admin.leagues[lid].name }}
+          <ul>
+            <li v-for="tid in Object.keys( admin.leagues[lid].tournaments )">
+              <a :href="'./?groupId=0&id=' + admin.leagues[lid].tournaments[tid].id">
+                {{ admin.leagues[lid].tournaments[tid].name }}
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+
     </div>
 
     <div v-else>

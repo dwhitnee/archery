@@ -29,12 +29,7 @@
 //  - mail-in
 //  - 900 round
 
-// tournament create/ cancel out of league (button?) (opt into league, how?)
 // Home button - goes to tournament/ (with no id's)
-
-// Click score to see scorecard from Overview
-//   What does this mean? One round? All rounds? One day (what is a "day"?)
-//   Change score display from rounds to archer (just show all rounds, don't bother with single round (what about league?)
 
 //  Backfill method
 // sort league archers by name AND bow (If compound for some rounds, recurve for others)
@@ -43,6 +38,7 @@
 //   overview => select from recent tournaments?
 //   admin => list tournaments, list leagues
 
+// tournament bale list is Admin page
 // tournament list page
 // league list page
 // today's tournaments page?
@@ -230,6 +226,7 @@ let app = new Vue({
     saveInProgress: false,    // prevent other actions while this is going on
     loadingData: false,    // prevent other actions while this is going on
     isAdmin: false,
+    admin: { leagues: []},
 
     displayOnly: false,
     displayArcher: {},    // just to look at, not edit
@@ -429,8 +426,28 @@ let app = new Vue({
       this.league = await this.getLeagueById( leagueId );
     }
 
-    // league overview page
-    if (leagueId && !tournamentId && window.location.pathname.match( /overview/ )) {
+    // admin page
+    if (window.location.href.match( /admin/ )) {
+
+      // load all leagues and tournaments
+      // put all tournaments in its league, league[0] is all other tournaments
+      let leagues = [];
+      leagues[0] = { name: "Other", tournaments: [] };
+
+      let leagueList = await this.loadLeaguesSince( 30 );
+      leagueList.forEach(( league ) => {
+        league.tournaments = [];
+        leagues[league.id] = league;  // map by ID
+      });
+
+      let tournaments = await this.loadTournamentsSince( 30 );
+      tournaments.forEach(( tournament ) => {
+        leagues[tournament.leagueId|0].tournaments[tournament.id] = tournament;  // map by ID
+      });
+      this.admin.leagues = leagues;
+
+      // league overview page
+    } else if (leagueId && !tournamentId && window.location.pathname.match( /overview/ )) {
 
       // Display-wise, a league is like a "tournament" where each round is a tournament.
       this.tournament = {
@@ -1564,6 +1581,12 @@ let app = new Vue({
       let serverCmd = "tournament?code=" + tournamentCode + "&date=" + date;
       return await this.loadObjectsFromDB( serverCmd );
     },
+    async loadTournamentsSince( daysAgo ) {
+      let date = new Date();
+      date.setMinutes( date.getMinutes() - 60*24*daysAgo );
+      let serverCmd = "tournaments?date=" + date.toISOString();
+      return await this.loadObjectsFromDB( serverCmd );
+    },
     //----------------------------------------
     // load tournament by direct ID
     // in an ad-hoc tournament the code will turn into an ID upon creation
@@ -1576,6 +1599,12 @@ let app = new Vue({
     //----------------------------------------
     async loadLeagueByIdFromDB( id ) {
       return await this.loadObjectsFromDB("league?id=" + id );
+    },
+    async loadLeaguesSince( daysAgo ) {
+      let date = new Date();
+      date.setMinutes( date.getMinutes() - 60*24*daysAgo );
+      let serverCmd = "leagues?date=" + date.toISOString();
+      return await this.loadObjectsFromDB( serverCmd );
     },
     //----------------------------------------
     // load all archers in this tournament and/or on a given bale (scoring group)

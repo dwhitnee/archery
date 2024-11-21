@@ -166,8 +166,8 @@ module.exports = {
     if (!date) {
       return await db.getAllRecords( TournamentTableName );
     } else {
-      let argNames =  { "#date": "date" };  // Naming variables avoids reserved words
-      let filter = "#date > :date";
+      let filter = "#createdDate > :date";
+      let argNames =  { "#createdDate": "createdDate" };
       let args = { ":date": date };
 
       let tournaments = await db.getRecordsByFilterScan( TournamentTableName,
@@ -219,8 +219,8 @@ module.exports = {
     if (!date) {
       return await db.getAllRecords( LeagueTableName );
     } else {
+      let filter = "#createdDate > :date";
       let argNames =  { "#createdDate": "createdDate" };  // Naming variables avoids reserved words
-      let filter = "#createdDate < :date";
       let args = { ":date": date };
 
       let leagues = await db.getRecordsByFilterScan( LeagueTableName,
