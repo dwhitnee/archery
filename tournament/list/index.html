@@ -10,6 +10,7 @@
   <link rel="stylesheet" type="text/css" href="../../styles/icons.css"/>
   <link rel="stylesheet" type="text/css" href="../../styles/dialog.css"/>
   <link rel="stylesheet" type="text/css" href="../../styles/tournament.css"/>
+  <!-- <link rel="stylesheet" type="text/css" href=" https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css"/> -->
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -61,17 +62,21 @@
 
     </div>
 
-    <div v-if="!tournament || !tournament.id">
+    <div v-if="!tournament || !tournament.id" class="leagueList">
 
       All Leagues in last 30 days
+      <!-- <v-treeview :items="admin.leagues"></v-treeview> -->
+
       <ul>
-        <li v-for="lid in Object.keys( admin.leagues )">
+        <li v-for="lid in Object.keys( admin.leagues )" class="preventSelect branch"
+            @click="toggleTreeBranch( event )">
           {{ admin.leagues[lid].name }}
           <ul>
             <li v-for="tid in Object.keys( admin.leagues[lid].tournaments )">
               <a :href="'./?groupId=0&id=' + admin.leagues[lid].tournaments[tid].id">
                 {{ admin.leagues[lid].tournaments[tid].name }}
               </a>
+              <span class="small">{{ admin.leagues[lid].tournaments[tid].date }}</span>
             </li>
           </ul>
         </li>
@@ -86,7 +91,7 @@
 
       <div class="resultsPage">
         <div v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )">
-          <div>
+          <div class="header">
             <a :href="getScoringGroupURLByName( scoringGroup ) ">{{ scoringGroup }}</a>
           </div>
 
@@ -151,6 +156,8 @@
 
   <script src="../../js/vue-2.7.15.min.js"></script>
   <script src="../../js/vue-router-3.1.3.min.js"></script>
+
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script> -->
 
   <script src="../../js/qrcode.min.js"></script>
   <script src="../../js/util.js"></script>

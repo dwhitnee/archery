@@ -432,7 +432,7 @@ let app = new Vue({
       // load all leagues and tournaments
       // put all tournaments in its league, league[0] is all other tournaments
       let leagues = [];
-      leagues[0] = { name: "Other", tournaments: [] };
+      leagues[0] = { name: "Non league", tournaments: [] };
 
       let leagueList = await this.loadLeaguesSince( 30 );
       leagueList.forEach(( league ) => {
@@ -1065,6 +1065,18 @@ let app = new Vue({
       this.setMessage( this.tournament.name );
 
       this.makeHistory("Archer list", "#archers");
+    },
+
+    //----------------------------------------
+    // we've clicked on an <li> element, update our bullet and show/hide our children
+    // boom, TreeView
+    //----------------------------------------
+    toggleTreeBranch: function( event ) {
+      if (event.target.classList.contains("closed")) {
+        event.target.classList.remove("closed");  // show tree (drop arrow, show <li> children)
+      } else {
+        event.target.classList.add("closed"); // hide tree (raise arrow, hide <li> children)
+      }
     },
 
     //----------------------------------------

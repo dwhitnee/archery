@@ -32,6 +32,16 @@ html,body {
   user-select: none;
 }
 
+.branch.closed li {
+  display: none;
+}
+.branch.closed {
+  list-style: "\23F5  "; /* right triangle */
+}
+.branch {
+  list-style: "\23F7  ";  /* down triangle */
+}
+
 .ellipsis {
   display: inline-block;
   width: 75%;
@@ -372,6 +382,10 @@ h3 {
 
 .createTournamentGrid label {
   margin-top: .5em;
+}
+
+.leagueList {
+  padding: 1em;
 }
 
 #settings {
