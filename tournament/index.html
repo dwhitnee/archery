@@ -323,7 +323,7 @@
 
         </div>
         <button
-            :disabled="!newArcher.name || !newArcher.bow || !newArcher.gender ||! newArcher.age || !isArcherFinished( newArcher )"
+            :disabled="!newArcher.name || !newArcher.bow || !newArcher.gender ||! newArcher.age || isArcherFinished( newArcher )"
             class="btn btn-primary btn-med" @click="addNewArcher(event )">
           Confirm
         </button>

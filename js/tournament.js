@@ -38,13 +38,13 @@
 //   overview => select from recent tournaments?
 //   admin => list tournaments, list leagues
 
-// tournament bale list is Admin page
+// tournament bale list is Admin page (/list#admin) how to reach?
 // tournament list page
 // league list page
 // today's tournaments page?
 // what does prepopulate look like? (list of archers/class, precreate bales)
 
-//  List tournaments/results publically
+// Public list of recent tournaments?
 
 // Can archer data be in cloud with unique ID? (just name currently)
 // archer ID is name?  How to avoid dupes at creation? Steal other archer?
@@ -724,11 +724,18 @@ let app = new Vue({
 
       this.findCurrentEndForArcher( archer );
 
+      // can't score future ends (better to avoid fat fingering wrong future end)
       if (endNum > this.currentEnd) {
         this.scoringEnd = archer.rounds[this.currentRound].ends[this.currentEnd];
       } else {
         this.scoringEnd = end;
         this.currentEnd = endNum;
+      }
+
+      // Check if this end was already scored
+      // compare in doneWithEnd, audit if difference
+      if (this.scoringEnd.arrows[0]) {
+        this.oldArrows = window.structuredClone( this.scoringEnd.arrows );
       }
 
       // which arrow we are scoring, ie, first null arrow
@@ -765,7 +772,6 @@ let app = new Vue({
       return b-a;
     },
 
-    // FIXME: need debounce on button clicks?
     deleteArrowScore() {
       if (this.currentArrow > 0) {
         console.log("deleting last arrow " + this.currentArrow );
@@ -882,6 +888,9 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // Finalize a scoring end for one archer
+    // Audit if arrow values have changed (see scoreEnd() )
+    //----------------------------------------
     doneWithEnd: async function( archer, end ) {
       let arrowsScored = 0;
       for (let i=0; i < end.arrows.length; i++) {
@@ -891,6 +900,13 @@ let app = new Vue({
       }
 
       if ((arrowsScored == 0) || (arrowsScored == end.arrows.length)) {
+        if (this.oldArrows) {
+          if (JSON.stringify( this.oldArrows ) != JSON.stringify( end.arrows )) {
+            this.audit( archer, "Score edit: " + JSON.stringify( this.oldArrows ) +
+                        " => " + JSON.stringify( end.arrows ) + "=" + end.runningTotal);
+          }
+          this.oldArrows = undefined;
+        }
         this.calcEndTotals( archer, end );
         await this.updateArcher( archer );      // running totals calculated here, too
         return true;
@@ -1016,6 +1032,14 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // log something potentially bad with a timestamp
+    //----------------------------------------
+    audit: function( archer, event ) {
+      archer.auditlog = archer.auditlog || "";
+      archer.auditlog += "@" + new Date().toISOString() + ": " + event + ", ";
+    },
+
+    //----------------------------------------
     // Save or update an archer record from the UI
     // If this is an update, audit log the previous values.
     //----------------------------------------
@@ -1031,10 +1055,8 @@ let app = new Vue({
       } else {
         if (JSON.stringify( archer ) != JSON.stringify( this.oldArcher )) {
           // udpate, log previous values
-          archer.auditlog = archer.auditlog || "";
-          archer.auditlog += this.oldArcher.updatedDate + ":" +
-            this.oldArcher.name + ":" +          // log previous entry
-            this.getClassification( this.oldArcher ) + ", ";
+          this.audit( archer, "was " + this.oldArcher.updatedDate + ":" +
+                      this.oldArcher.name + ":" + this.getClassification( this.oldArcher ));
         }
       }
 
