@@ -68,6 +68,14 @@
     <div v-if="isMode( ViewMode.TOURNAMENT_START )">
 
       <div v-if="!tournament.id" class="joinTournament">
+        <div style="padding-bottom: 1em">
+          <div>Welcome Scorer!</div>
+          <div>
+            Ask the organizer for a QR Code to
+            scan or a 4 letter tournament code.
+          </div>
+        </div>
+
         <label for="tournamentId"><b>Tournament code:</b></label>
         <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
                v-model.trim="joinCode" @keyup.enter.prevent="joinTournament()" />

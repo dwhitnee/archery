@@ -240,7 +240,7 @@ let app = new Vue({
   //----------------------------------------
   data: {
     goneFishing: false,
-    message: "Lets do a tournament",
+    message: "Join a tournament",
     saveInProgress: false,    // prevent other actions while this is going on
     loadingData: false,    // prevent other actions while this is going on
     isAdmin: false,
