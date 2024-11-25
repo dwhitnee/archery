@@ -7,12 +7,12 @@ web-based, written in vanilla Javascript and VueJS. AWS DynamoDB and
 AWS Lambda are the database.
 
 ## Tournament Timer
-https://dwhitnee.github.io/archer/timer
+https://dwhitnee.github.io/archery/timer
 
 Handles Indoor and Outdoor World Archery formats with variable end length.
 
 ## Tournament Scorekeeper
-https://dwhitnee.github.io/archer/tournament
+https://dwhitnee.github.io/archery/tournament
 Scoring is done on a phone or tablet for each bale.
 Create a tournament, then have one archer on each bale scan the QR
 Code and start scoring. That's it.
@@ -24,4 +24,4 @@ TBD
 All code written and directed by David Whitney.
 
 Got a feature request or a bug?  Please add an Issue in github.
-https://github.com/dwhitnee/archeryTimer/issues
+https://github.com/dwhitnee/archery/issues
