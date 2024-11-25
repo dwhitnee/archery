@@ -160,7 +160,7 @@
         </button>
       </h3>
 
-      <div v-for="round in archer.rounds" class="round">
+      <div v-for="(round, roundNum) in archer.rounds" class="round">
 
         <div class="end" style="color: gray">
           <div>end</div>
@@ -169,8 +169,9 @@
           <div>total</div>
         </div>
 
-        <div v-for="(end,index) in round.ends" class="end" @click="scoreEnd( archer, end, index )">
-          <div>{{ index+1 }}</div>
+        <div v-for="(end,endNum) in round.ends" class="end"
+             @click="scoreEnd( archer, end, endNum, roundNum )">
+          <div>{{ endNum+1 }}</div>
           <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow | score }} </div>
           <div class="score">{{ end.score | score }}</div>
           <div class="score">{{ end.runningTotal | score }}</div>

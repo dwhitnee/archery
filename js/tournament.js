@@ -444,8 +444,14 @@ let app = new Vue({
       this.league = await this.getLeagueById( leagueId );
     }
 
+    // admin override on any page
+    if (window.location.href.match( /#admin/ )) {
+      this.isAdmin = true;
+    }
+
     // admin page
-    if (window.location.href.match( /admin/ )) {
+    if (window.location.href.match( /list.*#admin/ )) {
+      this.isAdmin = true;
 
       // load all leagues and tournaments
       // put all tournaments in its league, league[0] is all other tournaments
@@ -613,7 +619,12 @@ let app = new Vue({
       return !this.displayOnly;
     },
 
+    // TODO - add Admin override here?
     isArcherFinished: function( archer ) {
+      if (this.isAdmin) {
+        return false;  // admin can edit anyone
+      }
+
       let now = new Date();
       return archer.completeDate && (now.toISOString() > archer.completeDate);
     },
@@ -730,7 +741,7 @@ let app = new Vue({
     // bring up calculator for given end
     // TODO: prevent going past latest unscored end?
     //----------------------------------------
-    scoreEnd: function( archer, end, endNum ) {
+    scoreEnd: function( archer, end, endNum, roundNum ) {
       if (this.isArcherFinished( archer )) {
         alert("Cannot edit because scoring round is over");
         return;   // no more scoring hanky panky after tournament is over
@@ -742,8 +753,12 @@ let app = new Vue({
 
       this.findCurrentEndForArcher( archer );
 
-      // can't score future ends (better to avoid fat fingering wrong future end)
-      if (endNum > this.currentEnd) {
+      // prevent scoring future ends (better to avoid fat fingering wrong future end)
+      // ie, you cant score round 9 when you're on round 6
+
+      // FIXME: this test is insufficient in a multi round format
+
+      if ((endNum > this.currentEnd) && (roundNum >= this.currentRound)) {
         this.scoringEnd = archer.rounds[this.currentRound].ends[this.currentEnd];
       } else {
         this.scoringEnd = end;
@@ -812,13 +827,13 @@ let app = new Vue({
     // lock it up and stop updating
     //----------------------------------------
     isTournamentExpired: function() {
-      let expirationDate, now = new Date();
-
       if (this.tournament.lastArrowScoredDate) {
-        expirationDate = new Date( this.tournament.lastArrowScoredDate );
-        expirationDate.setMinutes( expirationDate.getMinutes() + 180 );
+        let threeHoursAgo = new Date();
+        threeHoursAgo.setMinutes( threeHoursAgo.getMinutes() - 180 );
+        return threeHoursAgo.toISOString() > this.tournament.lastArrowScoredDate;
+      } else {
+        return false;
       }
-      return this.tournament.lastArrowScoredDate && (now.toISOString() > expirationDate );
     },
 
 
