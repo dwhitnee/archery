@@ -12,7 +12,10 @@ https://dwhitnee.github.io/archer/timer
 Handles Indoor and Outdoor World Archery formats with variable end length.
 
 ## Tournament Scorekeeper
-TBD
+https://dwhitnee.github.io/archer/tournament
+Scoring is done on a phone or tablet for each bale.
+Create a tournament, then have one archer on each bale scan the QR
+Code and start scoring. That's it.
 
 ## Training Log
 TBD

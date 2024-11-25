@@ -2,8 +2,7 @@
 /*jslint esversion: 8 */
 //-----------------------------------------------------------------------
 //  Copyright 2024, David Whitney
-//  This file is part of Tournament Tools
-
+//
 // Archery Tournament Scorer is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -14,6 +13,22 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //-----------------------------------------------------------------------
+//
+// This software is designed as a webapp where archers can start an
+// ad-hoc tournament or league easily and quickly. It is aimed at
+// local shoots where one just wants to start a scoring round with a
+// club or friends, and not require huge setup overhead like most of
+// the more popular scoring apps that national organizations use.
+//
+// It is a simple VueJS Javascript webapp, with an AWS Dynamo DB
+// backend for storage.  Scoring is done on a phone or tablet for each
+// bale. The scores are stored in the cloud and can be viewed from any
+// web browser instantly. There is no requirement for local wifi or a
+// private LAN.
+
+
+//----------------------------------------------------------------------
+
 
 // merge conflict howto (if development branch can't merge with main cleanly)
 //  git co main
