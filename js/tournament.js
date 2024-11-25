@@ -14,6 +14,8 @@
 // GNU General Public License for more details.
 //-----------------------------------------------------------------------
 //
+// DESIGN and INTENT
+//
 // This software is designed as a webapp where archers can start an
 // ad-hoc tournament or league easily and quickly. It is aimed at
 // local shoots where one just wants to start a scoring round with a
@@ -62,7 +64,6 @@
 // Public list of recent tournaments?
 
 // Can archer data be in cloud with unique ID? (just name currently)
-// archer ID is name?  How to avoid dupes at creation? Steal other archer?
 //  Enforce each archer on unique phone? Steal vs overwrite?
 
 // Security
@@ -70,6 +71,8 @@
 //   lock scoringGroup to one phone browser? (what if phone dies?)
 //   admin req'ed to click results into scoringGroup?
 //   how does betweenEnds prevent two browsers at once. Hand off?
+
+// League archer merge?
 
 // Prod CORS on API-Gateway
 
