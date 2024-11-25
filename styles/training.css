@@ -167,6 +167,7 @@ a {
   border: 1px solid black;
   padding: 0 .5em;
   min-width: 2em;
+  text-align: right;
 }
 
 .teamView th {

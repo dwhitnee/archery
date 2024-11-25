@@ -105,6 +105,7 @@ let app = new Vue({
     teamView: undefined,
     teamViewWeek: undefined,
     allArchers: [{name:"Loading..."}],
+    allActiveArchers: [{name:"Loading..."}],
 
     noUser: {
       id: "",
@@ -1157,6 +1158,10 @@ let app = new Vue({
           archer.weekArrows[7] = total;
         }
       }
+      // remove inactive archers from list
+      this.allActiveArchers = this.allArchers.filter(( archer ) => archer.weekArrows[7] > 0);
+      this.allActiveArchers.sort( (a,b) => a.name > b.name);
+
       this.loadingData = false;
     },
 
