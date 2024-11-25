@@ -71,8 +71,10 @@
 
         <h3 title="Export to CSV">
           {{ tournament.name || league.name }} results
-          <div class="icon saveIcon" style="font-size: 50%;"
-                @click="exportToCSV( tournament)"></div>
+          <div class="icon saveIcon" style="font-size: 50%;" @click="exportToCSV( tournament)"></div>
+          <div class="small">
+            [ {{ isTournamentDone() ? "complete" : "in progress"}} ]
+          </div>
         </h3>
 
         <div style="padding-bottom: 1em">

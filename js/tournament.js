@@ -806,8 +806,30 @@ let app = new Vue({
       return this.tournament.type.arrows * this.tournament.type.ends * this.tournament.type.rounds;
     },
 
+
+    //----------------------------------------
+    // if no arrows have been scored in the last 3 hours, this tournament is over
+    // lock it up and stop updating
+    //----------------------------------------
+    isTournamentExpired: function() {
+      let expirationDate, now = new Date();
+
+      if (this.tournament.lastArrowScoredDate) {
+        expirationDate = new Date( this.tournament.lastArrowScoredDate );
+        expirationDate.setMinutes( expirationDate.getMinutes() + 180 );
+      }
+      return this.tournament.lastArrowScoredDate && (now.toISOString() > expirationDate );
+    },
+
+
     // have all archers' arrows been scored
+    // Or has enough time elapsed since tournament start (how to tell? TODO)
     isTournamentDone: function() {
+      if (this.isTournamentExpired()) {
+        return true;    // data is stale
+      }
+
+      // data is complete?
       for (let i = 0; i < this.archers.length; i++) {
         if (this.archers[i].total.arrowCount != this.arrowsPerTournament()) {
           return false;
@@ -927,6 +949,11 @@ let app = new Vue({
         }
         this.calcEndTotals( archer, end );
         await this.updateArcher( archer );      // running totals calculated here, too
+
+        // monitor activity, so dead tournaments can be deactivated
+        this.tournament.lastArrowScoredDate = (new Date()).toISOString();
+        await this.saveTournament( this.tournament );
+
         return true;
       } else {
         alert("Must score all arrows or no arrows");
