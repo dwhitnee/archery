@@ -1170,7 +1170,7 @@ let app = new Vue({
         openCallback();
     },
     // @input button click that caused the close (ie, button),
-    //    assumes it's the immediate child of the dialog
+    //    assumes it's a child of the dialog
     closeDialog( event ) {
       // this.closeDialogElement( event.target.parentElement );
       this.closeDialogElement( event.target.closest("dialog") );
