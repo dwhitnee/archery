@@ -289,6 +289,10 @@ let app = new Vue({
     isAdmin: false,
     admin: { leagues: []},
 
+    offlineStart: null,            // when did we go offline?
+    goingOnlineInProgress: false,  // lock for "recovery mode"
+    staleArchers: new Set(),       // who wasn't updated while offline?
+
     displayOnly: false,
     displayArcher: {},    // just to look at, not edit
     displayRounds: [],
@@ -360,7 +364,7 @@ let app = new Vue({
         arrows: 3, ends: 10, maxArrowScore: 10, rounds: 2
       },
       {
-        description: "Lancaster 300",
+        description: "Lancaster 600",
         arrows: 3, ends: 20, maxArrowScore: 10, rounds: 1, swapTargetsEnd: 10,
         xBonus: 1,    // Lancaster X is 11
       },
@@ -373,7 +377,7 @@ let app = new Vue({
         arrows: 6, ends: 6, maxArrowScore: 10, rounds: 2
       },
       {
-        description: "NFAA American 900",
+        description: "American 900",
         arrows: 6, ends: 5, maxArrowScore: 10, rounds: 3
       }
       // {
@@ -591,22 +595,83 @@ let app = new Vue({
       return this.mode == mode;
     },
 
-    // called if
+    // called if page reloaded or left while in offline mode (don't lose data!)
     beforeWindowUnload: function( event ) {
       event.preventDefault();
+      // this doesn't get displayed anymore, just the default "You sure?"
       event.returnValue = "you will lose any scores since " +
         this.offlineStart.toLocaleTimeString();
     },
 
-    // yay, connection reestablished!
-    goOnline: function() {
-      window.removeEventListener('beforeunload', this.beforeWindowUnload);
+    //----------------------------------------
+    // are we lacking a network connection or are we in mid-reestablishment phase?
+    // in other words, don't try to save anything new right now
+    //----------------------------------------
+    isOffline: function() {
+      return this.offlineStart && !this.goingOnlineInProgress;
+    },
+
+    //----------------------------------------
+    // Try to update any stale data on server
+    //----------------------------------------
+    goOnline: async function() {
+
+      if (this.goingOnlineInProgress) {
+        return;
+      }
+
+      console.log("Trying to get back online - sending updates");
+
+      try {
+        this.goingOnlineInProgress = true;
+
+        // make up any stale data.  Use array because async forEach() is whacky
+        let archerList = this.staleArchers.values().toArray();
+
+        // WTF. forEach just fires off all async calls at once. It doesn't await
+
+        // archerList.forEach( async (id) => {
+
+        for (let i=0; i < archerList.length; i++) {
+          let id = archerList[i];
+          console.log("RESAVING archer " + id);
+
+          // Try to fix archer. if update fails it'll go back on the stale list
+          let archer = this.getArcherById( id );
+          if (!archer) {
+            alert("Couldn't find archer " + id);    // should never happen
+            console.error("Couldn't find archer " + id);
+            continue;
+          }
+          this.staleArchers.delete( id );
+          await this.updateArcher( archer );
+        };
+
+        // we're back baby
+        window.removeEventListener('beforeunload', this.beforeWindowUnload);
+        this.offlineStart = null;
+        console.log("We're back online, baby!");
+      }
+      catch (e) {
+        console.log("Catching up stale data failed. try again later.");
+      }
+      finally {
+        this.goingOnlineInProgress = false;
+      }
     },
 
     // calls to AWS are failing, stop trying for now
-    goOffline: function() {
+    goOffline: function( failedObject ) {
       this.offlineStart = this.offlineStart || new Date();
 
+      // Try this update later? Note which (archer) call failed
+      // Ignore tournament updates (they're just pings)
+      if (failedObject.bow) {
+        this.staleArchers.add( failedObject.id );
+        console.log("Failed to update archer " + failedObject.id );
+      }
+
+      // Try to prevent user from closing this window containing current/unsaved data
       window.addEventListener('beforeunload', this.beforeWindowUnload );
     },
 
@@ -675,6 +740,16 @@ let app = new Vue({
 
     archerInitialized: function( archer ) {
       return archer.rounds && archer.rounds[0] && archer.rounds[0].ends;
+    },
+
+    // pull archer from local list
+    getArcherById: function( id ) {
+      for (let i=0; i < this.archers.length; i++) {
+        if (this.archers[i].id == id) {
+          return this.archers[i];
+        }
+      }
+      return null;
     },
 
     isEditingAllowed: function() {
@@ -817,8 +892,6 @@ let app = new Vue({
 
       // prevent scoring future ends (better to avoid fat fingering wrong future end)
       // ie, you cant score round 9 when you're on round 6
-
-      // FIXME: this test is insufficient in a multi round format
 
       if ((endNum > this.currentEnd) && (roundNum >= this.currentRound)) {
         this.scoringEnd = archer.rounds[this.currentRound].ends[this.currentEnd];
@@ -1830,8 +1903,12 @@ let app = new Vue({
       let timer = new Date();
       let timeout = 3000;  // after 3 seconds we probably have issues. Try again later
 
+      let shouldCatchUp = false;
+
       try {
         this.saveInProgress = true;
+
+        console.log("Updating " + objName + " " + obj.id);
 
         let response = await fetch( serverURL + "update"+objName,
                                     Util.makeJsonPostParams( obj, timeout ));
@@ -1850,6 +1927,10 @@ let app = new Vue({
         // we should have (last updated, version)
         Object.assign( obj, result );
         // tournament = {...obj, ...result};  // ES9 (2018)
+
+        if (this.isOffline()) {
+          shouldCatchUp = true; // successful call, looks like our network is back!
+        }
       }
       catch( err ) {
         console.error("Update "+objName+": " + JSON.stringify( err ));
@@ -1857,12 +1938,18 @@ let app = new Vue({
         console.log("Request duration "+elapsed/1000+"s");
 
         if (this.isNetworkError( err )) {
-          alert("Bad connection? Try again later. ("+err.message+")");
+          if (!this.isOffline()) {
+            alert("Bad connection? Try again later. ("+err.message+")");
+          } else {
+            console.log("Call timeout for " + objName + " " + obj.id);
+          }
+
+          this.goOffline( obj );
+
           // this only needs to be handled differently if updateArcher (for retry)
           // FIXME: how do we handle retry? What about outdated local version #?
           // Add "FORCE" option to update? Go into exponential backoff?
-        } else if (err.name === "AbortError") {
-          alert("Fetch aborted by user action?");  // should never happen
+
         } else {
           alert("Reload and try again. "+objName+" update failed (possible version conflict): " +
                 (err.message || err));
@@ -1870,8 +1957,17 @@ let app = new Vue({
       }
       finally {
         this.saveInProgress = false;
+
+        // try to save stale archer data again
+        if (shouldCatchUp) {
+          // remove current (successful) archer from queue, and update the other archers
+          if (objName == "Archer") {
+            this.staleArchers.delete( obj.id );  // remove archer from set
+          }
+          await this.goOnline();
+        }
       }
-      },
+    },
 
     //----------------------------------------
     // A Timeout is handled differently on every browser
@@ -1884,7 +1980,6 @@ let app = new Vue({
     // Safari:  "TypeError" (load failed) (ios: "Load", macos:"load")
     //----------------------------------------
     isNetworkError: function( error ) {
-      debugger
       return error.name == "TimeoutError" ||
         error.name == "AbortError" ||
         error.message.match( /NetworkError/i ) ||   // firefox
