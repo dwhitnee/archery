@@ -86,6 +86,49 @@
 //    edit target assignments
 //    display QR Code for tournament, for each pre-created bale
 
+
+// == HOW TO HANDLE BAD CONNECTIONS ===
+// Issues: intermittent connectivity can lead to inconsistent state
+//  o update fails => must retry later (when? how?)
+//  o update succeeds, but we don't get reponse with latest version (later update will fail with version conflict unless a FORCE option is added [dangerous - stale data could overwrite current data])
+//  o real problem: calls are not idempotent (full archer update, not just one score, plus version #)
+//
+//  Mitigation:
+//   o First need shorter timeout than 60 seconds (how much is enough? 3s? exp backoff?)
+//   o Tell user not to reload page or data since last save will be lost  [iff leave page and in offline mode, pop alert]
+//
+//  Recovery:
+//    o Manual: have an "Offline" button user must press (still have version issue [FORCE?])
+//    o Automatic: background retry of stale archers [not tournament or league]
+//    o Don’t try background refresh while scoring (how to tell activity?) lastActivity+1 min (retry onFocus?)
+//    o V17 < 18, force update? Unless locked somehow? Locked on completion. Don’t want much later reload to stomp existing data. Zombie. How to ID a zombie? Timeout? V17 stomps unless lastUpdated > 4 hrs? Or v19 exists. No, db could still be getting updated even if call never returns. Hmm. Update in background, or force update with red network button.
+//
+//    o retry for 15 minutes, but then force user to use manual update?
+//
+//  Complications:
+//   o two pages open in same browser
+//   o two or more pages open different browser (two scorers or shared URL)
+//   o Same browser: store in Local with versioning?. Really want shared memory behavior (possible?). Reload on focus? How to keep memory in sync between pages. Reload archer from Local before any Edit page load.
+
+
+// Google Sheet integration?
+/*
+POST https://sheets.googleapis.com/v4/spreadsheets/spreadsheetId/append/Sheet1
+{
+   "values": [["Elizabeth", "2", "0.5", "60"]]
+}
+
+GET https://sheets.googleapis.com/v4/spreadsheets/spreadsheetId/values/Sheet1
+{
+  "range": "Sheet1",
+  "majorDimension": "ROWS",
+  "values": [["Name", "Hours", "Items", "IPM"],
+             ["Bingley", "10", "2", "0.0033"],
+             ["Darcy", "14", "6", "0.0071"]]
+}
+*/
+
+
 //----------------------------------------------------------------------
 //  OVERVIEW
 //----------------------------------------------------------------------
@@ -415,7 +458,7 @@ let app = new Vue({
       let app = this;
       window.addEventListener('popstate', function(event) {
         if (event.state) {
-          app.popHistory( event.state );  // too much risk of obsolete date being saved
+          app.popHistory( event.state );  // too much risk of obsolete data being saved
         } else {
           console.log("Preventing back button (Sorry): "+ JSON.stringify( event ));
           event.stopImmediatePropagation();
@@ -546,6 +589,25 @@ let app = new Vue({
 
     isMode: function( mode ) {
       return this.mode == mode;
+    },
+
+    // called if
+    beforeWindowUnload: function( event ) {
+      event.preventDefault();
+      event.returnValue = "you will lose any scores since " +
+        this.offlineStart.toLocaleTimeString();
+    },
+
+    // yay, connection reestablished!
+    goOnline: function() {
+      window.removeEventListener('beforeunload', this.beforeWindowUnload);
+    },
+
+    // calls to AWS are failing, stop trying for now
+    goOffline: function() {
+      this.offlineStart = this.offlineStart || new Date();
+
+      window.addEventListener('beforeunload', this.beforeWindowUnload );
     },
 
     // try to handle browser history. Doesn't seem to work
@@ -853,6 +915,7 @@ let app = new Vue({
       return true;
     },
 
+    // for results page, keep up to date while tournament is in session
     doAutoReload: function( minutes ) {
       if (!this.isTournamentDone()) {
         setTimeout( function () { window.location.reload(); }, minutes*60*1000); // once a minute
@@ -1764,11 +1827,14 @@ let app = new Vue({
         return;
       }
 
+      let timer = new Date();
+      let timeout = 3000;  // after 3 seconds we probably have issues. Try again later
+
       try {
         this.saveInProgress = true;
 
         let response = await fetch( serverURL + "update"+objName,
-                                    Util.makeJsonPostParams( obj ));
+                                    Util.makeJsonPostParams( obj, timeout ));
         if (!response.ok) { throw await response.json(); }
 
         let result = await response.json();
@@ -1777,21 +1843,46 @@ let app = new Vue({
           console.log("update resulted in " + result.name + ", v" + result.version );
         }
 
+        let elapsed = new Date() - timer;
+        console.log("Request duration "+elapsed/1000+"s");
+
         // refresh our local data with whatever goodness the DB thinks
         // we should have (last updated, version)
         Object.assign( obj, result );
-        // tournament = {...tournament, ...result};  // ES9 (2018)
+        // tournament = {...obj, ...result};  // ES9 (2018)
       }
       catch( err ) {
         console.error("Update "+objName+": " + JSON.stringify( err ));
-        alert("Reload and try again. "+objName+" update failed (possible version conflict)" +
-              Util.sadface + (err.message || err));
+        let elapsed = new Date() - timer;
+        console.log("Request duration "+elapsed/1000+"s");
+
+        if (this.isNetworkError( err )) {
+          alert("Network error (bad connection? Wait to try again later)");
+          // this only needs to be handled differently if updateArcher (for retry)
+          // FIXME: how do we handle retry? What about outdated local version #?
+          // Add "FORCE" option to update? Go into exponential backoff?
+        } else if (err.name === "AbortError") {
+          alert("Fetch aborted by user action?");  // should never happen
+        } else {
+          alert("Reload and try again. "+objName+" update failed (possible version conflict)" +
+                (err.message || err));
+        }
       }
       finally {
         this.saveInProgress = false;
       }
-    },
+      },
 
+    // error.name is "TypeError" for a timeout (firefox)
+    isNetworkError: function( error ) {
+      // Firefox: "TimeoutError ("the operation timed out")
+      // Chrome:  "TimeoutError ("signal timed out")
+      // Safari:  "AbortError" (Fetch is aborted)
+      // Firefox: "TypeError" (NetworkError when attempting to fetch resource)
+      // Chrome: "TypeError" (Failed to fetch)
+      debugger
+      return error.name == "TimeoutError" || error.message.match( /etwork/ );
+    }
 
   },
 

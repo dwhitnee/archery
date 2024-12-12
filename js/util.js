@@ -1,4 +1,4 @@
-/* global URL, Blob, QRCode */
+/* global URL, Blob, QRCode, AbortSignal */
 /*jslint esversion: 8 */
 //----------------------------------------------------------------------
 // Misc useful functions
@@ -22,14 +22,16 @@ var Util = {
   //----------------------------------------
   // Do HTTP whizbangery to post a JSON blob
   //----------------------------------------
-  makeJsonPostParams: function( data ) {
+  makeJsonPostParams: function( data, timeout ) {
     return {
       headers: {
         "Accept": "application/json",
         "Content-Type": "application/json"
       },
       method: "POST",
-      body: JSON.stringify( data )
+      body: JSON.stringify( data ),
+      signal: AbortSignal.timeout( timeout || 5000 )
+              // throw Timeout if no response by 5 seconds
     };
   },
 
