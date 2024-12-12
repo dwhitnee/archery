@@ -1857,7 +1857,7 @@ let app = new Vue({
         console.log("Request duration "+elapsed/1000+"s");
 
         if (this.isNetworkError( err )) {
-          alert("Network error (bad connection? Wait to try again later)");
+          alert("Bad connection? Try again later");
           // this only needs to be handled differently if updateArcher (for retry)
           // FIXME: how do we handle retry? What about outdated local version #?
           // Add "FORCE" option to update? Go into exponential backoff?
@@ -1873,15 +1873,21 @@ let app = new Vue({
       }
       },
 
-    // error.name is "TypeError" for a timeout (firefox)
+    //----------------------------------------
+    // A Timeout is handled differently on every browser
+    // e.g, error.name is "TypeError", error.message is "NetworkError" (firefox)
+    // Firefox:"TimeoutError ("the operation timed out")
+    // Chrome: "TimeoutError ("signal timed out")
+    // Firefox: "TypeError" (NetworkError when attempting to fetch resource)
+    // Chrome:  "TypeError" (Failed to fetch)
+    // Safari: "AbortError" (Fetch is aborted)
+    //----------------------------------------
     isNetworkError: function( error ) {
-      // Firefox: "TimeoutError ("the operation timed out")
-      // Chrome:  "TimeoutError ("signal timed out")
-      // Safari:  "AbortError" (Fetch is aborted)
-      // Firefox: "TypeError" (NetworkError when attempting to fetch resource)
-      // Chrome: "TypeError" (Failed to fetch)
       debugger
-      return error.name == "TimeoutError" || error.message.match( /etwork/ );
+      return error.name == "TimeoutError" ||
+        error.name == "AbortError" ||
+        error.message.match( /NetworkError/ ) ||
+        error.message.match( /Failed to fetch/ );
     }
 
   },
