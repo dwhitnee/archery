@@ -1881,15 +1881,15 @@ let app = new Vue({
     // Safari: "AbortError" (Fetch is aborted)
     // Firefox: "TypeError" (NetworkError when attempting to fetch resource)
     // Chrome:  "TypeError" (Failed to fetch)
-    // Safari:  "TypeError" (load failed)
+    // Safari:  "TypeError" (load failed) (ios: "Load", macos:"load")
     //----------------------------------------
     isNetworkError: function( error ) {
       debugger
       return error.name == "TimeoutError" ||
         error.name == "AbortError" ||
-        error.message.match( /NetworkError/ ) ||   // firefox
-        error.message.match( /load failed/ ) ||    // safari
-        error.message.match( /Failed to fetch/ );  // chrome
+        error.message.match( /NetworkError/i ) ||   // firefox
+        error.message.match( /load failed/i ) ||   // safari
+        error.message.match( /Failed to fetch/i );  // chrome
     }
 
   },
