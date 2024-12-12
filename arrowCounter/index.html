@@ -167,7 +167,7 @@
             <th v-for="day in this.days"> {{ day }}</th>
           </tr>
 
-          <tr v-for="archer in allArchers">
+          <tr v-for="archer in allActiveArchers">
             <td>{{ archer.name }}</td>
             <td v-for="arrows in archer.weekArrows">{{ arrows }}</td>
           </tr>

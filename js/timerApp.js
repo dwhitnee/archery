@@ -171,12 +171,15 @@ let app = new Vue({
       debugger;
     });
 
+    Util.setNamespace("Timer");
+
     // TODO: potential future use for hard coded URL to indoor or outdoor round
     this.roundType = this.$route.query.round;
 
     this.updateTimer();
 
     this.round = Util.loadData("round") || this.round;
+    this.isMatch = Util.loadData("isMatch") || false;
 
     // cycle through ends with arrow keys
     let left = 37, right = 39;
@@ -226,13 +229,22 @@ let app = new Vue({
     },
 
 
+    // don't alternate if only one line
+    doAlternateLines: function() {
+      if (this.round.numLines == 1) {
+        return false;
+      } else {
+        return this.round.alternateLines;
+      }
+    },
+
     //----------------------------------------
     // @return true if given line number is currently up
     // For WA rounds, each end alternates who is first
     // For NFAA rounds, the order stays the same
     //----------------------------------------
     isLineUp( lineNum ) {
-      let swapOrder = this.round.alternateLines && !(this.endNumber % 2);
+      let swapOrder = this.doAlternateLines() && !(this.endNumber % 2);
 
       if (this.lineUp == lineNum) {
         return !swapOrder;
@@ -263,7 +275,7 @@ let app = new Vue({
       let lineNames = [0, "ab", "cd", "ef"];
 
       // switch for even rounds
-      let swapOrder = this.round.alternateLines && !(this.endNumber % 2);
+      let swapOrder = this.doAlternateLines() && !(this.endNumber % 2);
 
       let str = "";
       for (let i=1; i <= this.round.numLines; i++) {
@@ -496,6 +508,10 @@ let app = new Vue({
         this.round = Util.loadData("round") || this.round;
         // reset to last saved values, 6 lines is crazy
       }
+      if (this.isMatch) {
+        this.setMessage("MATCH PLAY");
+      }
+
     },
 
     //----------------------------------------------------------------------
@@ -505,6 +521,7 @@ let app = new Vue({
     updateRoundPrefs: function( round ) {
       // let oldRound = Util.loadData("round") || {};
       Util.saveData("round", round );
+      Util.saveData("isMatch", this.isMatch);
     },
 
 

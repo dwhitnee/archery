@@ -105,6 +105,7 @@ let app = new Vue({
     teamView: undefined,
     teamViewWeek: undefined,
     allArchers: [{name:"Loading..."}],
+    allActiveArchers: [{name:"Loading..."}],
 
     noUser: {
       id: "",
@@ -817,9 +818,10 @@ let app = new Vue({
         openCallback();
     },
     // @input button click that caused the close (ie, button),
-    //    assumes it's the immediate child of the dialog
+    //    assumes it's a child of the dialog
     closeDialog( event ) {
-      this.closeDialogElement( event.target.parentElement );
+      // this.closeDialogElement( event.target.parentElement );
+      this.closeDialogElement( event.target.closest("dialog") );
     },
     // @input dialog element itself
     openDialogElement( dialog ) {
@@ -1157,6 +1159,10 @@ let app = new Vue({
           archer.weekArrows[7] = total;
         }
       }
+      // remove inactive archers from list
+      this.allActiveArchers = this.allArchers.filter(( archer ) => archer.weekArrows[7] > 0);
+      this.allActiveArchers.sort( (a,b) => a.name > b.name);
+
       this.loadingData = false;
     },
 

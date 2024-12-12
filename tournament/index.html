@@ -68,6 +68,14 @@
     <div v-if="isMode( ViewMode.TOURNAMENT_START )">
 
       <div v-if="!tournament.id" class="joinTournament">
+        <div style="padding-bottom: 1em">
+          <div>Welcome Scorer!</div>
+          <div>
+            Ask the organizer for a QR Code to
+            scan or a 4 letter tournament code.
+          </div>
+        </div>
+
         <label for="tournamentId"><b>Tournament code:</b></label>
         <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
                v-model.trim="joinCode" @keyup.enter.prevent="joinTournament()" />
@@ -146,7 +154,7 @@
         <div> {{ archer.name }} </div>
         <div class="center"> {{ archer.total.score }} </div>
         <div> {{ archer.total.xCount }} </div>
-        <div class="small">/{{ archer.total.arrowCount }} </div>
+        <div class="small">{{ archer.total.arrowCount }} / </div>
       </div>
 
     </div>
@@ -160,7 +168,7 @@
         </button>
       </h3>
 
-      <div v-for="round in archer.rounds" class="round">
+      <div v-for="(round, roundNum) in archer.rounds" class="round">
 
         <div class="end" style="color: gray">
           <div>end</div>
@@ -169,8 +177,9 @@
           <div>total</div>
         </div>
 
-        <div v-for="(end,index) in round.ends" class="end" @click="scoreEnd( archer, end, index )">
-          <div>{{ index+1 }}</div>
+        <div v-for="(end,endNum) in round.ends" class="end"
+             @click="scoreEnd( archer, end, endNum, roundNum )">
+          <div>{{ endNum+1 }}</div>
           <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow | score }} </div>
           <div class="score">{{ end.score | score }}</div>
           <div class="score">{{ end.runningTotal | score }}</div>

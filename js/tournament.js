@@ -86,6 +86,49 @@
 //    edit target assignments
 //    display QR Code for tournament, for each pre-created bale
 
+
+// == HOW TO HANDLE BAD CONNECTIONS ===
+// Issues: intermittent connectivity can lead to inconsistent state
+//  o update fails => must retry later (when? how?)
+//  o update succeeds, but we don't get reponse with latest version (later update will fail with version conflict unless a FORCE option is added [dangerous - stale data could overwrite current data])
+//  o real problem: calls are not idempotent (full archer update, not just one score, plus version #)
+//
+//  Mitigation:
+//   o First need shorter timeout than 60 seconds (how much is enough? 3s? exp backoff?)
+//   o Tell user not to reload page or data since last save will be lost  [iff leave page and in offline mode, pop alert]
+//
+//  Recovery:
+//    o Manual: have an "Offline" button user must press (still have version issue [FORCE?])
+//    o Automatic: background retry of stale archers [not tournament or league]
+//    o Don’t try background refresh while scoring (how to tell activity?) lastActivity+1 min (retry onFocus?)
+//    o V17 < 18, force update? Unless locked somehow? Locked on completion. Don’t want much later reload to stomp existing data. Zombie. How to ID a zombie? Timeout? V17 stomps unless lastUpdated > 4 hrs? Or v19 exists. No, db could still be getting updated even if call never returns. Hmm. Update in background, or force update with red network button.
+//
+//    o retry for 15 minutes, but then force user to use manual update?
+//
+//  Complications:
+//   o two pages open in same browser
+//   o two or more pages open different browser (two scorers or shared URL)
+//   o Same browser: store in Local with versioning?. Really want shared memory behavior (possible?). Reload on focus? How to keep memory in sync between pages. Reload archer from Local before any Edit page load.
+
+
+// Google Sheet integration?
+/*
+POST https://sheets.googleapis.com/v4/spreadsheets/spreadsheetId/append/Sheet1
+{
+   "values": [["Elizabeth", "2", "0.5", "60"]]
+}
+
+GET https://sheets.googleapis.com/v4/spreadsheets/spreadsheetId/values/Sheet1
+{
+  "range": "Sheet1",
+  "majorDimension": "ROWS",
+  "values": [["Name", "Hours", "Items", "IPM"],
+             ["Bingley", "10", "2", "0.0033"],
+             ["Darcy", "14", "6", "0.0071"]]
+}
+*/
+
+
 //----------------------------------------------------------------------
 //  OVERVIEW
 //----------------------------------------------------------------------
@@ -240,7 +283,7 @@ let app = new Vue({
   //----------------------------------------
   data: {
     goneFishing: false,
-    message: "Lets do a tournament",
+    message: "Join a tournament",
     saveInProgress: false,    // prevent other actions while this is going on
     loadingData: false,    // prevent other actions while this is going on
     isAdmin: false,
@@ -415,7 +458,7 @@ let app = new Vue({
       let app = this;
       window.addEventListener('popstate', function(event) {
         if (event.state) {
-          app.popHistory( event.state );  // too much risk of obsolete date being saved
+          app.popHistory( event.state );  // too much risk of obsolete data being saved
         } else {
           console.log("Preventing back button (Sorry): "+ JSON.stringify( event ));
           event.stopImmediatePropagation();
@@ -444,8 +487,14 @@ let app = new Vue({
       this.league = await this.getLeagueById( leagueId );
     }
 
+    // admin override on any page
+    if (window.location.href.match( /#admin/ )) {
+      this.isAdmin = true;
+    }
+
     // admin page
-    if (window.location.href.match( /admin/ )) {
+    if (window.location.href.match( /list.*#admin/ )) {
+      this.isAdmin = true;
 
       // load all leagues and tournaments
       // put all tournaments in its league, league[0] is all other tournaments
@@ -542,6 +591,25 @@ let app = new Vue({
       return this.mode == mode;
     },
 
+    // called if
+    beforeWindowUnload: function( event ) {
+      event.preventDefault();
+      event.returnValue = "you will lose any scores since " +
+        this.offlineStart.toLocaleTimeString();
+    },
+
+    // yay, connection reestablished!
+    goOnline: function() {
+      window.removeEventListener('beforeunload', this.beforeWindowUnload);
+    },
+
+    // calls to AWS are failing, stop trying for now
+    goOffline: function() {
+      this.offlineStart = this.offlineStart || new Date();
+
+      window.addEventListener('beforeunload', this.beforeWindowUnload );
+    },
+
     // try to handle browser history. Doesn't seem to work
     makeHistory: function( pageTitle, url ) {
       document.title = pageTitle;
@@ -613,7 +681,12 @@ let app = new Vue({
       return !this.displayOnly;
     },
 
+    // TODO - add Admin override here?
     isArcherFinished: function( archer ) {
+      if (this.isAdmin) {
+        return false;  // admin can edit anyone
+      }
+
       let now = new Date();
       return archer.completeDate && (now.toISOString() > archer.completeDate);
     },
@@ -730,7 +803,7 @@ let app = new Vue({
     // bring up calculator for given end
     // TODO: prevent going past latest unscored end?
     //----------------------------------------
-    scoreEnd: function( archer, end, endNum ) {
+    scoreEnd: function( archer, end, endNum, roundNum ) {
       if (this.isArcherFinished( archer )) {
         alert("Cannot edit because scoring round is over");
         return;   // no more scoring hanky panky after tournament is over
@@ -742,8 +815,12 @@ let app = new Vue({
 
       this.findCurrentEndForArcher( archer );
 
-      // can't score future ends (better to avoid fat fingering wrong future end)
-      if (endNum > this.currentEnd) {
+      // prevent scoring future ends (better to avoid fat fingering wrong future end)
+      // ie, you cant score round 9 when you're on round 6
+
+      // FIXME: this test is insufficient in a multi round format
+
+      if ((endNum > this.currentEnd) && (roundNum >= this.currentRound)) {
         this.scoringEnd = archer.rounds[this.currentRound].ends[this.currentEnd];
       } else {
         this.scoringEnd = end;
@@ -806,8 +883,30 @@ let app = new Vue({
       return this.tournament.type.arrows * this.tournament.type.ends * this.tournament.type.rounds;
     },
 
+
+    //----------------------------------------
+    // if no arrows have been scored in the last 3 hours, this tournament is over
+    // lock it up and stop updating
+    //----------------------------------------
+    isTournamentExpired: function() {
+      if (this.tournament.lastArrowScoredDate) {
+        let threeHoursAgo = new Date();
+        threeHoursAgo.setMinutes( threeHoursAgo.getMinutes() - 180 );
+        return threeHoursAgo.toISOString() > this.tournament.lastArrowScoredDate;
+      } else {
+        return false;
+      }
+    },
+
+
     // have all archers' arrows been scored
+    // Or has enough time elapsed since tournament start (how to tell? TODO)
     isTournamentDone: function() {
+      if (this.isTournamentExpired()) {
+        return true;    // data is stale
+      }
+
+      // data is complete?
       for (let i = 0; i < this.archers.length; i++) {
         if (this.archers[i].total.arrowCount != this.arrowsPerTournament()) {
           return false;
@@ -816,6 +915,7 @@ let app = new Vue({
       return true;
     },
 
+    // for results page, keep up to date while tournament is in session
     doAutoReload: function( minutes ) {
       if (!this.isTournamentDone()) {
         setTimeout( function () { window.location.reload(); }, minutes*60*1000); // once a minute
@@ -927,6 +1027,11 @@ let app = new Vue({
         }
         this.calcEndTotals( archer, end );
         await this.updateArcher( archer );      // running totals calculated here, too
+
+        // monitor activity, so dead tournaments can be deactivated
+        this.tournament.lastArrowScoredDate = (new Date()).toISOString();
+        await this.saveTournament( this.tournament );
+
         return true;
       } else {
         alert("Must score all arrows or no arrows");
@@ -1128,7 +1233,7 @@ let app = new Vue({
         openCallback();
     },
     // @input button click that caused the close (ie, button),
-    //    assumes it's the immediate child of the dialog
+    //    assumes it's a child of the dialog
     closeDialog( event ) {
       // this.closeDialogElement( event.target.parentElement );
       this.closeDialogElement( event.target.closest("dialog") );
@@ -1722,11 +1827,14 @@ let app = new Vue({
         return;
       }
 
+      let timer = new Date();
+      let timeout = 3000;  // after 3 seconds we probably have issues. Try again later
+
       try {
         this.saveInProgress = true;
 
         let response = await fetch( serverURL + "update"+objName,
-                                    Util.makeJsonPostParams( obj ));
+                                    Util.makeJsonPostParams( obj, timeout ));
         if (!response.ok) { throw await response.json(); }
 
         let result = await response.json();
@@ -1735,21 +1843,46 @@ let app = new Vue({
           console.log("update resulted in " + result.name + ", v" + result.version );
         }
 
+        let elapsed = new Date() - timer;
+        console.log("Request duration "+elapsed/1000+"s");
+
         // refresh our local data with whatever goodness the DB thinks
         // we should have (last updated, version)
         Object.assign( obj, result );
-        // tournament = {...tournament, ...result};  // ES9 (2018)
+        // tournament = {...obj, ...result};  // ES9 (2018)
       }
       catch( err ) {
         console.error("Update "+objName+": " + JSON.stringify( err ));
-        alert("Reload and try again. "+objName+" update failed (possible version conflict)" +
-              Util.sadface + (err.message || err));
+        let elapsed = new Date() - timer;
+        console.log("Request duration "+elapsed/1000+"s");
+
+        if (this.isNetworkError( err )) {
+          alert("Network error (bad connection? Wait to try again later)");
+          // this only needs to be handled differently if updateArcher (for retry)
+          // FIXME: how do we handle retry? What about outdated local version #?
+          // Add "FORCE" option to update? Go into exponential backoff?
+        } else if (err.name === "AbortError") {
+          alert("Fetch aborted by user action?");  // should never happen
+        } else {
+          alert("Reload and try again. "+objName+" update failed (possible version conflict)" +
+                (err.message || err));
+        }
       }
       finally {
         this.saveInProgress = false;
       }
-    },
+      },
 
+    // error.name is "TypeError" for a timeout (firefox)
+    isNetworkError: function( error ) {
+      // Firefox: "TimeoutError ("the operation timed out")
+      // Chrome:  "TimeoutError ("signal timed out")
+      // Safari:  "AbortError" (Fetch is aborted)
+      // Firefox: "TypeError" (NetworkError when attempting to fetch resource)
+      // Chrome: "TypeError" (Failed to fetch)
+      debugger
+      return error.name == "TimeoutError" || error.message.match( /etwork/ );
+    }
 
   },
 
