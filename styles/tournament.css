@@ -91,6 +91,10 @@ a {
   filter: inherit;  /* Make gear black, not white */
 }
 
+.offline.icon {
+  filter: inherit;
+}
+
 .offline {
   display: inline-block;
 }
