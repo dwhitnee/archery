@@ -58,8 +58,11 @@
       </div>
 
       <div>
-          <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')"
-             class="settings icon settingsIcon" title="Tournament info"></a>
+        <div v-if="isOffline()" class="offline">
+          <a href="#" @click="goOnline()">OFFLINE</a>
+        </div>
+        <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')"
+           class="settings icon settingsIcon" title="Tournament info"></a>
       </div>
 
     </div>
