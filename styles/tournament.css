@@ -91,6 +91,18 @@ a {
   filter: inherit;  /* Make gear black, not white */
 }
 
+.offline.icon {
+  filter: inherit;
+}
+
+.offline {
+  display: inline-block;
+}
+.offline a {
+  color: red;
+  font-weight: bold;
+}
+
 #qrcode {
   padding: 2em;
 }

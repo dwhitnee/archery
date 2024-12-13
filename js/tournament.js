@@ -645,12 +645,14 @@ let app = new Vue({
           }
           this.staleArchers.delete( id );
           await this.updateArcher( archer );
-        };
-
-        // we're back baby
-        window.removeEventListener('beforeunload', this.beforeWindowUnload);
-        this.offlineStart = null;
-        console.log("We're back online, baby!");
+        }
+        if (this.staleArchers.size == 0) {
+          // we're back baby
+          window.removeEventListener('beforeunload', this.beforeWindowUnload);
+          this.offlineStart = null;
+          console.log("We're back online, baby!");
+          this.setMessage("Network re-established");
+        }
       }
       catch (e) {
         console.log("Catching up stale data failed. try again later.");
@@ -1941,7 +1943,7 @@ let app = new Vue({
           if (!this.isOffline()) {
             alert("Bad connection? Try again later. ("+err.message+")");
           } else {
-            console.log("Call timeout for " + objName + " " + obj.id);
+            console.log("Save timed out for " + objName + " " + obj.id);
           }
 
           this.goOffline( obj );
