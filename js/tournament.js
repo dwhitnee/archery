@@ -626,11 +626,14 @@ let app = new Vue({
         this.goingOnlineInProgress = true;
 
         // make up any stale data.  Use array because async forEach() is whacky
-        let archerList = this.staleArchers.values().toArray();
 
-        // WTF. forEach just fires off all async calls at once. It doesn't await
+        // NOPE. Iterator.toArray is not supported in Safari (2024)
+        // let archerList = this.staleArchers.values().toArray();
 
+        // NOPE. forEach just fires off all async calls at once. It doesn't await anything
         // archerList.forEach( async (id) => {
+
+        let archerList = Array.from( this.staleArchers.values() );
 
         for (let i=0; i < archerList.length; i++) {
           let id = archerList[i];

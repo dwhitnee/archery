@@ -59,7 +59,8 @@
 
       <div>
         <div v-if="isOffline()" class="offline">
-          <a href="#" @click="goOnline()" class="offline icon noNetworkIcon" title="OFFLINE"></a>
+          <a href="#" @click="goOnline()" class="offline icon noNetworkIcon"
+             title="OFFLINE - click to retry"></a>
         </div>
         <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')"
            class="settings icon settingsIcon" title="Tournament info"></a>
