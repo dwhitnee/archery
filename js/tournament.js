@@ -86,6 +86,10 @@
 //    edit target assignments
 //    display QR Code for tournament, for each pre-created bale
 
+// Strange formats
+//   WSAA mail in 6 scores from best 3 of 4 multicolor and blue face.
+//   How to implement "throw outs"?  Should "practice" vs "official" be a thing? Mulligans?
+
 
 // == HOW TO HANDLE BAD CONNECTIONS ===
 // Issues: intermittent connectivity can lead to inconsistent state
@@ -110,6 +114,14 @@
 //   o two or more pages open different browser (two scorers or shared URL)
 //   o Same browser: store in Local with versioning?. Really want shared memory behavior (possible?). Reload on focus? How to keep memory in sync between pages. Reload archer from Local before any Edit page load.
 
+
+// Don't bother retrying after timeout for N minutes (2?):
+//     "DO NOT RELOAD - scores since { Date() }will be lost"
+
+// Server returns 200 + "VersionConflictException" :
+//     "MUST RELOAD - your data is out of date"
+
+// Bug: debounce "save archer"  (scoring page) instead of "save in progress"
 
 // Google Sheet integration?
 /*
@@ -288,8 +300,10 @@ let app = new Vue({
     loadingData: false,    // prevent other actions while this is going on
     isAdmin: false,
     admin: { leagues: []},
+    daysAgo: 30,          // for history pages
 
     offlineStart: null,            // when did we go offline?
+    lastFailedAttempt: null,      // when did we last try to go online
     goingOnlineInProgress: false,  // lock for "recovery mode"
     staleArchers: new Set(),       // who wasn't updated while offline?
 
@@ -499,23 +513,9 @@ let app = new Vue({
     // admin page
     if (window.location.href.match( /list.*#admin/ )) {
       this.isAdmin = true;
+      this.daysAgo = this.$route.query.days || this.daysAgo;  // how many days to load
 
-      // load all leagues and tournaments
-      // put all tournaments in its league, league[0] is all other tournaments
-      let leagues = [];
-      leagues[0] = { name: "Non league", tournaments: [] };
-
-      let leagueList = await this.loadLeaguesSince( 30 );
-      leagueList.forEach(( league ) => {
-        league.tournaments = [];
-        leagues[league.id] = league;  // map by ID
-      });
-
-      let tournaments = await this.loadTournamentsSince( 30 );
-      tournaments.forEach(( tournament ) => {
-        leagues[tournament.leagueId|0].tournaments[tournament.id] = tournament;  // map by ID
-      });
-      this.admin.leagues = leagues;
+      await this.loadLeagueHistory( this.daysAgo );
 
       // league overview page
     } else if (leagueId && !tournamentId && window.location.pathname.match( /overview/ )) {
@@ -612,6 +612,26 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // @return time until we should try the network again
+    //
+    // NOTE: Should we make backoff exponential?
+    // No, tournaments are a finite time. It makes sense to try once every end.
+    //----------------------------------------
+    getBackoffTime: function() {
+      if (!this.lastFailedAttempt) {
+        return 0;  // no recent timeouts registered
+      }
+
+      let now = new Date();
+      return Math.round( (now - this.lastFailedAttempt)/1000 );
+    },
+
+    // Are we within 3 minutes of the last timeout?
+    isBackingOff: function() {
+      return this.getBackoffTime() < 3*60;  // 3 minutes
+    },
+
+    //----------------------------------------
     // Try to update any stale data on server
     //----------------------------------------
     goOnline: async function() {
@@ -667,7 +687,8 @@ let app = new Vue({
 
     // calls to AWS are failing, stop trying for now
     goOffline: function( failedObject ) {
-      this.offlineStart = this.offlineStart || new Date();
+      this.offlineStart = this.offlineStart || new Date();  // first time we failed
+      this.lastFailedAttempt = new Date();                  // most recent failure
 
       // Try this update later? Note which (archer) call failed
       // Ignore tournament updates (they're just pings)
@@ -1303,6 +1324,31 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // load leagues and tournaments from given days ago
+    //----------------------------------------
+    loadLeagueHistory: async function( daysAgo ) {
+      // load all leagues and tournaments
+      // put all tournaments in its league, league[0] is all other tournaments
+      let leagues = [];
+      leagues[0] = { name: "Non league", tournaments: [] };
+
+      let leagueList = await this.loadLeaguesSince( daysAgo );
+      leagueList.forEach(( league ) => {
+        league.tournaments = [];
+        leagues[league.id] = league;  // map by ID
+      });
+
+      let tournaments = await this.loadTournamentsSince( daysAgo );
+      tournaments.forEach(( tournament ) => {
+        leagues[tournament.leagueId|0].tournaments[tournament.id] = tournament;  // map by ID
+      });
+
+      this.admin.leagues = leagues;  // don't return list, so this can be used from UI
+    },
+
+
+
+    //----------------------------------------
     // Dialog handlers
     //----------------------------------------
     openDialog( name, openCallback ) {
@@ -1905,6 +1951,15 @@ let app = new Vue({
         return;
       }
 
+      // test to see if we've had a recent timeout. In which case, lets wait N minutes
+      // breather, intermission, hiatus, weAreOnABreak
+      if (this.isOffline() && this.isBackingOff() ) {
+        console.log("Backing off for " + (180 - this.getBackoffTime()) +
+                    " more seconds before trying to save");
+        return;
+      }
+
+
       let timer = new Date();
       let timeout = 3000;  // after 3 seconds we probably have issues. Try again later
 
@@ -1936,11 +1991,12 @@ let app = new Vue({
         if (this.isOffline()) {
           shouldCatchUp = true; // successful call, looks like our network is back!
         }
+        this.lastFailedAttempt = null;
       }
       catch( err ) {
         console.error("Update "+objName+": " + JSON.stringify( err ));
         let elapsed = new Date() - timer;
-        console.log("Request duration "+elapsed/1000+"s");
+        console.log("Failed request duration "+elapsed/1000+"s");
 
         if (this.isNetworkError( err )) {
           if (!this.isOffline()) {

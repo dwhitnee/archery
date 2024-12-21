@@ -65,7 +65,10 @@
     <div v-if="!tournament || !tournament.id" class="leagueList">
 
       <h3>
-        All Leagues in last 30 days
+        All Leagues in last
+        <input type="number" size="2"
+          v-model="daysAgo" @blur="loadLeagueHistory( daysAgo )"></input>
+        days
       </h3>
       <!-- <v-treeview :items="admin.leagues"></v-treeview> -->
 

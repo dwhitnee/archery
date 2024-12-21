@@ -106,6 +106,11 @@
         <input type="checkbox" id="doHandicap" v-model.trim="newLeague.doHandicap"  />
       </div>
 
+      <!-- <div> -->
+      <!--   <label class="form-check-label" for="doMulligan">Drop lowest score from total?</label> -->
+      <!--   <input type="checkbox" id="doMulligan" v-model.trim="newLeague.doMulligan"  /> -->
+      <!-- </div> -->
+
       <button class="btn btn-primary btn-sm" @click="createLeague( $event )"
               :disabled=" !newLeague.name ||! newLeague.maxDays">
         Create League
