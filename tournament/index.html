@@ -47,7 +47,9 @@
       <div>
         <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
         <div v-else>
-          <a :href='"create?leagueId=" + league.id' title="Create new tournament">Admin</a>
+          <a :href='"create?leagueId=" + league.id' title="Create new tournament">
+            New...
+          </a>
         </div>
       </div>
 
