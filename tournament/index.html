@@ -134,7 +134,8 @@
           </div>
 
           <div>
-            <button :disabled="!archers.length" class="btn btn-primary btn-lg"
+            <button :disabled="!archers.length || updateInProgress()"
+                     class="btn btn-primary btn-lg"
                      id="scoringGroupStartButton" @click="startScoring()">
               Start Scoring
             </button>
@@ -214,11 +215,16 @@
         </button>
         <!-- <div></div> -->
         <!-- <div></div> -->
-        <button class="doneButton" @click="doneGoToScoresheet( archer, scoringEnd)">
+        <button class="doneButton"
+                :disabled="updateInProgress()"
+                @click="doneGoToScoresheet( archer, scoringEnd)">
           Done
           <div class="icon returnIcon"></div>
         </button>
-        <button class="doneButton" @click="doneGoToNextArcher( archer, scoringEnd )">Next Archer</button>
+        <button class="doneButton"
+                :disabled="updateInProgress()"
+                @click="doneGoToNextArcher( archer, scoringEnd )">
+        Next Archer</button>
       </div>
     </div>
 

@@ -98,8 +98,8 @@
 //  o real problem: calls are not idempotent (full archer update, not just one score, plus version #)
 //
 //  Mitigation:
-//   o First need shorter timeout than 60 seconds (how much is enough? 3s? exp backoff?)
-//   o Tell user not to reload page or data since last save will be lost  [iff leave page and in offline mode, pop alert]
+//   V First need shorter timeout than 60 seconds (how much is enough? 3s? exp backoff?)
+//   V Tell user not to reload page or data since last save will be lost  [iff leave page and in offline mode, pop alert]
 //
 //  Recovery:
 //    o Manual: have an "Offline" button user must press (still have version issue [FORCE?])
@@ -115,11 +115,9 @@
 //   o Same browser: store in Local with versioning?. Really want shared memory behavior (possible?). Reload on focus? How to keep memory in sync between pages. Reload archer from Local before any Edit page load.
 
 
-// Don't bother retrying after timeout for N minutes (2?):
-//     "DO NOT RELOAD - scores since { Date() }will be lost"
-
 // Server returns 200 + "VersionConflictException" :
 //     "MUST RELOAD - your data is out of date"
+//    requires a 200 response from server to verify VersionConflictException
 
 // Bug: debounce "save archer"  (scoring page) instead of "save in progress"
 
