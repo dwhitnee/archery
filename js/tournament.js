@@ -1,4 +1,4 @@
-/*global fetch, Vue, VueRouter, Util */
+/*global fetch, Vue, VueRouter, Util, DialogManager */
 /*jslint esversion: 8 */
 //-----------------------------------------------------------------------
 //  Copyright 2024, David Whitney
@@ -294,6 +294,8 @@ let app = new Vue({
   // Data Model (drives the View, update these values only
   //----------------------------------------
   data: {
+    dialogManager: new DialogManager(),
+
     goneFishing: false,
     message: "Join a tournament",
     saveInProgress: false,    // prevent other actions while this is going on
@@ -1287,6 +1289,7 @@ let app = new Vue({
       this.newArcher = {};
 
       // dismiss enclosing dialog
+      // this.dialogManager.closeCurrentDialog();
       this.closeDialogElement( event.target.closest("dialog") );
     },
 
@@ -1344,83 +1347,6 @@ let app = new Vue({
       });
 
       this.admin.leagues = leagues;  // don't return list, so this can be used from UI
-    },
-
-
-
-    //----------------------------------------
-    // Dialog handlers
-    //----------------------------------------
-    openDialog( name, openCallback ) {
-      this.openDialogElement( document.getElementById( name ));
-      if (openCallback)
-        openCallback();
-    },
-    // @input button click that caused the close (ie, button),
-    //    assumes it's a child of the dialog
-    closeDialog( event ) {
-      // this.closeDialogElement( event.target.parentElement );
-      this.closeDialogElement( event.target.closest("dialog") );
-    },
-    // @input dialog element itself
-    openDialogElement( dialog ) {
-      if (!dialog || this.dialogIsOpen) {  // can't open two dialogs at once
-        return;
-      }
-      // grey out game
-      document.getElementById("dialogBackdrop").classList.add("backdropObscured");
-      this.dialogIsOpen = true;  // flag to disable other dialogs. Vue doesn't respect this on change(in v-if)?
-
-      dialog.open = true;           // Chrome
-      dialog.style.display="flex";  // Firefox/Safari
-
-      this.addDialogDismissHandlers( dialog );  // outside click and ESC
-    },
-
-    //----------------------------------------------------------------------
-    // close dialog, restore background, remove event handlers.
-    // @input dialog element itself
-    //----------------------------------------------------------------------
-    closeDialogElement( dialog ) {
-      document.getElementById("dialogBackdrop").classList.remove("backdropObscured");
-
-      this.dialogIsOpen = false;  // FIXME: Vue is not seeing this; Do we just need to add it to the data() section?
-      dialog.open = false;
-      dialog.style.display="none";
-
-      // dialog gone, stop listening for dismiss events
-      let backdrop = document.getElementById("dialogBackdrop");
-      backdrop.removeEventListener('click', this.closeDialogOnOutsideClick );
-      document.body.removeEventListener("keydown", this.closeDialogOnESC );
-    },
-
-    //----------------------------------------------------------------------
-    // Close on click outside dialog or ESC key.
-    // Save functions for removal after close()
-    //----------------------------------------------------------------------
-    addDialogDismissHandlers( dialog ) {
-      // FIXME, these event handlers happen after Vue event
-      // handlers so you can play the game while a dialog is
-      // open.  How to disable all of game wile dialog is open?
-
-      this.closeDialogOnOutsideClick = (event) => {
-        const clickWithinDialog = event.composedPath().includes( dialog );
-        if (!clickWithinDialog) {
-          this.closeDialogElement( dialog );
-        }
-      };
-      this.closeDialogOnESC = (event) => {
-        if (event.keyCode === 27) {
-          this.closeDialogElement( dialog );
-        }
-      };
-
-      // Could also use dialog::backdrop, but it is not fully supported
-      // Fake our own backdrop element to swallow clicks and grey out screen
-      // by not using "body" we don't need to worry about click bubbling
-      let backdrop = document.getElementById("dialogBackdrop");
-      backdrop.addEventListener('click', this.closeDialogOnOutsideClick );
-      document.body.addEventListener("keydown", this.closeDialogOnESC );
     },
 
 
@@ -2046,6 +1972,17 @@ let app = new Vue({
         error.message.match( /NetworkError/i ) ||   // firefox
         error.message.match( /load failed/i ) ||   // safari
         error.message.match( /Failed to fetch/i );  // chrome
+    },
+
+
+    //----------------------------------------
+    // wrappers for dialog-fu (so Vue can use them)
+    //----------------------------------------
+    openDialog: function( name, openCallback ) {
+      this.dialogManager.openDialog( name, openCallback );
+    },
+    closeDialog: function( event ) {
+      this.dialogManager.closeDialog( event );
     }
 
   },
