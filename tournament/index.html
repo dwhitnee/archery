@@ -62,7 +62,7 @@
       <div>
         <div v-if="isOffline()" class="offline">
           <a href="#" @click="goOnline()" class="offline icon noNetworkIcon"
-             title="OFFLINE - click to retry"></a>
+             title="OFFLINE - press to retry"></a>
         </div>
         <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')"
            class="settings icon settingsIcon" title="Tournament info"></a>
@@ -232,6 +232,19 @@
       <button class="close" @click="closeDialog( $event )"></button>
 
       <div>
+
+        <div v-if="isOffline()" class="offline notice">
+          <div>
+            Network Connection Lost. You can keep entering scores, but
+            DO NOT RELOAD this page or you will lose all
+            unsaved scores since {{ offlineStart.toLocaleTimeString() }}
+          </div>
+          <div>
+            Press <a href="#" style="margin: 0" @click="goOnline()" class="offline icon noNetworkIcon"> </a>
+            to try re-connecting.
+          </div>
+
+        </div>
 
         <div>
           Scan QR Code to score a new bale/group

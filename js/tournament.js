@@ -304,7 +304,7 @@ let app = new Vue({
     admin: { leagues: []},
     daysAgo: 30,          // for history pages
 
-    offlineStart: null,            // when did we go offline?
+    offlineStart: null,           // when did we go offline?
     lastFailedAttempt: null,      // when did we last try to go online
     goingOnlineInProgress: false,  // lock for "recovery mode"
     staleArchers: new Set(),       // who wasn't updated while offline?
@@ -676,7 +676,8 @@ let app = new Vue({
           window.removeEventListener('beforeunload', this.beforeWindowUnload);
           this.offlineStart = null;
           console.log("We're back online, baby!");
-          this.setMessage("Network re-established");
+          this.setMessage("Network connection restored");
+          // alert("Network re-connected");
         }
       }
       catch (e) {
