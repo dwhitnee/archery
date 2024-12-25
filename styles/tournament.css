@@ -102,6 +102,11 @@ a {
   color: red;
   font-weight: bold;
 }
+.offline.notice {
+  padding: 0 1em 1em 0;
+  color: red;
+  font-weight: bold;
+}
 
 #qrcode {
   padding: 2em;
@@ -312,6 +317,7 @@ h3 {
 }
 .arrowScore {
   display: table-cell;
+  /* vertical-align: middle; */  /* causes end totals to go wonky */
   border: 1px solid black;
   background-color: lightGray;
   padding: .5em 0;

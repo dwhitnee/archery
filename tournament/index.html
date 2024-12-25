@@ -47,7 +47,9 @@
       <div>
         <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
         <div v-else>
-          <a :href='"create?leagueId=" + league.id' title="Create new tournament">Admin</a>
+          <a :href='"create?leagueId=" + league.id' title="Create new tournament">
+            New...
+          </a>
         </div>
       </div>
 
@@ -60,7 +62,7 @@
       <div>
         <div v-if="isOffline()" class="offline">
           <a href="#" @click="goOnline()" class="offline icon noNetworkIcon"
-             title="OFFLINE - click to retry"></a>
+             title="OFFLINE - press to retry"></a>
         </div>
         <a href="#" @click="generateTouramentQRCode(); openDialog('showQRCode')"
            class="settings icon settingsIcon" title="Tournament info"></a>
@@ -132,7 +134,8 @@
           </div>
 
           <div>
-            <button :disabled="!archers.length" class="btn btn-primary btn-lg"
+            <button :disabled="!archers.length || updateInProgress()"
+                     class="btn btn-primary btn-lg"
                      id="scoringGroupStartButton" @click="startScoring()">
               Start Scoring
             </button>
@@ -212,11 +215,16 @@
         </button>
         <!-- <div></div> -->
         <!-- <div></div> -->
-        <button class="doneButton" @click="doneGoToScoresheet( archer, scoringEnd)">
+        <button class="doneButton"
+                :disabled="updateInProgress()"
+                @click="doneGoToScoresheet( archer, scoringEnd)">
           Done
           <div class="icon returnIcon"></div>
         </button>
-        <button class="doneButton" @click="doneGoToNextArcher( archer, scoringEnd )">Next Archer</button>
+        <button class="doneButton"
+                :disabled="updateInProgress()"
+                @click="doneGoToNextArcher( archer, scoringEnd )">
+        Next Archer</button>
       </div>
     </div>
 
@@ -230,6 +238,19 @@
       <button class="close" @click="closeDialog( $event )"></button>
 
       <div>
+
+        <div v-if="isOffline()" class="offline notice">
+          <div>
+            Network Connection Lost. You can keep entering scores, but
+            DO NOT RELOAD this page or you will lose all
+            unsaved scores since {{ offlineStart.toLocaleTimeString() }}
+          </div>
+          <div>
+            Press <a href="#" style="margin: 0" @click="goOnline()" class="offline icon noNetworkIcon"> </a>
+            to try re-connecting.
+          </div>
+
+        </div>
 
         <div>
           Scan QR Code to score a new bale/group
@@ -402,6 +423,7 @@
 
   <script src="../js/qrcode.min.js"></script>
   <script src="../js/util.js"></script>
+  <script src="../js/dialog.js"></script>
   <script src="../js/tournament.js"></script>
 
 

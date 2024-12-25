@@ -1,4 +1,4 @@
-/*global fetch, Vue, VueRouter, Util */
+/*global fetch, Vue, VueRouter, Util, DialogManager */
 /*jslint esversion: 8 */
 //-----------------------------------------------------------------------
 //  Copyright 2024, David Whitney
@@ -49,6 +49,7 @@
 // Home button - goes to tournament/ (with no id's)
 
 //  Backfill method
+
 // sort league archers by name AND bow (If compound for some rounds, recurve for others)
 
 //   tournament => create or join
@@ -61,7 +62,7 @@
 // today's tournaments page?
 // what does prepopulate look like? (list of archers/class, precreate bales)
 
-// Public list of recent tournaments?
+// Public list of recent tournaments? (currently admin only - make between ends style?)
 
 // Can archer data be in cloud with unique ID? (just name currently)
 //  Enforce each archer on unique phone? Steal vs overwrite?
@@ -86,6 +87,12 @@
 //    edit target assignments
 //    display QR Code for tournament, for each pre-created bale
 
+// Strange formats
+//   WSAA mail in 6 scores from best 3 of 4 multicolor and blue face.
+//   How to implement "throw outs"?  Should "practice" vs "official" be a thing? Mulligans?
+//   Seems stupid. Do in spreadsheet after the fact...?
+
+
 
 // == HOW TO HANDLE BAD CONNECTIONS ===
 // Issues: intermittent connectivity can lead to inconsistent state
@@ -94,8 +101,8 @@
 //  o real problem: calls are not idempotent (full archer update, not just one score, plus version #)
 //
 //  Mitigation:
-//   o First need shorter timeout than 60 seconds (how much is enough? 3s? exp backoff?)
-//   o Tell user not to reload page or data since last save will be lost  [iff leave page and in offline mode, pop alert]
+//   V First need shorter timeout than 60 seconds (how much is enough? 3s? exp backoff?)
+//   V Tell user not to reload page or data since last save will be lost  [iff leave page and in offline mode, pop alert]
 //
 //  Recovery:
 //    o Manual: have an "Offline" button user must press (still have version issue [FORCE?])
@@ -110,6 +117,9 @@
 //   o two or more pages open different browser (two scorers or shared URL)
 //   o Same browser: store in Local with versioning?. Really want shared memory behavior (possible?). Reload on focus? How to keep memory in sync between pages. Reload archer from Local before any Edit page load.
 
+// Server returns 200 + "VersionConflictException" :
+//     "MUST RELOAD - your data is out of date"
+//    requires a 200 response from server to verify VersionConflictException
 
 // Google Sheet integration?
 /*
@@ -282,14 +292,18 @@ let app = new Vue({
   // Data Model (drives the View, update these values only
   //----------------------------------------
   data: {
+    dialogManager: new DialogManager(),
+
     goneFishing: false,
     message: "Join a tournament",
     saveInProgress: false,    // prevent other actions while this is going on
     loadingData: false,    // prevent other actions while this is going on
     isAdmin: false,
     admin: { leagues: []},
+    daysAgo: 30,          // for history pages
 
-    offlineStart: null,            // when did we go offline?
+    offlineStart: null,           // when did we go offline?
+    lastFailedAttempt: null,      // when did we last try to go online
     goingOnlineInProgress: false,  // lock for "recovery mode"
     staleArchers: new Set(),       // who wasn't updated while offline?
 
@@ -499,23 +513,9 @@ let app = new Vue({
     // admin page
     if (window.location.href.match( /list.*#admin/ )) {
       this.isAdmin = true;
+      this.daysAgo = this.$route.query.days || this.daysAgo;  // how many days to load
 
-      // load all leagues and tournaments
-      // put all tournaments in its league, league[0] is all other tournaments
-      let leagues = [];
-      leagues[0] = { name: "Non league", tournaments: [] };
-
-      let leagueList = await this.loadLeaguesSince( 30 );
-      leagueList.forEach(( league ) => {
-        league.tournaments = [];
-        leagues[league.id] = league;  // map by ID
-      });
-
-      let tournaments = await this.loadTournamentsSince( 30 );
-      tournaments.forEach(( tournament ) => {
-        leagues[tournament.leagueId|0].tournaments[tournament.id] = tournament;  // map by ID
-      });
-      this.admin.leagues = leagues;
+      await this.loadLeagueHistory( this.daysAgo );
 
       // league overview page
     } else if (leagueId && !tournamentId && window.location.pathname.match( /overview/ )) {
@@ -612,6 +612,26 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // @return time until we should try the network again
+    //
+    // NOTE: Should we make backoff exponential?
+    // No, tournaments are a finite time. It makes sense to try once every end.
+    //----------------------------------------
+    getBackoffTime: function() {
+      if (!this.lastFailedAttempt) {
+        return 0;  // no recent timeouts registered
+      }
+
+      let now = new Date();
+      return Math.round( (now - this.lastFailedAttempt)/1000 );
+    },
+
+    // Are we within 3 minutes of the last timeout?
+    isBackingOff: function() {
+      return this.getBackoffTime() < 3*60;  // 3 minutes
+    },
+
+    //----------------------------------------
     // Try to update any stale data on server
     //----------------------------------------
     goOnline: async function() {
@@ -654,7 +674,8 @@ let app = new Vue({
           window.removeEventListener('beforeunload', this.beforeWindowUnload);
           this.offlineStart = null;
           console.log("We're back online, baby!");
-          this.setMessage("Network re-established");
+          this.setMessage("Network connection restored");
+          // alert("Network re-connected");
         }
       }
       catch (e) {
@@ -667,7 +688,8 @@ let app = new Vue({
 
     // calls to AWS are failing, stop trying for now
     goOffline: function( failedObject ) {
-      this.offlineStart = this.offlineStart || new Date();
+      this.offlineStart = this.offlineStart || new Date();  // first time we failed
+      this.lastFailedAttempt = new Date();                  // most recent failure
 
       // Try this update later? Note which (archer) call failed
       // Ignore tournament updates (they're just pings)
@@ -1266,6 +1288,7 @@ let app = new Vue({
       this.newArcher = {};
 
       // dismiss enclosing dialog
+      // this.dialogManager.closeCurrentDialog();
       this.closeDialogElement( event.target.closest("dialog") );
     },
 
@@ -1303,78 +1326,26 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // Dialog handlers
+    // load leagues and tournaments from given days ago
     //----------------------------------------
-    openDialog( name, openCallback ) {
-      this.openDialogElement( document.getElementById( name ));
-      if (openCallback)
-        openCallback();
-    },
-    // @input button click that caused the close (ie, button),
-    //    assumes it's a child of the dialog
-    closeDialog( event ) {
-      // this.closeDialogElement( event.target.parentElement );
-      this.closeDialogElement( event.target.closest("dialog") );
-    },
-    // @input dialog element itself
-    openDialogElement( dialog ) {
-      if (!dialog || this.dialogIsOpen) {  // can't open two dialogs at once
-        return;
-      }
-      // grey out game
-      document.getElementById("dialogBackdrop").classList.add("backdropObscured");
-      this.dialogIsOpen = true;  // flag to disable other dialogs. Vue doesn't respect this on change(in v-if)?
+    loadLeagueHistory: async function( daysAgo ) {
+      // load all leagues and tournaments
+      // put all tournaments in its league, league[0] is all other tournaments
+      let leagues = [];
+      leagues[0] = { name: "Non league", tournaments: [] };
 
-      dialog.open = true;           // Chrome
-      dialog.style.display="flex";  // Firefox/Safari
+      let leagueList = await this.loadLeaguesSince( daysAgo );
+      leagueList.forEach(( league ) => {
+        league.tournaments = [];
+        leagues[league.id] = league;  // map by ID
+      });
 
-      this.addDialogDismissHandlers( dialog );  // outside click and ESC
-    },
+      let tournaments = await this.loadTournamentsSince( daysAgo );
+      tournaments.forEach(( tournament ) => {
+        leagues[tournament.leagueId|0].tournaments[tournament.id] = tournament;  // map by ID
+      });
 
-    //----------------------------------------------------------------------
-    // close dialog, restore background, remove event handlers.
-    // @input dialog element itself
-    //----------------------------------------------------------------------
-    closeDialogElement( dialog ) {
-      document.getElementById("dialogBackdrop").classList.remove("backdropObscured");
-
-      this.dialogIsOpen = false;  // FIXME: Vue is not seeing this; Do we just need to add it to the data() section?
-      dialog.open = false;
-      dialog.style.display="none";
-
-      // dialog gone, stop listening for dismiss events
-      let backdrop = document.getElementById("dialogBackdrop");
-      backdrop.removeEventListener('click', this.closeDialogOnOutsideClick );
-      document.body.removeEventListener("keydown", this.closeDialogOnESC );
-    },
-
-    //----------------------------------------------------------------------
-    // Close on click outside dialog or ESC key.
-    // Save functions for removal after close()
-    //----------------------------------------------------------------------
-    addDialogDismissHandlers( dialog ) {
-      // FIXME, these event handlers happen after Vue event
-      // handlers so you can play the game while a dialog is
-      // open.  How to disable all of game wile dialog is open?
-
-      this.closeDialogOnOutsideClick = (event) => {
-        const clickWithinDialog = event.composedPath().includes( dialog );
-        if (!clickWithinDialog) {
-          this.closeDialogElement( dialog );
-        }
-      };
-      this.closeDialogOnESC = (event) => {
-        if (event.keyCode === 27) {
-          this.closeDialogElement( dialog );
-        }
-      };
-
-      // Could also use dialog::backdrop, but it is not fully supported
-      // Fake our own backdrop element to swallow clicks and grey out screen
-      // by not using "body" we don't need to worry about click bubbling
-      let backdrop = document.getElementById("dialogBackdrop");
-      backdrop.addEventListener('click', this.closeDialogOnOutsideClick );
-      document.body.addEventListener("keydown", this.closeDialogOnESC );
+      this.admin.leagues = leagues;  // don't return list, so this can be used from UI
     },
 
 
@@ -1905,6 +1876,15 @@ let app = new Vue({
         return;
       }
 
+      // test to see if we've had a recent timeout. In which case, lets wait N minutes
+      // breather, intermission, hiatus, weAreOnABreak
+      if (this.isOffline() && this.isBackingOff() ) {
+        console.log("Backing off for " + (180 - this.getBackoffTime()) +
+                    " more seconds before trying to save");
+        return;
+      }
+
+
       let timer = new Date();
       let timeout = 3000;  // after 3 seconds we probably have issues. Try again later
 
@@ -1936,11 +1916,12 @@ let app = new Vue({
         if (this.isOffline()) {
           shouldCatchUp = true; // successful call, looks like our network is back!
         }
+        this.lastFailedAttempt = null;
       }
       catch( err ) {
         console.error("Update "+objName+": " + JSON.stringify( err ));
         let elapsed = new Date() - timer;
-        console.log("Request duration "+elapsed/1000+"s");
+        console.log("Failed request duration "+elapsed/1000+"s");
 
         if (this.isNetworkError( err )) {
           if (!this.isOffline()) {
@@ -1990,6 +1971,17 @@ let app = new Vue({
         error.message.match( /NetworkError/i ) ||   // firefox
         error.message.match( /load failed/i ) ||   // safari
         error.message.match( /Failed to fetch/i );  // chrome
+    },
+
+
+    //----------------------------------------
+    // wrappers for dialog-fu (so Vue can use them)
+    //----------------------------------------
+    openDialog: function( name, openCallback ) {
+      this.dialogManager.openDialog( name, openCallback );
+    },
+    closeDialog: function( event ) {
+      this.dialogManager.closeDialog( event );
     }
 
   },
