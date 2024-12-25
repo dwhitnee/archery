@@ -49,6 +49,7 @@
 // Home button - goes to tournament/ (with no id's)
 
 //  Backfill method
+
 // sort league archers by name AND bow (If compound for some rounds, recurve for others)
 
 //   tournament => create or join
@@ -61,7 +62,7 @@
 // today's tournaments page?
 // what does prepopulate look like? (list of archers/class, precreate bales)
 
-// Public list of recent tournaments?
+// Public list of recent tournaments? (currently admin only - make between ends style?)
 
 // Can archer data be in cloud with unique ID? (just name currently)
 //  Enforce each archer on unique phone? Steal vs overwrite?
@@ -89,6 +90,8 @@
 // Strange formats
 //   WSAA mail in 6 scores from best 3 of 4 multicolor and blue face.
 //   How to implement "throw outs"?  Should "practice" vs "official" be a thing? Mulligans?
+//   Seems stupid. Do in spreadsheet after the fact...?
+
 
 
 // == HOW TO HANDLE BAD CONNECTIONS ===
@@ -114,12 +117,9 @@
 //   o two or more pages open different browser (two scorers or shared URL)
 //   o Same browser: store in Local with versioning?. Really want shared memory behavior (possible?). Reload on focus? How to keep memory in sync between pages. Reload archer from Local before any Edit page load.
 
-
 // Server returns 200 + "VersionConflictException" :
 //     "MUST RELOAD - your data is out of date"
 //    requires a 200 response from server to verify VersionConflictException
-
-// Bug: debounce "save archer"  (scoring page) instead of "save in progress"
 
 // Google Sheet integration?
 /*
