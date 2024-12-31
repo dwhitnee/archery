@@ -1201,7 +1201,7 @@ let app = new Vue({
         csv.push( week );
       }
 
-      csv.push("Annual Total", this.yearArrows);
+      csv.push(["Annual Total", "", "", "", "", "", "", this.yearArrows]);
       Util.exportToCSV( csv, "arrow counts");
     }
 

@@ -73,7 +73,7 @@
 //   admin req'ed to click results into scoringGroup?
 //   how does betweenEnds prevent two browsers at once. Hand off?
 
-// League archer merge?
+// League archer merge? (ui? just change name?)
 
 // Prod CORS on API-Gateway
 
