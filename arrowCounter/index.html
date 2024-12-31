@@ -137,13 +137,18 @@
                    @keyup.enter="event.target.blur()"
                    @keydown.esc="endEdit()" />
           </div>
-          <div v-else>Arrows: {{ dataDisplay.arrows }}  (week: {{ dataDisplay.weekArrows }} )</div>
+          <div v-else>
+            Arrows: {{ dataDisplay.arrows }}
+            (week: {{ dataDisplay.weekArrows }}, year: {{ yearArrows }} )
+          </div>
         </div>
       </div>
 
-      <div title="Export to CSV" style="padding: 1em; display: flex">
-          Export to CSV
-          <div class="icon saveIcon" @click="exportToCSV()"></div>
+      <a href="#" @click="exportToCSV()"
+         title="Export to CSV" style="padding: 1em; display: flex; width: fit-content">
+        <div class="icon saveIcon"></div>
+        Download as spreadsheet (CSV)
+        <div class="icon saveIcon"></div>
       </div>
 
       <div v-if="!teamViewWeek" style="padding: 2em;">

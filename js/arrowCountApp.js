@@ -127,6 +127,7 @@ let app = new Vue({
     weekGoals: "",
     showAllGoals: false,
     noteEditMode: false,
+    yearArrows: 0,
 
     data: {
       arrows: [],      // 365 element list of data points. Need to translate for heatmap
@@ -502,8 +503,10 @@ let app = new Vue({
       }
 
       let weekTotals = [];
+      this.yearArrows = 0;
       for (let w=0; w < 52; w++) {
         weekTotals[w] = this.getWeekTotalFromDayOfYear(w*7);
+        this.yearArrows += weekTotals[w];   // Keep annual total separate
       }
 
       // weekly total
@@ -1198,6 +1201,7 @@ let app = new Vue({
         csv.push( week );
       }
 
+      csv.push("Annual Total", this.yearArrows);
       Util.exportToCSV( csv, "arrow counts");
     }
 
