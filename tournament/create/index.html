@@ -40,7 +40,7 @@
 
       <div v-if="league.id" style="color: red; font-weight: bold">
         This tournament is part of league "{{ league.name }}"
-        <a class="small" href="#" @click="location.href=location.origin+location.pathname">
+        <a class="small" :href="location.origin+location.pathname">
           (No it isn't!)
         </a>
       </div>
