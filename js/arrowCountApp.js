@@ -127,10 +127,10 @@ let app = new Vue({
     weekGoals: "",
     showAllGoals: false,
     noteEditMode: false,
-    yearArrows: 0,
 
     data: {
       arrows: [],      // 365 element list of data points. Need to translate for heatmap
+      yearArrows: 0,
       exercises: [],
       notes: [],         // weekly (52 element arrays)
       scores: [        // weekly (52 element arrays)
@@ -503,10 +503,10 @@ let app = new Vue({
       }
 
       let weekTotals = [];
-      this.yearArrows = 0;
+      this.data.yearArrows = 0;
       for (let w=0; w < 52; w++) {
         weekTotals[w] = this.getWeekTotalFromDayOfYear(w*7);
-        this.yearArrows += weekTotals[w];   // Keep annual total separate
+        this.data.yearArrows += weekTotals[w];   // Keep annual total separate
       }
 
       // weekly total
@@ -1160,10 +1160,13 @@ let app = new Vue({
             }
           }
           archer.weekArrows[7] = total;
+          // add all the year's arrows together
+          archer.yearArrows = data.arrows.reduce((a, b) => a + b|0, 0);
         }
       }
       // remove inactive archers from list
-      this.allActiveArchers = this.allArchers.filter(( archer ) => archer.weekArrows[7] > 0);
+      // this.allActiveArchers = this.allArchers.filter(( archer ) => archer.weekArrows[7] > 0);
+      this.allActiveArchers = this.allArchers.filter(( archer ) => archer.yearArrows > 0);
       this.allActiveArchers.sort( (a,b) => a.name > b.name);
 
       this.loadingData = false;
@@ -1201,7 +1204,7 @@ let app = new Vue({
         csv.push( week );
       }
 
-      csv.push(["Annual Total", "", "", "", "", "", "", this.yearArrows]);
+      csv.push(["Annual Total", "", "", "", "", "", "", this.data.yearArrows]);
       Util.exportToCSV( csv, "arrow counts");
     }
 

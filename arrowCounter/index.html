@@ -139,7 +139,7 @@
           </div>
           <div v-else>
             Arrows: {{ dataDisplay.arrows }}
-            (week: {{ dataDisplay.weekArrows }}, year: {{ yearArrows }} )
+            (week: {{ dataDisplay.weekArrows }}, year: {{ data.yearArrows }} )
           </div>
         </div>
       </div>
@@ -169,12 +169,13 @@
                 <a href="#" @click="nextTeamWeek()"> &gt </a>
               </div>
             </th>
-            <th v-for="day in this.days"> {{ day }}</th>
+            <th v-for="day in this.days"> {{ day }}</th><th style="color:#ccc">(Year)</th>
           </tr>
 
           <tr v-for="archer in allActiveArchers">
             <td>{{ archer.name }}</td>
             <td v-for="arrows in archer.weekArrows">{{ arrows }}</td>
+            <td style="color:#ccc">{{ archer.yearArrows }}
           </tr>
         </table>
       </div>
