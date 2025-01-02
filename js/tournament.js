@@ -1006,6 +1006,10 @@ let app = new Vue({
         return true;    // data is stale
       }
 
+      if (!this.tournament.id) {
+        return false; // no tournament specified, must be  league overview
+      }
+
       // data is complete?
       for (let i = 0; i < this.archers.length; i++) {
         if (this.archers[i].total.arrowCount != this.arrowsPerTournament()) {
