@@ -284,6 +284,11 @@ let app = new Vue({
       }
     }
 
+    // allow past data to be viewed
+    if (this.$route.query.year) {
+      this.year = this.$route.query.year;
+    }
+
     // Coach view of an archer
     this.coachView = this.$route.query.user;
     if (this.coachView) {
@@ -447,7 +452,10 @@ let app = new Vue({
           // new archer, create record
           this.user.id = user.id;
           this.user.name = this.user.name || user.name;
+
+          // this is problematic, could be infinitely nested user object from email
           this.user.auth = user;
+
           console.log("Creating new archer " + this.user.name );
           await this.updateArcher();
         }
@@ -460,7 +468,7 @@ let app = new Vue({
         await this.getArcherData();
 
         this.saveLocalArcher();
-        this.saveLocalArrowDB();  // @deprecated: remove this 9/1/2024
+        // this.saveLocalArrowDB();  // @deprecated: remove this 9/1/2024
         this.saveLocalArcherData();
       }
       catch( err ) {
@@ -1050,7 +1058,7 @@ let app = new Vue({
     // store this years arrow count (maybe other stuff soon?)
     //----------------------------------------
     async updateArcherArrows() {
-      this.saveLocalArrowDB();   // @deprecated
+      // this.saveLocalArrowDB();   // @deprecated
       this.saveLocalArcherData();
       // this.updateArcherData("arrows", this.data.arrows );
       this.updateArcherData();
