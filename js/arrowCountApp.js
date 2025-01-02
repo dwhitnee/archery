@@ -30,6 +30,7 @@
 // Edits can be made while page is loading. PREVENT. (disable week?)
 // Make "C"oach mode work only with authorized email address (check auth object)
 
+// Why is bullshit auth.auth.auth nesting happening in LocalStore?
 //----------------------------------------------------------------------
 //  OVERVIEW
 //----------------------------------------------------------------------
@@ -269,6 +270,8 @@ let app = new Vue({
       debugger;
     });
 
+    Util.setNamespace("AC_");  // arrowCount app
+
     // set up heatmap handlers
     this.initChartCallbacks();
 
@@ -318,7 +321,7 @@ let app = new Vue({
     this.handleKeypress = (event) => {
       if (event.shiftKey && (event.key === "C")) {
 
-        if (this.loggedInUserIsCoach()) {
+        if (this.isLoggedInUserACoach()) {
           console.log("Coach view!");
           this.loadAllArchers();
           this.openDialog("coachView");
@@ -377,12 +380,21 @@ let app = new Vue({
       return this.saveInProgress || this.loadingData;
     },
 
-    loggedInUserIsCoach: function() {
 
-      // FIXME!!!
-      // add bit to auth block?
-
-      return true;
+    //----------------------------------------
+    // is this an admin.
+    // Should auth block contain a bit or should the user list be hardcoded?
+    //----------------------------------------
+    isLoggedInUserACoach: function() {
+      let admins = [
+        "dwhitnee@gmail.com",
+        "alice.archery@gmail.com",
+      ];
+      if (this.user && this.user.auth) {
+        return admins.includes( this.user.auth.email );
+      } else {
+        return false;
+      }
     },
 
 
