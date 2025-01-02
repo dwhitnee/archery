@@ -27,6 +27,8 @@
 
 // - data is lost when you login (if you were saving locally)
 
+// Edits can be made while page is loading. PREVENT. (disable week?)
+
 //----------------------------------------------------------------------
 //  OVERVIEW
 //----------------------------------------------------------------------
@@ -118,7 +120,7 @@ let app = new Vue({
       coach: "KSL",
     },
 
-    coaches: ["KSL", "Josh", "Diane", "Alice", "Joel", "Maria", "Connor"],
+    coaches: ["KSL", "Josh", "Diane", "Alice", "Joel", "Maria", "Connor", "Mac"],
 
     days: ["M","T","W","Th","F","Sa","Su"],
     weekArrows: [],  // populate this from data.arrows
@@ -184,7 +186,7 @@ let app = new Vue({
                 { from: 201, to: 300, color: '#aaaa00'},
               ],
               ranges: [
-                { from: -1,  to:   0, color: '#cccccc', foreColor: '#cccccc'},
+                { from: -100,  to:   0, color: '#cccccc', foreColor: '#cccccc'},
                 { from: 1,   to:  50, color: '#53cbef', foreColor: '#aabbcc' },
                 { from: 51,  to: 100, color: '#18bfae'},
                 { from: 101, to: 200, color: '#8cb357'},
@@ -314,9 +316,12 @@ let app = new Vue({
 
     this.handleKeypress = (event) => {
       if (event.shiftKey && (event.key === "C")) {
-        console.log("Coach view!");
-        this.loadAllArchers();
-        this.openDialog("coachView");
+
+        if (this.loggedInUserIsCoach()) {
+          console.log("Coach view!");
+          this.loadAllArchers();
+          this.openDialog("coachView");
+        }
       }
     };
     document.body.addEventListener("keydown", this.handleKeypress );
@@ -369,6 +374,14 @@ let app = new Vue({
 
     inProgress: function() {
       return this.saveInProgress || this.loadingData;
+    },
+
+    loggedInUserIsCoach: function() {
+
+      // FIXME!!!
+      // add bit to auth block?
+
+      return true;
     },
 
 
@@ -602,7 +615,11 @@ let app = new Vue({
     // Assuming weeks start on Monday, which week number are we in (0 indexed)
     //----------------------------------------
     getWeekNumber: function() {
-      return Math.floor( this.getDayOfThisMonday()/7 );
+      let week = Math.floor( this.getDayOfThisMonday()/7 );
+      if (week < 0) {
+        week = 0;
+      }
+      return week;
     },
 
     //----------------------------------------------------------------------
