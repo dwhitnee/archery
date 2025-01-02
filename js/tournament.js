@@ -485,7 +485,7 @@ let app = new Vue({
       });
     }
 
-    Util.setNamespace("TS");  // tournamentScoring
+    Util.setNamespace("TS_");  // tournamentScoring
     // should this be a prefs object?
     this.ignoreAgeGender = Util.loadData("ignoreAgeGender");
 

@@ -171,7 +171,7 @@ let app = new Vue({
       debugger;
     });
 
-    Util.setNamespace("Timer");
+    Util.setNamespace("Timer_");
 
     // TODO: potential future use for hard coded URL to indoor or outdoor round
     this.roundType = this.$route.query.round;
