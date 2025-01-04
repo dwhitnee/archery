@@ -105,6 +105,7 @@ let app = new Vue({
     loadingData: false,    // prevent other actions while this is going on
     doEmailLogin: false,   // toggle to enter email address as userId
 
+    isAdmin: false,
     coachView: false,
     teamView: undefined,
     teamViewWeek: undefined,
@@ -122,7 +123,8 @@ let app = new Vue({
       coach: "KSL",
     },
 
-    coaches: ["KSL", "Josh", "Diane", "Alice", "Joel", "Maria", "Connor", "Mac"],
+    coaches: [{ given_name: "loading..."}],
+//              "KSL", "Josh", "Diane", "Alice", "Joel", "Maria", "Connor", "Mac"],
 
     days: ["M","T","W","Th","F","Sa","Su"],
     weekArrows: [],  // populate this from data.arrows
@@ -220,12 +222,12 @@ let app = new Vue({
 
   // watch global variables for reactivity
   watch: {
-    async '$globalUser'( user ) {
+    async '$globalUser'( userAuth ) {
       if (this.coachView) {      // ignore in coach mode
         return;
       }
       console.log("New login from OAuth");
-      await this.archerLogin( user );
+      await this.archerLogin( userAuth );
       // this.$globalUser = value;
     }
   },
@@ -270,6 +272,16 @@ let app = new Vue({
       debugger;
     });
 
+    // admin override on any page
+    if (window.location.href.match( /#admin/ )) {
+      this.isAdmin = true;
+    }
+
+    // allow past data to be viewed
+    if (this.$route.query.year) {
+      this.year = this.$route.query.year;
+    }
+
     Util.setNamespace("AC_");  // arrowCount app
 
     // set up heatmap handlers
@@ -282,11 +294,6 @@ let app = new Vue({
         await this.loadAllArchers();
         await this.loadWeeksArrowsForAllArchers();
       }
-    }
-
-    // allow past data to be viewed
-    if (this.$route.query.year) {
-      this.year = this.$route.query.year;
     }
 
     // Coach view of an archer
@@ -310,7 +317,10 @@ let app = new Vue({
       }
       this.handleArrowUpdate();
 
-      await this.archerLogin( this.user );
+      // use cached auth block to login latest version of archer
+      if (this.user.auth) {
+        await this.archerLogin( this.user.auth );
+      }
 
       // scroll chart to current week
       let div = document.getElementById("chart");
@@ -326,9 +336,10 @@ let app = new Vue({
     this.handleKeypress = (event) => {
       if (event.shiftKey && (event.key === "C")) {
 
-        if (this.isLoggedInUserACoach()) {
+        if (this.isLoggedInUserACoach() || this.isAdmin) {
           console.log("Coach view!");
-          this.loadAllArchers();
+          // this.loadAllArchers();
+          this.loadCoaches();
           this.openDialog("coachView");
         }
       }
@@ -391,15 +402,7 @@ let app = new Vue({
     // Should auth block contain a bit or should the user list be hardcoded?
     //----------------------------------------
     isLoggedInUserACoach: function() {
-      let admins = [
-        "dwhitnee@gmail.com",
-        "alice.archery@gmail.com",
-      ];
-      if (this.user && this.user.auth) {
-        return admins.includes( this.user.auth.email );
-      } else {
-        return false;
-      }
+      return this.user.isCoach;
     },
 
 
@@ -418,29 +421,27 @@ let app = new Vue({
       if (match && match[1]) {
         user.name = match[1];
       } else {
-        alert("could not understnad email address: " + newEmail );
+        alert("could not understand email address: " + newEmail );
         return;
       }
       user.given_name = user.name;
-      user.auth = {
-        auth: "email"
-      };
+      user.auth = "email";
       await this.archerLogin( user );
     },
 
     //----------------------------------------
-    // a new user has arrived via OAuth or otherwise
+    // a new user has arrived via OAuth or otherwise (email auth chunk)
     // populate data from cloud (stuff it into localStore for now, too)
     //----------------------------------------
-    async archerLogin( user ) {
+    async archerLogin( userAuth ) {
       // go get current archer record if we have one
 
-      if (!user || !user.id) {
+      if (!userAuth || !userAuth.id) {
         return;
       }
 
       try {
-        await this.getArcher( user.id );
+        await this.getArcher( userAuth.id );
 
         if (!this.user.name) {
           console.log("No archer name found");
@@ -450,19 +451,19 @@ let app = new Vue({
           console.log("Loaded " + this.user.name );
         } else {
           // new archer, create record
-          this.user.id = user.id;
-          this.user.name = this.user.name || user.name;
+          this.user.id = userAuth.id;
+          this.user.name = this.user.name || userAuth.name;
 
           // this is problematic, could be infinitely nested user object from email
-          this.user.auth = user;
+          this.user.auth = userAuth;
 
           console.log("Creating new archer " + this.user.name );
           await this.updateArcher();
         }
         // copy over interesting immutable data
-        this.user.auth = user;
-        this.user.given_name = user.given_name;
-        this.user.pictureUrl = user.pictureUrl;
+        this.user.auth = userAuth;
+        this.user.given_name = userAuth.given_name;
+        this.user.pictureUrl = userAuth.pictureUrl;
 
         // now load archer data (and nuke the local stuff)
         await this.getArcherData();
@@ -505,7 +506,7 @@ let app = new Vue({
 
     //----------------------------------------
     // transform year of data into heatmap format
-    // chart data is not a 2D array. It is an object with all of Monday's data, all of Tue's etc
+    // chart data is not a 2D array. It is an object with all Monday's data, all of Tue's etc
     //
     // https://apexcharts.com/vue-chart-demos/heatmap-charts/multiple-series/
     //----------------------------------------
@@ -953,6 +954,43 @@ let app = new Vue({
       this.loadingData = false;
     },
 
+    getCoachDisplayNameForArcher: function( archer ) {
+      // coaches not loaded yet..
+      if (Object.keys( this.coaches ).length < 2) {
+        return "-";
+      }
+
+      if (archer.coachId) {
+        return this.coaches[archer.coachId].given_name || this.coaches[archer.coachId].name;
+      } else {
+        return "-";
+      }
+    },
+
+    //----------------------------------------
+    // load all users and see who is a coach
+    //----------------------------------------
+    loadCoaches: async function() {
+      // already loaded
+      if (Object.keys( this.coaches ).length > 1) {
+        return;
+      }
+
+      await this.loadAllArchers();
+      this.coaches = [];
+
+      for (let i=0; i < this.allArchers.length; i++) {
+        let person = this.allArchers[i];
+        if (person.isCoach) {
+          this.coaches[person.id] = {
+            id: person.id,
+            name: person.name,
+            given_name: person.given_name,
+          };
+        }
+      }
+    },
+
     //----------------------------------------
     // Admin?
     //----------------------------------------
@@ -1010,8 +1048,9 @@ let app = new Vue({
     //----------------------------------------
     // save archer attributes
     // (after new login, update name/coach)
+    // @param archer - if null, update this.user (might want to update a coach, though)
     //----------------------------------------
-    async updateArcher() {
+    async updateArcher( archer ) {
       if (this.loadingData) {
         return;  // don't allow updates while still loading from DB
       }
@@ -1024,24 +1063,29 @@ let app = new Vue({
         return;
       }
 
+      if (!archer) {
+        archer = this.user;
+      }
+
       if (this.saveInProgress) { return; }
       if (this.coachView) { return; }
 
-      console.log("changing archer to " + JSON.stringify( this.user ));
+      console.log("changing archer to " + JSON.stringify( archer ));
 
       try {
         this.saveInProgress = true;
-        let postData = this.user;
+        let postData = archer;
 
         let response = await fetch( serverURL + "updateArcher",
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
 
         // refresh our local data with whatever goodness the DB thinks we should have (last updated, version)
-        let archer = await response.json();
-        console.log("update resulted in " + JSON.stringify( archer ));
-        if (archer.id) {
-          this.user = archer;
+        let result = await response.json();
+        console.log("update resulted in " + JSON.stringify( result ));
+        if (result.id) {
+          Object.assign( archer, result );
+          // this.user = archer;
         }
       }
       catch( err ) {
@@ -1138,6 +1182,10 @@ let app = new Vue({
     // load all names
     //----------------------------------------
     async loadAllArchers() {
+      if (this.allArchers.length > 1) {
+        return;   // been there done that.
+      }
+
       // go get all archers for coach view
       try {
         let response = await fetch(serverURL + "archers");

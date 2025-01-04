@@ -61,7 +61,7 @@
       </div>
 
       <div class="loginMenu">
-        <a href="#" @click="openDialog('login')">{{ user.name || "Login" }}</a>
+        <a href="#" @click="loadCoaches(); openDialog('login')">{{ user.name || "Login" }}</a>
       </div>
     </div>
 
@@ -247,9 +247,9 @@
           <div class="coach">
             <div>
               <label class="form-check-label" for="coach">Coach:</label>
-              <select id="coach" v-model="user.coach" @change="updateArcher()">
-                <option v-for="coach in coaches" :value="coach">
-                  {{ coach }}
+              <select id="coach" v-model="user.coachId" @change="updateArcher()">
+                <option v-for="id in Object.keys(coaches)" :value="id">
+                  {{ coaches[id].given_name ||  coaches[id].name }}
                 </option>
               </select>
             </div>
@@ -273,9 +273,16 @@
           Hi, coaches!
           <ul>
             <li v-for="archer in allArchers">
+              <span style="padding-right: 1em">
+                <input type="checkbox" v-model="archer.isCoach"
+                       @change="updateArcher( archer )"
+                       :id="archer.id+'coach' "/>
+                <label class="form-check-label" :for="archer.id+'coach' ">is coach?</label>
+              </span>
               <a :href="archerUrl(archer.id)" @click="closeDialog($event )">
-                {{archer.name }} ({{ archer.coach}})
-            </a></li>
+                 {{ archer.name }} ({{ getCoachDisplayNameForArcher( archer ) }})
+              </a>
+            </li>
             <li><a :href="archerUrl(0)">Exit</a></li>
           </ul>
         </div>
