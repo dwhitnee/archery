@@ -55,7 +55,7 @@ a {
 }
 
 .weeklyInput {
-  background: #eee;
+  background: #eeec;
   border-radius: .25em;
   padding: .25em;
   margin: 0 1em;
@@ -142,7 +142,7 @@ a {
   transform: rotate(-45deg);
   top: 0;
   left: 15vw;
-  z-index: 50
+  z-index: -1;
 }
 
 .loading {

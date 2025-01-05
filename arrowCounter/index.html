@@ -132,8 +132,8 @@
           <div v-if="editing">
             Arrows:
             <input id="arrowInput" size=2 v-model.number="dataDisplay.arrows"
-                   @blur="editArrows()"
-                   @keyup.enter="event.target.blur()"
+                   @change="editArrows()"
+                   @blur="endEdit()"
                    @keydown.esc="endEdit()" />
           </div>
           <div v-else>

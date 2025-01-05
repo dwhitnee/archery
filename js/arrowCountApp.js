@@ -102,7 +102,9 @@ let app = new Vue({
     doEmailLogin: false,   // toggle to enter email address as userId
 
     isAdmin: false,
-    coachView: false,
+    coachView: null,      // archerId requested to view by coach
+    coachId: null,        // requesting coach
+
     teamView: undefined,
     teamViewWeek: undefined,
     allArchers: [{name:"Loading..."}],
@@ -295,6 +297,7 @@ let app = new Vue({
     // Coach view of an archer
     this.coachView = this.$route.query.user;
     if (this.coachView) {
+      this.coachId = this.$route.query.coach;
       await this.getArcher( this.coachView );
       if (this.user.id) {
         await this.getArcherData();
@@ -334,7 +337,7 @@ let app = new Vue({
 
         if (this.isLoggedInUserACoach() || this.isAdmin) {
           console.log("Coach view!");
-          // this.loadAllArchers();
+          // this.loadAllArchers(); // part of loadCoaches?
           this.loadCoaches();
           this.openDialog("coachView");
         }
@@ -383,7 +386,7 @@ let app = new Vue({
     archerUrl: function( archer ) {
       let url = document.location.origin + document.location.pathname;
       if (archer) {
-        url = url + "?user=" + archer;
+        url = url + "?user=" + archer + "&coach=" + this.user.id;
       }
       return url;
     },
@@ -766,9 +769,11 @@ let app = new Vue({
     // FIXME: how to store weekly scores, under data? indexed 0-51?
     //----------------------------------------
     async editScores( event, index ) {
-      if (this.coachView) { this.endEdit(); return; }
+      if (this.coachView && !this.canCoachEdit()) {
+        this.endEdit();
+        return;
+      }
       this.weekScores[index] = event.target.value|0;
-
       console.log("New score: " + this.weekScores[index] );
     },
 
@@ -784,7 +789,13 @@ let app = new Vue({
     },
 
     async saveNote( event ) {
-      if (this.coachView) { this.endEdit(); return; }
+      if (this.coachView && !this.canCoachEdit()) {
+        this.endEdit();
+        return;
+      }
+      if (this.coachView) {
+        this.weekGoals = "Coach: " + this.weekGoals;
+      }
 
       //this.weekGoals = event.target.innerText.trim(); // v-model doesn't work for contenteditable
 
@@ -798,7 +809,10 @@ let app = new Vue({
     // FIXME: tap on phone gives wrong location for text box (when in landscape (relative to top of whole page)
     //----------------------------------------
     async editArrows( event, index ) {
-      if (this.coachView) { this.endEdit(); return; }
+
+      if (this.coachView && !this.canCoachEdit()) {
+        this.endEdit(); return;
+      }
 
       // direct heatmap update (index is day of year)
       if (index === undefined) {
@@ -928,7 +942,7 @@ let app = new Vue({
     //----------------------------------------------------------------------
 
     //----------------------------------------
-    // on login, get what we know about this archer
+    // on login, get what we know about this archer and stuff it in "user" object
     //----------------------------------------
     async getArcher( userId ) {
       if (!userId) {
@@ -939,9 +953,9 @@ let app = new Vue({
         this.loadingData = true;
         let response = await fetch(serverURL + "archer?userId=" + userId );
         if (!response.ok) { throw await response.json(); }
-        let archer = await response.json();
-        if (archer.id) {
-          this.user = archer;
+        let result = await response.json();
+        if (result.id) {
+          this.user = result;
         }
       }
       catch( err ) {
@@ -950,6 +964,23 @@ let app = new Vue({
       this.loadingData = false;
     },
 
+    //----------------------------------------
+    // are coaches allowed to change other archer's data?
+    // should this be on a per-coach basis?
+    //----------------------------------------
+    canCoachEdit: function() {
+      // return false;
+      return true;
+    },
+
+    //----------------------------------------
+    // if logged in user is a coach, and the coach of the impersonated user
+    //----------------------------------------
+    isCoachFor: function( archerId ) {
+      return this.coachView && (this.user.coachId == this.coachId);
+    },
+
+    //----------------------------------------
     getCoachDisplayNameForArcher: function( archer ) {
       // coaches not loaded yet..
       if (Object.keys( this.coaches ).length < 2) {
@@ -1064,7 +1095,8 @@ let app = new Vue({
       }
 
       if (this.saveInProgress) { return; }
-      if (this.coachView) { return; }
+
+      if (this.coachView && !this.canCoachEdit()) { return; }
 
       console.log("changing archer to " + JSON.stringify( archer ));
 
@@ -1086,7 +1118,7 @@ let app = new Vue({
       }
       catch( err ) {
         console.error("Change name: " + JSON.stringify( err ));
-        alert("Try again. Change name failed " +
+        alert("Reload page? Change name failed " +
               Util.sadface + (err.message || err));
       }
 
@@ -1126,7 +1158,9 @@ let app = new Vue({
     // POST id=id&year=year&type=arrows&data=...
     //----------------------------------------
     async updateArcherData() {
-      if (this.coachView) { return; }
+      if (this.coachView && !this.canCoachEdit()) {
+        return;
+      }
 
       // if (!dataType) {
       //   console.error("called function wrong, no dataType");
@@ -1188,7 +1222,7 @@ let app = new Vue({
         if (!response.ok) { throw await response.json(); }
         this.allArchers = await response.json();
 
-        this.allArchers.sort((a, b) => (a.coach > b.coach));
+        this.allArchers.sort((a, b) => ('' + a.coachId).localeCompare(b.coachId));
       }
       catch (err) {
         console.err( err );
@@ -1291,4 +1325,4 @@ let app = new Vue({
     }
 
   },
-});
+                 });
