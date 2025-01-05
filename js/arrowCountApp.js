@@ -27,10 +27,6 @@
 
 // - data is lost when you login (if you were saving locally)
 
-// Edits can be made while page is loading. PREVENT. (disable week?)
-// Make "C"oach mode work only with authorized email address (check auth object)
-
-// Why is bullshit auth.auth.auth nesting happening in LocalStore?
 //----------------------------------------------------------------------
 //  OVERVIEW
 //----------------------------------------------------------------------

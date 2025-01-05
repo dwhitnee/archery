@@ -71,9 +71,9 @@
         <div class="day" v-for="(day,index) in days">
           <label :for="'day_'+day">{{ day }}</label>
           <input :id="'day_'+day" size=3 type="text" v-model.number="weekArrows[index]"
+                  :disabled="inProgress()"
                  @focus="event.target.select()"
-                 @blur="editArrows( event, index )"
-                 @keyup.enter="event.target.blur()"
+                 @change="editArrows( event, index )"
                  @keydown.esc="endEdit()"
           />
         </div>
@@ -90,9 +90,8 @@
         <input v-show="noteEditMode" id="notes" ref="notes" size=30 type="text"
                placeholder="what shall we do this week, Brain?"
                v-model="weekGoals"
-               @blur="saveNote()"
-               @keydown.esc="abortNoteEdit()"
-               @keypress.enter.prevent="event.target.blur()"  />
+               @change="saveNote()"
+               @keydown.esc="abortNoteEdit()" />
 
         <a href="#" @click="showAllGoals = !showAllGoals">Past goals</a>
 
@@ -112,7 +111,7 @@
         <div class="score" v-for="(score,index) in weekScores">
           <input id="'score1" size=2 type="text" v-model.number="weekScores[index]"
                  @focus="event.target.select()"
-                 @blur="editScores( event, index )"
+                 @change="editScores( event, index )"
                  @keyup.enter="event.target.blur()"
                  @keydown.esc="endEdit()"
           />
@@ -196,8 +195,7 @@
 
           <div class="name">Name:
             <input  v-model="user.name" size=10
-              @blur="updateArcher()"
-              @keyup.enter="event.target.blur()"
+              @change="updateArcher()"
               @focus="event.target.select()"/>
           </div>
 
@@ -235,8 +233,7 @@
               <div v-if="doEmailLogin">
                 <label for="'emailLogin">email:</label>
                 <input id="emailLogin" size=10 type="text"
-                       @blur="emailLogin( event.target.value )"
-                       @keyup.enter="event.target.blur()"/>
+                       @change="emailLogin( event.target.value )">
               </div>
               <button  v-if="!doEmailLogin" class="btn btn-primary btn-sm" @click="doEmailLogin=true">
                 Login with email
