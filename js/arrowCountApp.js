@@ -1188,7 +1188,7 @@ let app = new Vue({
         if (!response.ok) { throw await response.json(); }
         this.allArchers = await response.json();
 
-        this.allArchers.sort((a, b) => (a.coach > b.coach));
+        this.allArchers.sort((a, b) => ('' + a.coachId).localeCompare(b.coachId));
       }
       catch (err) {
         console.err( err );
