@@ -1132,9 +1132,11 @@ let app = new Vue({
         this.calcEndTotals( archer, end );
         await this.updateArcher( archer );      // running totals calculated here, too
 
+        // BUG: this causes a race when lots of bales are updating at once
+
         // monitor activity, so dead tournaments can be deactivated
-        this.tournament.lastArrowScoredDate = (new Date()).toISOString();
-        await this.saveTournament( this.tournament );
+        // this.tournament.lastArrowScoredDate = (new Date()).toISOString();
+        // await this.saveTournament( this.tournament );
 
         return true;
       } else {
