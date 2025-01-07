@@ -46,6 +46,8 @@
 //  - mail-in
 //  - 900 round
 
+// make over page reload 3 hours after initial page load? cookie? (can't store heartbeat in tournament without race condition
+
 // Home button - goes to tournament/ (with no id's)
 
 //  Backfill method
@@ -1021,6 +1023,7 @@ let app = new Vue({
 
     // for results page, keep up to date while tournament is in session
     doAutoReload: function( minutes ) {
+      // FIXME: make this 3 hours after initial page load? cookie?
       if (!this.isTournamentDone()) {
         setTimeout( function () { window.location.reload(); }, minutes*60*1000); // once a minute
       }
@@ -1135,6 +1138,8 @@ let app = new Vue({
         // BUG: this causes a race when lots of bales are updating at once
 
         // monitor activity, so dead tournaments can be deactivated
+        // Find a way to query all archers for last updated (expensive, once an hour?)
+        // or just reload for N hours and stop.
         // this.tournament.lastArrowScoredDate = (new Date()).toISOString();
         // await this.saveTournament( this.tournament );
 
@@ -1293,9 +1298,7 @@ let app = new Vue({
 
       this.newArcher = {};
 
-      // dismiss enclosing dialog
-      // this.dialogManager.closeCurrentDialog();
-      this.closeDialogElement( event.target.closest("dialog") );
+      this.closeDialog();
     },
 
     removeArcherFromBale: function( archer ) {
