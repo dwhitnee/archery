@@ -46,6 +46,8 @@
 //  - mail-in
 //  - 900 round
 
+// make over page reload 3 hours after initial page load? cookie? (can't store heartbeat in tournament without race condition
+
 // Home button - goes to tournament/ (with no id's)
 
 //  Backfill method
@@ -296,8 +298,8 @@ let app = new Vue({
 
     goneFishing: false,
     message: "Join a tournament",
-    saveInProgress: false,    // prevent other actions while this is going on
-    loadingData: false,    // prevent other actions while this is going on
+    saveInProgress: false,   // prevent other actions while this is going on
+    loadingData: false,      // prevent other actions while this is going on
     isAdmin: false,
     admin: { leagues: []},
     daysAgo: 30,          // for history pages
@@ -986,31 +988,38 @@ let app = new Vue({
 
     //----------------------------------------
     // if no arrows have been scored in the last 3 hours, this tournament is over
-    // lock it up and stop updating
+    // lock it up and stop updating.
     //----------------------------------------
     isTournamentExpired: function() {
-      if (this.tournament.lastArrowScoredDate) {
-        let threeHoursAgo = new Date();
-        threeHoursAgo.setMinutes( threeHoursAgo.getMinutes() - 180 );
-        return threeHoursAgo.toISOString() > this.tournament.lastArrowScoredDate;
-      } else {
-        return false;
-      }
+      let lastArrowScoredDate = "1970";
+
+      // iterate over all archers, check lastUpdated
+      this.archers.forEach( (archer) => {
+        if (archer.updatedDate > lastArrowScoredDate) {
+          lastArrowScoredDate = archer.updatedDate;
+        }
+      });
+
+      let threeHoursAgo = new Date();
+      threeHoursAgo.setMinutes( threeHoursAgo.getMinutes() - 180 );
+
+      return lastArrowScoredDate < threeHoursAgo.toISOString();
     },
 
-
-    // have all archers' arrows been scored
-    // Or has enough time elapsed since tournament start (how to tell? TODO)
+    //----------------------------------------
+    // have all archers' arrows been scored?
+    // Or has enough time elapsed since tournament start?
+    //----------------------------------------
     isTournamentDone: function() {
-      if (this.isTournamentExpired()) {
-        return true;    // data is stale
-      }
-
       if (!this.tournament.id) {
-        return false; // no tournament specified, must be  league overview
+        return false; // no tournament specified, must be a league overview
       }
 
-      // data is complete?
+      if (this.isTournamentExpired()) {
+        return true;    // tournament has not been updated in 3 hours
+      }
+
+      // TODO: data is complete? There's always that one incomplete archer, d'oh
       for (let i = 0; i < this.archers.length; i++) {
         if (this.archers[i].total.arrowCount != this.arrowsPerTournament()) {
           return false;
@@ -1019,11 +1028,17 @@ let app = new Vue({
       return true;
     },
 
-    // for results page, keep up to date while tournament is in session
+    //----------------------------------------
+    // reload page iff the tournament is still being scored
+    //----------------------------------------
     doAutoReload: function( minutes ) {
       if (!this.isTournamentDone()) {
-        setTimeout( function () { window.location.reload(); }, minutes*60*1000); // once a minute
+        setTimeout( function () { window.location.reload(); }, minutes*60*1000);
+        console.log("Tournament live, reloading in " + minutes + " minutes");
+      } else {
+        console.log("Tournament over. wont relaod page");
       }
+
     },
 
     //----------------------------------------
@@ -1131,12 +1146,6 @@ let app = new Vue({
         }
         this.calcEndTotals( archer, end );
         await this.updateArcher( archer );      // running totals calculated here, too
-
-        // BUG: this causes a race when lots of bales are updating at once
-
-        // monitor activity, so dead tournaments can be deactivated
-        // this.tournament.lastArrowScoredDate = (new Date()).toISOString();
-        // await this.saveTournament( this.tournament );
 
         return true;
       } else {
@@ -1293,9 +1302,7 @@ let app = new Vue({
 
       this.newArcher = {};
 
-      // dismiss enclosing dialog
-      // this.dialogManager.closeCurrentDialog();
-      this.closeDialogElement( event.target.closest("dialog") );
+      this.closeDialog();
     },
 
     removeArcherFromBale: function( archer ) {
