@@ -354,8 +354,15 @@
               {{ gender.full }}
             </option>
           </select>
-
         </div>
+
+        <div v-if="isAdmin">
+          <label class="form-check-label" for="isUnofficial">Unofficial round?</label>
+        </div>
+        <div v-if="isAdmin">
+          <input type="checkbox" id="isUnofficial" v-model="newArcher.isUnofficial"  />
+        </div>
+
         <button
             :disabled="!newArcher.name || !newArcher.bow || !newArcher.gender ||! newArcher.age || isArcherFinished( newArcher )"
             class="btn btn-primary btn-med" @click="addNewArcher(event )">
