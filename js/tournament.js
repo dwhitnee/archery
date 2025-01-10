@@ -1342,6 +1342,8 @@ let app = new Vue({
     // load leagues and tournaments from given days ago
     //----------------------------------------
     loadLeagueHistory: async function( daysAgo ) {
+      if (!daysAgo) { return; }
+
       // load all leagues and tournaments
       // put all tournaments in its league, league[0] is all other tournaments
       let leagues = [];
@@ -1355,7 +1357,9 @@ let app = new Vue({
 
       let tournaments = await this.loadTournamentsSince( daysAgo );
       tournaments.forEach(( tournament ) => {
-        leagues[tournament.leagueId|0].tournaments[tournament.id] = tournament;  // map by ID
+        if (leagues[tournament.leagueId|0]) {  // league could be older than N daysAgo, ignore
+          leagues[tournament.leagueId|0].tournaments[tournament.id] = tournament;  // map by ID
+        }
       });
 
       this.admin.leagues = leagues;  // don't return list, so this can be used from UI
@@ -1528,6 +1532,7 @@ let app = new Vue({
     // archer name for new league day
     // List of archers with weekly scores, overall score, current handicap
     // Create a virtual tournament object where the rounds are all the rounds shot in league
+    // exception: if a tournament is "unofficial" leave it off the league display
     //----------------------------------------
     getArchersForLeague: async function( leagueId ) {
       // list of archer records, archerId will be duplicated
@@ -1539,6 +1544,11 @@ let app = new Vue({
 
       archerRecords.forEach( (oneArcherDay) => {
         let id = oneArcherDay.name;   // name should be the same, id changes each day
+
+        if (oneArcherDay.isUnofficial) {  // don't use unoffical scores in league totals
+          return;
+        }
+
         for (let r=0; r < oneArcherDay.rounds.length; r++) {
           /* cache tournament info for later reference (admin link) */
           oneArcherDay.rounds[r].tournamentId = oneArcherDay.tournamentId;

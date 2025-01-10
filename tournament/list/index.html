@@ -67,8 +67,8 @@
       <h3>
         All Leagues in last
         <input type="number" size="2" v-model="daysAgo"
-               @blur="loadLeagueHistory( daysAgo )"
-               @keyup.enter.prevent="loadLeagueHistory( daysAgo )"></input>
+               @change="loadLeagueHistory( daysAgo )">
+        </input>
         days
       </h3>
       <!-- <v-treeview :items="admin.leagues"></v-treeview> -->
