@@ -1524,7 +1524,7 @@ let app = new Vue({
     //----------------------------------------
     calcHandicap: function( tournament, archer ) {
       let perfectScore = tournament.type.maxArrowScore * archer.total.arrowCount;
-      return .80 * (perfectScore - archer.total.score)/archer.total.arrowCount;
+      return 0.80 * (perfectScore - archer.total.score)/archer.total.arrowCount;
     },
 
     //----------------------------------------
