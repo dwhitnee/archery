@@ -87,6 +87,10 @@ a {
   text-decoration: inherit;
 }
 
+h3 .icon {
+  font-size: 50%;
+}
+
 .settings.icon {
   filter: inherit;  /* Make gear black, not white */
 }

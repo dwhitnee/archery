@@ -351,6 +351,7 @@ let app = new Vue({
       {full: "Female", abbrev: "F"}  // nope, not going there.
     ],
     ages: [
+      // { full: "Pee Wee (U8)", abbrev: "U8" },
       { full: "Cub (U12)", abbrev: "U12" },
       { full: "Youth (U15)", abbrev: "U15" },
       { full: "YA (U18)", abbrev: "U18" },
@@ -510,6 +511,19 @@ let app = new Vue({
     // admin override on any page
     if (window.location.href.match( /#admin/ )) {
       this.isAdmin = true;
+    }
+
+    // let create/ do double duty as edit/
+    if (window.location.pathname.match( /create/ )) {
+      let editTournamentId = this.$route.query.editTournament;
+      let editLeagueId = this.$route.query.editLeague;
+
+      if (editTournamentId) {
+        this.newTournament = await this.getTournamentById( editTournamentId );
+      }
+      if (editLeagueId) {
+        this.newLeague = await this.getLeagueById( editLeagueId );
+      }
     }
 
     // admin page
@@ -1236,7 +1250,8 @@ let app = new Vue({
     // save tournament to DB and redirect to tournament URL
     //----------------------------------------
     createTournament: async function( event ) {
-      this.newTournament.leagueId = this.league.id |0;
+      this.newTournament.leagueId = this.league.id | this.newTournament.leagueId | 0;
+
       await this.saveTournament( this.newTournament );
       this.tournament = this.newTournament;
 
@@ -1606,7 +1621,7 @@ let app = new Vue({
         // find and drop lowest score
         let mulligan = sortedRounds[totalRounds];
         if (mulligan) {
-          console.log("Mulligan is " + mulligan.score + "/" + mulligan.xCount);
+          console.log(archer.name + " mulligan is " + mulligan.score + "/" + mulligan.xCount);
           archer.rounds.forEach( (round) => {
             if ((round.score == mulligan.score) &&
                 (round.xCount == mulligan.xCount)) {
@@ -1745,15 +1760,15 @@ let app = new Vue({
         }
       });
 
-      outArchers.sort( this.compareArcherScores );
+      outArchers.sort( this.compareArcherTotals );
       return outArchers;
     },
 
-    // compare scores down to X count tiebreaker
-    compareArcherScores: function(a,b) {
+    // compare total scores down to X count tiebreaker
+    compareArcherTotals: function(a,b) {
       return this.compareArcherRounds( a.total, b.total );
     },
-    // compare scores down to X count tiebreaker
+    // compare round scores down to X count tiebreaker
     compareArcherRounds: function(a,b) {
       if (a.score != b.score) {
         return b.score - a.score;
