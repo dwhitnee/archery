@@ -240,9 +240,9 @@ let dev = true;  // if on a desktop (ie, not deployed) FIXME -create prod
 let localMode = false;
 
 // FIXME: prod lambda
-let serverURL = "https://CREATE_ME.execute-api.us-west-2.amazonaws.com/prod/";
+let ServerURL = "https://CREATE_ME.execute-api.us-west-2.amazonaws.com/prod/";
 if (dev) {
-  serverURL = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev/";
+  ServerURL = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev/";
 }
 
 Vue.filter('score', function (value) {
@@ -1918,7 +1918,7 @@ let app = new Vue({
 
       try {
         this.loadingData = true;
-        let response = await fetch(serverURL + serverCmd );
+        let response = await fetch( ServerURL + serverCmd );
         if (!response.ok) { throw await response.json(); }
         return await response.json();
       }
@@ -1975,7 +1975,7 @@ let app = new Vue({
 
         console.log("Updating " + objName + " " + obj.id);
 
-        let response = await fetch( serverURL + "update"+objName,
+        let response = await fetch( ServerURL + "update"+objName,
                                     Util.makeJsonPostParams( obj, timeout ));
         if (!response.ok) { throw await response.json(); }
 
