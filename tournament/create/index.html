@@ -67,10 +67,21 @@
         </select>
       </div>
 
+      <div>
+        <label class="form-check-label" for="tournyCreatedBy">Created by:</label>
+      </div>
+      <div>
+        <input size="30" type="text" id="tournyCreatedBy"
+               placeholder="Your name"
+               v-model.trim="newTournament.createdBy"  />
+      </div>
+
       <button class="btn btn-primary btn-sm" @click="createTournament( $event )"
-              :disabled=" !newTournament.name || !newTournament.type">
+              :disabled=" !newTournament.name || !newTournament.type || !newTournament.createdBy">
         Create Tournament
       </button>
+
+
     </div>
 
 
@@ -111,8 +122,17 @@
       <!--   <input type="checkbox" id="doMulligan" v-model.trim="newLeague.doMulligan"  /> -->
       <!-- </div> -->
 
+      <div>
+        <label class="form-check-label" for="leagueCreatedBy">Created by:</label>
+      </div>
+      <div>
+        <input size="30" type="text" id="leagueCreatedBy"
+               placeholder="Your name"
+               v-model.trim="newLeague.createdBy"  />
+      </div>
+
       <button class="btn btn-primary btn-sm" @click="createLeague( $event )"
-              :disabled=" !newLeague.name ||! newLeague.maxDays">
+              :disabled=" !newLeague.name ||! newLeague.maxDays || !newLeague.createdBy">
         Create League
       </button>
     </div>

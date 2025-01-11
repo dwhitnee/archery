@@ -94,6 +94,9 @@
       <h3>
         Bales for {{ tournament.name }}
       </h3>
+      <div class="center small">
+        Created by {{ tournament.createdBy }} {{tournament.createdDate }}
+      </div>
 
       <div class="resultsPage">
         <div v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )">

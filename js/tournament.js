@@ -513,14 +513,13 @@ let app = new Vue({
     }
 
     // admin page
-    if (window.location.href.match( /list.*#admin/ )) {
-      this.isAdmin = true;
+    if (window.location.href.match( /list/ ) && !tournamentId) {
       this.daysAgo = this.$route.query.days || this.daysAgo;  // how many days to load
-
       await this.loadLeagueHistory( this.daysAgo );
+    }
 
-      // league overview page
-    } else if (leagueId && !tournamentId && window.location.pathname.match( /overview/ )) {
+    // league overview page
+    if (leagueId && !tournamentId && window.location.pathname.match( /overview/ )) {
 
       // Display-wise, a league is like a "tournament" where each round is a tournament.
       this.tournament = {
