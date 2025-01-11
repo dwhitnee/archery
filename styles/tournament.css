@@ -282,6 +282,14 @@ h3 {
   text-align: center;
 }
 
+/* diagonal line through div */
+.dayScore:has(.mulligan) {
+  background: linear-gradient(to bottom right, #0000, #0000 48%, gray 48%, gray 52%, #0000 52%, #0000);
+}
+.mulligan {
+  opacity: 50%;
+}
+
 .round {
   display: table;
   width: 100%;
