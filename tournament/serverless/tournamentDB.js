@@ -107,10 +107,10 @@ module.exports = {
   //----------------------------------------
   getArcherAllResults: async function( archerName ) {
     let query =  "#name = :name";
-    let argNames =  { "#name": "name" };     // in case "name" is a reserved word
     let args =      { ":name": archerName };
+    let argNames =  { "#name": "name" };     // in case "name" is a reserved word
 
-    return await db.getRecordsBySecondaryIndex( ArcherTableName, ArcherNameIndex, query, args);
+    return await db.getRecordsBySecondaryIndex( ArcherTableName, ArcherNameIndex, query, args, argNames );
     // return await db.getRecordsByQuery( ArcherTableName, query, argNames, args );
   },
 
@@ -144,13 +144,13 @@ module.exports = {
   getTournamentByCodeAndDate: async function( code, date ) {
     let query = "#code = :code AND #date = :date";
 
-    let argNames =  {  // Naming variables avoids reserved words
-      "#code": "code",
-      "#date": "date"
-    };
     let args = {
       ":code": code,
       ":date": date
+    };
+    let argNames =  {  // Naming variables avoids reserved words
+      "#code": "code",
+      "#date": "date"
     };
 
     let results = await db.getRecordsBySecondaryIndex( TournamentTableName, TournamentCodeIndex,
@@ -167,8 +167,8 @@ module.exports = {
       return await db.getAllRecords( TournamentTableName );
     } else {
       let filter = "#createdDate > :date";
-      let argNames =  { "#createdDate": "createdDate" };
       let args = { ":date": date };
+      let argNames =  { "#createdDate": "createdDate" };
 
       let tournaments = await db.getRecordsByFilterScan( TournamentTableName,
                                                          filter, args, argNames );
@@ -220,8 +220,8 @@ module.exports = {
       return await db.getAllRecords( LeagueTableName );
     } else {
       let filter = "#createdDate > :date";
-      let argNames =  { "#createdDate": "createdDate" };  // Naming variables avoids reserved words
       let args = { ":date": date };
+      let argNames =  { "#createdDate": "createdDate" };  // Naming variables avoids reserved words
 
       let leagues = await db.getRecordsByFilterScan( LeagueTableName,
                                                      filter, args, argNames );
