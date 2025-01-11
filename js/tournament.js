@@ -1544,6 +1544,7 @@ let app = new Vue({
 
       archerRecords.forEach( (oneArcherDay) => {
         let id = oneArcherDay.name;   // name should be the same, id changes each day
+        oneArcherDay.total.average = oneArcherDay.total.score;
 
         if (oneArcherDay.isUnofficial) {  // don't use unoffical scores in league totals
           return;
@@ -1597,6 +1598,9 @@ let app = new Vue({
         archer.total.arrowCount += sortedRounds[i].arrowCount;
         // archer.total.handicap = this.calcHandicap( this.tournament, archer );
       }
+      // parseFloat gets rid of trailing zeros, toFixed limits trailing zeros to 1
+      archer.total.average = parseFloat(
+        (archer.total.score / Math.min( sortedRounds.length, totalRounds)).toFixed(1));
 
       if (league.doMulligan) {
         // find and drop lowest score
