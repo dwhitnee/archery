@@ -36,7 +36,7 @@
     <div v-if="loadingData" class="loading spinner-border spinner-border-lg"></div>
 
     <div class="createTournamentGrid">
-      <h3>Create New Tournament</h3>
+      <h3>{{ newTournament.id ? "Edit" :"Create New" }}  Tournament</h3>
 
       <div v-if="league.id" style="color: red; font-weight: bold">
         This tournament is part of league "{{ league.name }}"
@@ -49,7 +49,9 @@
         <label class="form-check-label" for="tournyDesc">Description:</label>
       </div>
       <div>
-        <input size="30" type="text" id="tournyDesc" placeholder="Example: Nock Point Tuesday Mail-in..."
+        <input type="text" id="tournyDesc"
+               placeholder="Example: Nock Point Tuesday Mail-in..."
+               style="width: 100%"
                v-model.trim="newTournament.name"  />
       </div>
 
@@ -78,7 +80,7 @@
 
       <button class="btn btn-primary btn-sm" @click="createTournament( $event )"
               :disabled=" !newTournament.name || !newTournament.type || !newTournament.createdBy">
-        Create Tournament
+        {{ newTournament.id ? "Edit" :"Create" }}  Tournament
       </button>
 
 
@@ -86,7 +88,9 @@
 
 
     <div class="createTournamentGrid">
-      <h3>Create New League</h3>
+      <h3>
+        {{ newLeague.id ? "Edit" :"Create New" }}  League
+      </h3>
       <div style="font-size: smaller; margin-bottom: 1em">
         A league is a collection of scoring tournaments that occur over
         several days. Create a new league tournament on the next page.
@@ -113,13 +117,13 @@
       </div>
 
       <div>
-        <label class="form-check-label" for="doHandicap">Calculate handicap?</label>
-        <input type="checkbox" id="doHandicap" v-model.trim="newLeague.doHandicap"  />
+        <label class="form-check-label" for="doMulligan">Drop lowest round from total?</label>
+        <input type="checkbox" id="doMulligan" v-model.trim="newLeague.doMulligan"  />
       </div>
 
       <div>
-        <label class="form-check-label" for="doMulligan">Drop lowest round from total?</label>
-        <input type="checkbox" id="doMulligan" v-model.trim="newLeague.doMulligan"  />
+        <label class="form-check-label" for="doHandicap">Calculate handicap?</label>
+        <input type="checkbox" id="doHandicap" v-model.trim="newLeague.doHandicap"  />
       </div>
 
       <div>
@@ -133,7 +137,7 @@
 
       <button class="btn btn-primary btn-sm" @click="createLeague( $event )"
               :disabled=" !newLeague.name ||! newLeague.maxDays || !newLeague.createdBy">
-        Create League
+        {{ newLeague.id ? "Edit" :"Create" }}  League
       </button>
     </div>
 

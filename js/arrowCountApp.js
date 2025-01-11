@@ -46,9 +46,9 @@
 
 let dev = false;  // if on a desktop (ie, not deployed)
 
-let serverURL = "https://ox5gprrilk.execute-api.us-west-2.amazonaws.com/prod/";
+let ServerURL = "https://ox5gprrilk.execute-api.us-west-2.amazonaws.com/prod/";
 if (dev) {
-  serverURL = "https://317bll5em3.execute-api.us-west-2.amazonaws.com/dev/";
+  ServerURL = "https://317bll5em3.execute-api.us-west-2.amazonaws.com/dev/";
 }
 
 
@@ -131,6 +131,7 @@ let app = new Vue({
     weekGoals: "",
     showAllGoals: false,
     noteEditMode: false,
+    tournamentScores: [],
 
     data: {
       arrows: [],      // 365 element list of data points. Need to translate for heatmap
@@ -249,14 +250,19 @@ let app = new Vue({
   },
 
   //----------------------------------------
-  // display format
+  // display formats
   //----------------------------------------
   filters: {
     minSecondsFormat: function( inSeconds ) {
       let seconds = inSeconds % 60;
       seconds = seconds < 10 ? "0"+seconds : seconds;
       return Math.floor( inSeconds/60 ) + ":" + seconds;
+    },
+    // truncate to max one decimal (or none if not needed)
+    averageFormat: function( value, precision ) {
+      return parseFloat( value.toFixed( precision|2 ));
     }
+
   },
 
   //----------------------------------------
@@ -466,6 +472,7 @@ let app = new Vue({
 
         // now load archer data (and nuke the local stuff)
         await this.getArcherData();
+        this.tournamentScores = await this.getTournamentScores();
 
         this.saveLocalArcher();
         // this.saveLocalArrowDB();  // @deprecated: remove this 9/1/2024
@@ -942,6 +949,44 @@ let app = new Vue({
     //----------------------------------------------------------------------
 
     //----------------------------------------
+    // call tournament server and see what's up
+    //----------------------------------------
+    async getTournamentScores() {
+      if (!this.user) {
+        console.log("No archer to load");
+        return null;
+      }
+      let tournamentServerUrl = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev/";
+
+      try {
+        this.loadingData = true;
+        let response = await fetch( tournamentServerUrl + "archerAllResults?name=" +
+                                    this.user.name );
+        if (!response.ok) { throw await response.json(); }
+        let results = await response.json();
+
+        let outScores = [];
+        results.forEach((result) => {
+          outScores.push( {
+            classification: result.bow + "-" + result.age + result.gender,
+            total: result.total,  // (score, arrowCount, xCount)
+            createdDate: new Date( result.createdDate ),
+            result: result
+          });
+        });
+        return outScores;
+      }
+      catch( err ) {
+        alert("Problem getting archer " + Util.sadface + (err.message || err));
+        return null;
+      }
+      finally {
+        this.loadingData = false;
+      }
+    },
+
+
+    //----------------------------------------
     // on login, get what we know about this archer and stuff it in "user" object
     //----------------------------------------
     async getArcher( userId ) {
@@ -951,7 +996,7 @@ let app = new Vue({
       }
       try {
         this.loadingData = true;
-        let response = await fetch(serverURL + "archer?userId=" + userId );
+        let response = await fetch( ServerURL + "archer?userId=" + userId );
         if (!response.ok) { throw await response.json(); }
         let result = await response.json();
         if (result.id) {
@@ -961,7 +1006,9 @@ let app = new Vue({
       catch( err ) {
         alert("Problem getting archer " + Util.sadface + (err.message || err));
       }
-      this.loadingData = false;
+      finally {
+        this.loadingData = false;
+      }
     },
 
     //----------------------------------------
@@ -1025,7 +1072,7 @@ let app = new Vue({
 
       try {
         this.loadingData = true;
-        let response = await fetch(serverURL + "archers?coach=" + coach );
+        let response = await fetch( ServerURL + "archers?coach=" + coach );
         if (!response.ok) { throw await response.json(); }
         let archers = await response.json();
         this.archerList = archers;
@@ -1033,7 +1080,9 @@ let app = new Vue({
       catch( err ) {
         alert("Problem getting archer list " + Util.sadface + (err.message || err));
       }
-      this.loadingData = false;
+      finally {
+        this.loadingData = false;
+      }
     },
 
 
@@ -1051,7 +1100,7 @@ let app = new Vue({
           outsideRequest = false;
         }
 
-        let response = await fetch(serverURL + "archerData?userId=" + id + "&year=" + this.year );
+        let response = await fetch( ServerURL + "archerData?userId=" + id + "&year=" + this.year );
         if (!response.ok) { throw await response.json(); }
         data = await response.json();
 
@@ -1066,7 +1115,9 @@ let app = new Vue({
       catch( err ) {
         alert("Problem getting archer " + Util.sadface + (err.message || err));
       }
-      this.loadingData = false || outsideRequest;
+      finally {
+        this.loadingData = false || outsideRequest;
+      }
 
       return data;
     },
@@ -1104,7 +1155,7 @@ let app = new Vue({
         this.saveInProgress = true;
         let postData = archer;
 
-        let response = await fetch( serverURL + "updateArcher",
+        let response = await fetch( ServerURL + "updateArcher",
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
 
@@ -1122,7 +1173,9 @@ let app = new Vue({
               Util.sadface + (err.message || err));
       }
 
-      this.saveInProgress = false;
+      finally {
+        this.saveInProgress = false;
+      }
     },
 
 
@@ -1185,7 +1238,7 @@ let app = new Vue({
           data: this.data,
         };
 
-        let response = await fetch( serverURL + "updateArcherData",
+        let response = await fetch( ServerURL + "updateArcherData",
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
 
@@ -1203,8 +1256,9 @@ let app = new Vue({
         alert("Reload page or try again. Data may be out of date. Update failed " +
               Util.sadface + (err.message || err));
       }
-
-      this.saveInProgress = false;
+      finally {
+        this.saveInProgress = false;
+      }
     },
 
 
@@ -1216,9 +1270,11 @@ let app = new Vue({
         return;   // been there done that.
       }
 
+      this.loadingData = true;
+
       // go get all archers for coach view
       try {
-        let response = await fetch(serverURL + "archers");
+        let response = await fetch( ServerURL + "archers");
         if (!response.ok) { throw await response.json(); }
         this.allArchers = await response.json();
 
@@ -1226,6 +1282,9 @@ let app = new Vue({
       }
       catch (err) {
         console.err( err );
+      }
+      finally {
+        this.loadingData = false;
       }
     },
 

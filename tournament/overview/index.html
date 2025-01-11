@@ -69,9 +69,9 @@
 
       <div class="resultsPage">
 
-        <h3 title="Export to CSV">
+        <h3 title="Download as CSV spreadsheet">
           {{ tournament.name || league.name }} results
-          <div class="icon saveIcon" style="font-size: 50%;" @click="exportToCSV( tournament)"></div>
+          <div class="icon saveIcon" @click="exportToCSV( tournament)"></div>
           <div class="small">
             [ {{ isTournamentDone() ? "complete" : "in progress"}} ]
           </div>
@@ -144,7 +144,7 @@
                     {{ archer.total.arrowCount }}/
                   </div>
                   <div v-else class="average">
-                    {{ archer.total.average }}
+                    {{ archer.total.average | averageFormat }}
                   </div>
                 </div>
               </div>
