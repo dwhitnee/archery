@@ -121,11 +121,17 @@
               <div class="rowLead">{{ archer.name }}</div>
               <div v-for="r in tournament.type.rounds" v-if="tournament.type.rounds > 1">
                 <div class="dayScore"
-                     @click="displayRounds = [archer.rounds[r-1]];
-                             currentRound = r; openDialog('scorecardDialog')">
-                     <!-- @click="if (admin) { location.href = getScoringGroupURL( archer.rounds[r-1] ); } "> -->
-                  <div v-if="archer.rounds[r-1]" class="score">{{ archer.rounds[r-1].score }}</div>
-                  <div v-if="archer.rounds[r-1]" class="score">{{ archer.rounds[r-1].xCount }}</div>
+                      @click="displayRounds = [archer.rounds[r-1]];
+                              currentRound = r; openDialog('scorecardDialog')">
+                  <!-- @click="if (admin) { location.href = getScoringGroupURL( archer.rounds[r-1] ); } "> -->
+                  <div v-if="archer.rounds[r-1]" class="score"
+                       :class="{ mulligan: archer.rounds[r-1].isMulligan }">
+                    {{ archer.rounds[r-1].score }}
+                  </div>
+                  <div v-if="archer.rounds[r-1]" class="score"
+                       :class="{ mulligan: archer.rounds[r-1].isMulligan }">
+                    {{ archer.rounds[r-1].xCount }}
+                  </div>
                 </div>
               </div>
               <div>

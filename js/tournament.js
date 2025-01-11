@@ -513,21 +513,21 @@ let app = new Vue({
     }
 
     // admin page
-    if (window.location.href.match( /list.*#admin/ )) {
-      this.isAdmin = true;
+    if (window.location.href.match( /list/ ) && !tournamentId) {
       this.daysAgo = this.$route.query.days || this.daysAgo;  // how many days to load
-
       await this.loadLeagueHistory( this.daysAgo );
+    }
 
-      // league overview page
-    } else if (leagueId && !tournamentId && window.location.pathname.match( /overview/ )) {
+    // league overview page
+    if (leagueId && !tournamentId && window.location.pathname.match( /overview/ )) {
 
       // Display-wise, a league is like a "tournament" where each round is a tournament.
       this.tournament = {
         name: this.league.name,      // make renderer and CSV happy
         type: { rounds: this.league.maxDays|0 }
       };
-      this.archers = await this.getArchersForLeague( leagueId );
+
+      this.archers = await this.getArchersForLeague( this.league );
       this.sortArchersForDisplay();
 
     } else if (tournamentId) {  // a tournament overview (group=0) or scoring page (group=N)
@@ -540,7 +540,7 @@ let app = new Vue({
         if (leagueId) {
           this.league = await this.getLeagueById( leagueId );  // redundant?
           // populate auto-complete map for current league archers
-          await this.getArchersForLeague( leagueId );
+          await this.getArchersForLeague( this.league );
         }
 
         // scoring bale page
@@ -1534,9 +1534,9 @@ let app = new Vue({
     // Create a virtual tournament object where the rounds are all the rounds shot in league
     // exception: if a tournament is "unofficial" leave it off the league display
     //----------------------------------------
-    getArchersForLeague: async function( leagueId ) {
+    getArchersForLeague: async function( league ) {
       // list of archer records, archerId will be duplicated
-      let archerRecords = await this.loadLeagueArchersFromDB( leagueId );
+      let archerRecords = await this.loadLeagueArchersFromDB( league.id );
 
       // what is best way to display archer, scores, total, and handicap?
       // for a handicap league there may not be archer classes, just one big list of archers
@@ -1559,10 +1559,7 @@ let app = new Vue({
         } else {
           // add this day's rounds and totals to the pile
           archers[id].rounds = archers[id].rounds.concat( oneArcherDay.rounds );
-          archers[id].total.score += oneArcherDay.total.score;
-          archers[id].total.xCount += oneArcherDay.total.xCount;
-          archers[id].total.arrowCount += oneArcherDay.total.arrowCount;
-          // archers[id].total.handicap = this.calcHandicap( this.tournament, archers[id] );
+          this.addUpArcherRounds( archers[id], league );
         }
       });
 
@@ -1576,6 +1573,45 @@ let app = new Vue({
       return [...Object.values( archers )];      // same asArray.from( archers.values() );
     },
 
+    //----------------------------------------
+    // given a list of rounds, total them all up.
+    // Used for leagues where all archer tournaments are treated as "rounds"
+    // Drop lowest score if needed.
+    //----------------------------------------
+    addUpArcherRounds: function( archer, league ) {
+      let totalRounds = league.maxDays;
+      if (league.doMulligan) {
+        totalRounds -= 1;  // skip lowest score
+      }
+
+      archer.total.score = 0;
+      archer.total.xCount = 0;
+      archer.total.arrowCount = 0;
+
+      // order rounds by quality so we can drop the worst
+      const sortedRounds = archer.rounds.toSorted( this.compareArcherRounds );
+      for (let i=0; i < totalRounds; i++) {
+        if (!sortedRounds[i]) { break; }
+        archer.total.score += sortedRounds[i].score;
+        archer.total.xCount += sortedRounds[i].xCount;
+        archer.total.arrowCount += sortedRounds[i].arrowCount;
+        // archer.total.handicap = this.calcHandicap( this.tournament, archer );
+      }
+
+      if (league.doMulligan) {
+        // find and drop lowest score
+        let mulligan = sortedRounds[totalRounds];
+        if (mulligan) {
+          console.log("Mulligan is " + mulligan.score + "/" + mulligan.xCount);
+          archer.rounds.forEach( (round) => {
+            if ((round.score == mulligan.score) &&
+                (round.xCount == mulligan.xCount)) {
+              round.isMulligan = true;
+            }
+          } );
+        }
+      }
+    },
 
     //----------------------------------------
     // update archer in DB.
@@ -1711,12 +1747,14 @@ let app = new Vue({
 
     // compare scores down to X count tiebreaker
     compareArcherScores: function(a,b) {
-      let at = a.total, bt = b.total;
-
-      if (at.score != bt.score) {
-        return bt.score - at.score;
+      return this.compareArcherRounds( a.total, b.total );
+    },
+    // compare scores down to X count tiebreaker
+    compareArcherRounds: function(a,b) {
+      if (a.score != b.score) {
+        return b.score - a.score;
       } else {
-        return bt.xCount - at.xCount;
+        return b.xCount - a.xCount;
       }
     },
 
