@@ -131,6 +131,7 @@ let app = new Vue({
     weekGoals: "",
     showAllGoals: false,
     noteEditMode: false,
+    tournamentScores: [],
 
     data: {
       arrows: [],      // 365 element list of data points. Need to translate for heatmap
@@ -249,14 +250,19 @@ let app = new Vue({
   },
 
   //----------------------------------------
-  // display format
+  // display formats
   //----------------------------------------
   filters: {
     minSecondsFormat: function( inSeconds ) {
       let seconds = inSeconds % 60;
       seconds = seconds < 10 ? "0"+seconds : seconds;
       return Math.floor( inSeconds/60 ) + ":" + seconds;
+    },
+    // truncate to max one decimal (or none if not needed)
+    averageFormat: function( value, precision ) {
+      return parseFloat( value.toFixed( precision|2 ));
     }
+
   },
 
   //----------------------------------------
@@ -466,6 +472,7 @@ let app = new Vue({
 
         // now load archer data (and nuke the local stuff)
         await this.getArcherData();
+        this.tournamentScores = await this.getTournamentScores();
 
         this.saveLocalArcher();
         // this.saveLocalArrowDB();  // @deprecated: remove this 9/1/2024
@@ -941,8 +948,11 @@ let app = new Vue({
     // SERVER CALLS
     //----------------------------------------------------------------------
 
-    async getAllScores( name ) {
-      if (!name) {
+    //----------------------------------------
+    // call tournament server and see what's up
+    //----------------------------------------
+    async getTournamentScores() {
+      if (!this.user) {
         console.log("No archer to load");
         return null;
       }
@@ -950,10 +960,21 @@ let app = new Vue({
 
       try {
         this.loadingData = true;
-        let response = await fetch( tournamentServerUrl + "archerAllResults?name=" + name );
+        let response = await fetch( tournamentServerUrl + "archerAllResults?name=" +
+                                    this.user.name );
         if (!response.ok) { throw await response.json(); }
-        let result = await response.json();
-        return result;
+        let results = await response.json();
+
+        let outScores = [];
+        results.forEach((result) => {
+          outScores.push( {
+            classification: result.bow + "-" + result.age + result.gender,
+            total: result.total,  // (score, arrowCount, xCount)
+            createdDate: new Date( result.createdDate ),
+            result: result
+          });
+        });
+        return outScores;
       }
       catch( err ) {
         alert("Problem getting archer " + Util.sadface + (err.message || err));

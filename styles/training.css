@@ -193,3 +193,25 @@ a {
 .editable[placeholder]:empty:focus:before {
   content: "";
 }
+
+.scores {
+  border: black solid 1px;
+  margin: 0 1em;
+  padding: 1em;
+  width: fit-content;
+}
+.scores ul {
+  padding-left: 0;
+}
+.scores li {
+  list-style-position: inside;
+  padding-inline-start: 1em;
+}
+.scores div {
+  font-weight: bold;
+  text-decoration: underline;
+}
+.scores span {
+  font-size: smaller;
+  color: gray;
+}

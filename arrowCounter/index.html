@@ -148,6 +148,24 @@
         <div class="icon saveIcon"></div>
         Download as spreadsheet (CSV)
         <div class="icon saveIcon"></div>
+      </a>
+
+      <div class="scores">
+        <ul>
+          <div>Recent Tournament Scores</div>
+          <li v-for="score in tournamentScores">
+            <a
+                :href="'https://dwhitnee.github.io/archery/tournament/overview/?id='
+                       + score.result.tournamentId">
+              {{ score.total.score }}/{{ score.total.xCount }}
+              <span>
+                ({{ score.total.arrowCount}} arrows,
+                {{ score.total.score / score.total.arrowCount | averageFormat }} avg)
+              </span>
+            </a>
+            <span>{{ score.createdDate.toLocaleDateString() }}</span>
+        </li>
+        </ul>
       </div>
 
       <div v-if="!teamViewWeek" style="padding: 2em;">
