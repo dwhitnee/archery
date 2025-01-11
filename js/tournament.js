@@ -457,6 +457,11 @@ let app = new Vue({
       let seconds = inSeconds % 60;
       seconds = seconds < 10 ? "0"+seconds : seconds;
       return Math.floor( inSeconds/60 ) + ":" + seconds;
+    },
+    // truncate to max one decimal (or none if not needed)
+    averageFormat: function( value, precision ) {
+      // parseFloat gets rid of trailing zeros, toFixed limits trailing zeros to 2
+      return parseFloat( value.toFixed( precision | 2 ));
     }
   },
 
@@ -1613,9 +1618,8 @@ let app = new Vue({
         archer.total.arrowCount += sortedRounds[i].arrowCount;
         // archer.total.handicap = this.calcHandicap( this.tournament, archer );
       }
-      // parseFloat gets rid of trailing zeros, toFixed limits trailing zeros to 1
-      archer.total.average = parseFloat(
-        (archer.total.score / Math.min( sortedRounds.length, totalRounds)).toFixed(1));
+      // ignore mulligan for average
+      archer.total.average = archer.total.score / Math.min( sortedRounds.length, totalRounds);
 
       if (league.doMulligan) {
         // find and drop lowest score
