@@ -465,3 +465,7 @@ h3 {
 .editable[placeholder]:empty:focus:before {
   content: "";
 }
+
+#showQRCode {
+  font-weight: bold;
+}

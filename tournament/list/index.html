@@ -92,7 +92,10 @@
 
     <div v-else>
       <h3>
-        Bales for {{ tournament.name }}
+        Bales for
+        <a :href="'../overview/?id=' + tournament.id">
+          {{ tournament.name }}
+        </a>
         <a :href="'../create/?editTournament=' + tournament.id">
           <div class="settings icon settingsIcon" title="Edit tournament info"></div>
         </a>
