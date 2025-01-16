@@ -305,12 +305,12 @@
     </dialog>
 
 
-    <!-- populate with archer names - link to classification as well? TODO-->
-    <!-- limit to archer names from the league? -->
+    <!-- populate with archer names/classes -->
+    <!-- limit to archer names from the region/venue -->
 
     <datalist id="archerNames">
-      <option v-for="name in Object.keys(leagueArchersMap)" :value="name"></option>
-      <option value="Chocolate"></option>
+      <option v-for="name in Object.keys(leagueArchersMap)" :value="name"> </option>
+     <option value="Chocolate"></option>
       <option value="Strawberry"></option>
       <option value="Liliko'i"></option>
     </datalist>
@@ -325,8 +325,9 @@
         <div><label for="archer">Name:</b></label></div>
         <div>
           <input id="archerName" size=20 type="text"
-                 list="archerNames" placeholder="Brady Ellison...."
+                 list="archerNames" placeholder="Merida MacGuffin...."
                  @change="prepopulateArcher()"
+                 @input="prepopulateArcher()"
                  v-model.trim="newArcher.name" />
         </div>
 
