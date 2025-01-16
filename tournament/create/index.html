@@ -38,6 +38,12 @@
     <div class="createTournamentGrid">
       <h3>{{ newTournament.id ? "Edit" :"Create New" }}  Tournament</h3>
 
+      <div style="text-align: right;">
+        <a href="https://github.com/dwhitnee/archery/tree/main/tournament#readme">
+          About...
+        </a>
+      </div>
+
       <div v-if="league.id" style="color: red; font-weight: bold">
         This tournament is part of league "{{ league.name }}"
         <a class="small" :href="location.origin+location.pathname">

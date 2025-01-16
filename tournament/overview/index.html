@@ -73,7 +73,7 @@
           {{ tournament.name || league.name }} results
           <div class="icon saveIcon" @click="exportToCSV( tournament)"></div>
           <div class="small">
-            [ {{ isTournamentDone() ? "complete" : "in progress"}} ]
+            {{ tournament.type.description }} [{{ isTournamentDone() ? "complete" : "in progress"}}]
           </div>
         </h3>
 
@@ -81,8 +81,9 @@
           <label class="form-check-label" for="ignoreAgeGender">Ignore age and gender?</label>
           <input type="checkbox" id="ignoreAgeGender"
                  v-model.trim="ignoreAgeGender" @change="toggleAgeGender()"  />
-        </div>
 
+          <div style="float: right; font-style: italic">Click scores for full scorecards</div>
+        </div>
         <!-- results like  https://drive.google.com/file/d/1Zmz_iE0EUlASVKqjfVHt3Yms-moM1g9b/view   -->
 
         <div class="table">
@@ -175,6 +176,11 @@
         </div>
         <div>
           <a v-if="league.id" :href="leagueResultsURL()">Overall League Results</a>
+        </div>
+        <div style="padding-top: 2em;">
+          <a href="https://github.com/dwhitnee/archery/tree/main/tournament#readme">
+            About This App
+          </a>
         </div>
 
       </div>

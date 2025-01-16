@@ -34,7 +34,9 @@ tournament round in the league.
  - Handles NFAA, Lancaster, and World Archery Indoor/Outdoor formats.
  - Web based, no apps required.
  - No pre-registration, set up your tournament while you are at the bale.
- - Does not handle user accounts, security, payments, or pre-arranged events (yet?).
+ - Live results ([example](https://dwhitnee.github.io/archery/tournament/overview/?leagueId=5))
+ - click scores to see full scorecard.
+ - NB: Does not handle user accounts, security, payments, or pre-arranged events (yet?).
 
 Scoring is done on a phone or tablet for each bale.
 The scores are stored in the cloud and can be viewed from any
