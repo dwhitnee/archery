@@ -264,6 +264,11 @@
         <div>
           <a v-if="league.id" :href="leagueResultsURL()">Overall League Results</a>
         </div>
+        <div style="padding-top: 2em;">
+          <a href="https://github.com/dwhitnee/archery/tree/main/tournament#readme">
+            About This App
+          </a>
+        </div>
 
       </div>
     </dialog>
@@ -272,34 +277,7 @@
     <dialog id="admin">
       <button class="close" @click="closeDialog( $event )"></button>
 
-      <div class="createTournamentGrid">
-        <h3>Create New Tournament</h3>
-
-        <div>
-          <label class="form-check-label" for="tournyDesc">Description:</label>
-        </div>
-        <div>
-          <input size="30" type="text" id="tournyDesc" placeholder="Example: Nock Point Tuesday Mail-in..."
-                 v-model.trim="tournament.name"  />
-        </div>
-
-        <div>
-          <label class="form-check-label" for="tournamentType">Type:</label>
-        </div>
-        <div>
-          <select id="tournamentType" v-model="tournament.type">
-            <option disabled value="">select one</option>
-            <option v-for="type in tournamentTypes" :value="type">
-              {{ type.description }} ({{ type.arrows}} arrows/{{ type.ends}} ends)
-              {{ type.rounds>1 ? "x " + type.rounds: "" }}
-            </option>
-          </select>
-        </div>
-
-        <button class="btn btn-primary btn-sm" @click="createTournament( $event )"
-                :disabled=" !tournament.name ||! tournament.type">
-          Create Tournament
-        </button>
+      Hello, admin.
 
       </div>
     </dialog>
