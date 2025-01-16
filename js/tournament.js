@@ -94,6 +94,7 @@
 //   How to implement "throw outs"?  Should "practice" vs "official" be a thing? Mulligans?
 //   Seems stupid. Do in spreadsheet after the fact...?
 
+// Case-insensitve getArcherAllResults? (sub-string)
 
 
 // == HOW TO HANDLE BAD CONNECTIONS ===
