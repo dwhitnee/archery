@@ -18,6 +18,7 @@ familiar if you have used such apps.
    Archer" for everyone on the bale.
    - You can drag archers to re-order them or tap/click an archer to edit.
 4. Click "Start Scoring" and tap the archer you want to score.
+5. Need an end timer? Try [this one](https://dwhitnee.github.io/archery/timer/)
 
 ### Create a League
 A league is just a collection of tournaments.
