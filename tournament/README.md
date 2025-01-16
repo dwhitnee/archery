@@ -1,27 +1,39 @@
-# Archery Apps
-Copyright (c) 2024 <a href="https://dwhitnee.github.io">David Whitney</a>
+# Archery Tournament Scorekeeper
+Copyright (c) 2024-2025 <a href="https://dwhitnee.github.io">David Whitney</a>
+
+[dwhitee.github.io/archery/tournament](https://dwhitnee.github.io/archery/tournament)
 
 ## About
 Keeps track of archer scores during a local tournament. Cloud based
 scoring viewable publically and instantly.
-
-## Archery Tournament Scorekeeper
-https://dwhitnee.github.io/archery/tournament
+This software is a simple web page where any group of archers can start an
+ad-hoc tournament or league easily and quickly. It is NOT designed as
+an Event Management solution like Ianseo, though it should look
+familiar if you have used such apps.
 
 ### Quick Start
 1. Click "New.." and create a tournament,
 2. Click the "gear" icon to see the tournament QR Code.
-3. Have one archer on each bale scan the QR Code and click "Add
-   Archer" for everyone on the bale. You can drag archers to re-order them.
+3. Have one archer on each bale be the scorer. They should scan the QR Code and click "Add
+   Archer" for everyone on the bale.
+   - You can drag archers to re-order them or tap/click an archer to edit.
 4. Click "Start Scoring" and tap the archer you want to score.
 
+### Create a League
+A league is just a collection of tournaments.
+1. Create a league by clicking "New..." and specify how many scoring rounds to include. You can
+optionally drop one score from the totals. The overview page will show
+running totals for all archers who have participated in any tournament
+in the league. Note that you must use the same name (exactly) for each
+tournament round in the league.
+2. Click "New..." again to create a tournament in the league and
+   proceed as above.
+
+### Features
  - Handles NFAA, Lancaster, and World Archery Indoor/Outdoor formats.
  - Web based, no apps required.
  - No pre-registration, set up your tournament while you are at the bale.
-
-This software is a simple web page where archers can start an
-ad-hoc tournament or league easily and quickly. It is NOT designed as
-an Event Management solution like Ianseo.
+ - Does not handle user accounts, security, payments, or pre-arranged events (yet?).
 
 Scoring is done on a phone or tablet for each bale.
 The scores are stored in the cloud and can be viewed from any
@@ -30,7 +42,7 @@ private LAN.
 
 
 ### Intent and audience
-It is aimed at local shoots where one just wants to start a scoring
+This is aimed at local shoots where one just wants to start a scoring
 round with a club or friends, and it does not require huge setup overhead like
 most of the scoring apps national organizations use
 like BowScore, Eyes on Score, BetweenEnds, or Ianseo.
