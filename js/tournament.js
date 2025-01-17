@@ -15,12 +15,14 @@
 //-----------------------------------------------------------------------
 //
 // DESIGN and INTENT
-//
-// This software is designed as a webapp where archers can start an
+
+// This software is designed as a web-only app where archers can start an
 // ad-hoc tournament or league easily and quickly. It is aimed at
 // local shoots where one just wants to start a scoring round with a
 // club or friends, and not require huge setup overhead like most of
 // the more popular scoring apps that national organizations use.
+//
+// ie, it is NOT an Event Management app (no money, user accounts
 //
 // It is a simple VueJS Javascript webapp, with an AWS Dynamo DB
 // backend for storage.  Scoring is done on a phone or tablet for each
@@ -139,6 +141,12 @@ GET https://sheets.googleapis.com/v4/spreadsheets/spreadsheetId/values/Sheet1
              ["Bingley", "10", "2", "0.0033"],
              ["Darcy", "14", "6", "0.0071"]]
 }
+
+Region TODO:
+An event belongs to a venue (eg, "Nock Point"), and venues belong to regions (eg, "WA")
+Archers belong to a region (for auto-complete)
+
+
 */
 
 
@@ -246,9 +254,13 @@ if (dev) {
   ServerURL = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev/";
 }
 
-Vue.filter('score', function (value) {
+Vue.filter('score', function (value, useSmileys) {
   if (value == null) {
     return "\u00A0";  // nbsp
+  }
+  if ((value == "M") && useSmileys) {
+    // https://en.wikipedia.org/wiki/Emoticons_(Unicode_block)
+    return "\u{1F616}"; // 03:😀 ☺ 10:😐 1C:😜 16: 😖
   } else {
     return value;
   }
@@ -345,7 +357,10 @@ let app = new Vue({
     currentRound: 0,
     isEndOfScoring: false,  // if this.archer has all arrows scored
 
-    ignoreAgeGender: false,  // if true, only "bow" matters not age or gender
+    prefs: {
+      ignoreAgeGender: false,  // if true, only "bow" matters not age or gender
+      useSmileys: true
+    },
 
     genders: [
       {full: "Male", abbrev: "M"},
@@ -419,6 +434,7 @@ let app = new Vue({
     showCredits: false,
     // version: "0.1"  // create a tournament
     version: "0.2"  // archer editable, league creation works
+    // version: "0.3"  // Events sorted by venue (and region?) with a "sandbox" venue
   },
 
   //----------------------------------------
@@ -461,8 +477,8 @@ let app = new Vue({
     },
     // truncate to max one decimal (or none if not needed)
     averageFormat: function( value, precision ) {
-      // parseFloat gets rid of trailing zeros, toFixed limits trailing zeros to 2
-      return parseFloat( value.toFixed( precision | 2 ));
+      // parseFloat gets rid of trailing zeros, toFixed limits trailing zeros
+      return parseFloat( value.toFixed( precision || 1 ));
     }
   },
 
@@ -495,8 +511,8 @@ let app = new Vue({
     }
 
     Util.setNamespace("TS_");  // tournamentScoring
-    // should this be a prefs object?
-    this.ignoreAgeGender = Util.loadData("ignoreAgeGender");
+
+    this.prefs = Util.loadData("prefs") || this.prefs;
 
     // weak auth - TODO, allow editing only if user came through bale creation page?
     this.displayOnly = false || this.$route.query.do;
@@ -1672,7 +1688,7 @@ let app = new Vue({
     getAllCompetitionClasses: function() {
       let outClasses = [];
 
-      if (this.ignoreAgeGender) {
+      if (this.prefs.ignoreAgeGender) {
         for (let b=0; b < this.bows.length; b++) {
           outClasses.push( { bow: this.bows[b] } );
         }
@@ -1697,15 +1713,19 @@ let app = new Vue({
     // Just for display, sorted by score.
     //----------------------------------------------------------------------
     getArchersByClass: function( cls ) {
-      if (this.ignoreAgeGender) {
+      if (this.prefs.ignoreAgeGender) {
         return this.sortedArchers[cls.bow.abbrev] || [];
       } else {      // FSLR-AF
         return this.sortedArchers[cls.bow.abbrev + "-" + cls.age.abbrev + cls.gender.abbrev] || [];
       }
     },
 
+    savePrefs: function() {
+      Util.saveData("prefs", this.prefs);
+    },
+
     toggleAgeGender: function() {
-      Util.saveData("ignoreAgeGender", this.ignoreAgeGender);
+      this.savePrefs();
       this.sortedArchers = [];
       this.sortArchersForDisplay();
     },
@@ -1714,7 +1734,7 @@ let app = new Vue({
     sortArchersForDisplay: function() {
       for (let b = 0; b < this.bows.length; b++) {
 
-        if (!this.ignoreAgeGender) {
+        if (!this.prefs.ignoreAgeGender) {
           for (let a = 0; a < this.ages.length; a++) {
             for (let g = 0; g < this.genders.length; g++) {
               const division =
@@ -1751,7 +1771,7 @@ let app = new Vue({
       let outArchers = [];
 
       this.archers.forEach(( archer ) => {
-        if (this.ignoreAgeGender) {           // ex: FSLR
+        if (this.prefs.ignoreAgeGender) {           // ex: FSLR
           if (archer.bow == bow.abbrev) {
             outArchers.push( archer );
           }
@@ -1840,7 +1860,7 @@ let app = new Vue({
           continue;
         }
         csv.push([]);
-        if (this.ignoreAgeGender) {
+        if (this.prefs.ignoreAgeGender) {
           csv.push( [cls.bow.full] );
         } else {
           csv.push( [cls.age.full + " " +
