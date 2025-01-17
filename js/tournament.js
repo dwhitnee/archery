@@ -515,6 +515,7 @@ let app = new Vue({
     Util.setNamespace("TS_");  // tournamentScoring
 
     this.prefs = Util.loadData("prefs") || this.prefs;
+    this.prefs.ignoreAgeGender = this.$route.query.ignoreAge || this.prefs.ignoreAgeGender;
 
     // weak auth - TODO, allow editing only if user came through bale creation page?
     this.displayOnly = false || this.$route.query.do;
