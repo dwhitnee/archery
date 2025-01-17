@@ -205,10 +205,10 @@
         <div v-for="(end,index) in round.ends" class="end">
           <div>{{ index+1 }}</div>
           <div v-for="arrow in end.arrows" class="arrowScore">
-            {{arrow | score( prefs.useSmileys) }}
+            {{arrow | score( prefs.missSmiley) }}
           </div>
-          <div class="score">{{ end.score             | score( prefs.useSmileys ) }}</div>
-          <div class="score">{{ end.runningTotal | score( prefs.useSmileys ) }}</div>
+          <div class="score">{{ end.score             | score( prefs.missSmiley ) }}</div>
+          <div class="score">{{ end.runningTotal | score( prefs.missSmiley ) }}</div>
         </div>
       </div>
 

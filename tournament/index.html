@@ -190,9 +190,9 @@
         <div v-for="(end,endNum) in round.ends" class="end"
              @click="scoreEnd( archer, end, endNum, roundNum )">
           <div>{{ endNum+1 }}</div>
-          <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow | score }} </div>
-          <div class="score">{{ end.score | score }}</div>
-          <div class="score">{{ end.runningTotal | score }}</div>
+          <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow | score( prefs.missSmiley) }} </div>
+          <div class="score">{{ end.score             | score( prefs.missSmiley ) }}</div>
+          <div class="score">{{ end.runningTotal | score( prefs.missSmiley ) }}</div>
         </div>
       </div>
     </div>
@@ -259,7 +259,7 @@
           Scan QR Code to score a new bale/group
         </div>
         <div id="qrcode">
-          <b>[ Join a tournament to see the scoring QR code ]</b>
+          [ Join a tournament to see the scoring QR code ]
         </div>
         <div>
           <a v-if="tournament.id" :href="resultsURL()">Live Tournament Results</a>
@@ -271,6 +271,17 @@
           <a href="https://github.com/dwhitnee/archery/tree/main/tournament#readme">
             About This App
           </a>
+        </div>
+
+        <div style="padding-top: 1em;">
+          Show misses as
+          <select id="missSmiley" v-model="prefs.missSmiley" @change="savePrefs()">
+            <option v-for="smiley in SMILEYS">
+              {{ smiley }}
+            </option>
+          </select>
+        </div>
+
         </div>
 
       </div>

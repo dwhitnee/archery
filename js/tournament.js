@@ -254,17 +254,19 @@ if (dev) {
   ServerURL = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev/";
 }
 
-Vue.filter('score', function (value, useSmileys) {
+Vue.filter('score', function (value, missSmiley) {
   if (value == null) {
     return "\u00A0";  // nbsp
   }
-  if ((value == "M") && useSmileys) {
+  if ((value == "M") && missSmiley) {
     // https://en.wikipedia.org/wiki/Emoticons_(Unicode_block)
-    return "\u{1F616}"; // 03:😀 ☺ 10:😐 1C:😜 16: 😖
+    return missSmiley; // "\u{1F616}"; // 03:😀 ☺ 10:😐 1C:😜 16: 😖
   } else {
     return value;
   }
 });
+
+const SMILEYS = ["M", "😀", "😐","😜","😖"];
 
 // const router = createRouter({
 //   history: createWebHistory(),
@@ -359,7 +361,7 @@ let app = new Vue({
 
     prefs: {
       ignoreAgeGender: false,  // if true, only "bow" matters not age or gender
-      useSmileys: true
+      missSmiley: "M"
     },
 
     genders: [
