@@ -85,7 +85,7 @@
         <label for="tournamentId"><b>Tournament code:</b></label>
         <input id="tournamentId" size=8 type="text" placeholder="XYZ..."
                v-model.trim="joinCode" @keyup.enter.prevent="joinTournament()" />
-        <button class="btn btn-primary btn-sm" @click="joinTournament()">
+        <button class="btn btn-primary btn-sm" @click="joinTournament()" :disabled="!joinCode">
           Join Tournament
         </button>
 
@@ -289,7 +289,7 @@
     <!-- limit to archer names from the region/venue -->
 
     <datalist id="archerNames">
-      <option v-for="name in Object.keys(leagueArchersMap)" :value="name"> </option>
+      <option v-for="name in Object.keys(leagueArchersMap).sort()" :value="name"> </option>
      <option value="Chocolate"></option>
       <option value="Strawberry"></option>
       <option value="Liliko'i"></option>
