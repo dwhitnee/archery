@@ -106,7 +106,9 @@
             <input size="10" type="text" id="groupName"
                    placeholder="e.g., Bale 6" v-model.trim="newGroupName"
                    @keyup.enter.prevent="setGroupName( )" />
-            <button class="btn btn-primary btn-sm" @click="setGroupName()">Save</button>
+            <button class="btn btn-primary btn-sm"
+                    :disabled="! newGroupName"
+                    @click="setGroupName()">Save</button>
           </div>
 
         </div>
