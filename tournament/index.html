@@ -191,8 +191,8 @@
              @click="scoreEnd( archer, end, endNum, roundNum )">
           <div>{{ endNum+1 }}</div>
           <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow | score( prefs.missSmiley) }} </div>
-          <div class="score">{{ end.score             | score( prefs.missSmiley ) }}</div>
-          <div class="score">{{ end.runningTotal | score( prefs.missSmiley ) }}</div>
+          <div class="score">{{ end.score | score }}</div>
+          <div class="score">{{ end.runningTotal | score }}</div>
         </div>
       </div>
     </div>

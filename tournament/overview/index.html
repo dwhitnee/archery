@@ -192,7 +192,12 @@
 
       <div v-for="(round, index) in displayRounds" class="round">
         <h3 style="display: table-caption; padding-left: 1em;">
-          round {{ currentRound || index+1 }}
+          <a v-if="round.tournamentId" :href="'./?id=' + round.tournamentId">
+            round {{ currentRound || index+1 }}
+          </a>
+          <span v-else>
+            round {{ currentRound || index+1 }}
+          </span>
         </h3>
 
         <div class="end" style="color: gray">
@@ -205,10 +210,10 @@
         <div v-for="(end,index) in round.ends" class="end">
           <div>{{ index+1 }}</div>
           <div v-for="arrow in end.arrows" class="arrowScore">
-            {{arrow | score( prefs.missSmiley) }}
+            {{ arrow | score( prefs.missSmiley) }}
           </div>
-          <div class="score">{{ end.score             | score( prefs.missSmiley ) }}</div>
-          <div class="score">{{ end.runningTotal | score( prefs.missSmiley ) }}</div>
+          <div class="score">{{ end.score | score }}</div>
+          <div class="score">{{ end.runningTotal | score }}</div>
         </div>
       </div>
 
