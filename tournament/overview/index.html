@@ -80,7 +80,7 @@
         <div style="padding-bottom: 1em">
           <label class="form-check-label" for="ignoreAgeGender">Ignore age and gender?</label>
           <input type="checkbox" id="ignoreAgeGender"
-                 v-model.trim="ignoreAgeGender" @change="toggleAgeGender()"  />
+                 v-model.trim="prefs.ignoreAgeGender" @change="toggleAgeGender()"  />
 
           <div style="float: right; font-style: italic">Click scores for full scorecards</div>
         </div>
@@ -109,7 +109,7 @@
         <div v-for="classification in getAllCompetitionClasses()">
 
           <div v-if="getArchersByClass( classification ).length" class="header">
-            <div v-if="ignoreAgeGender">
+            <div v-if="prefs.ignoreAgeGender">
               {{ classification.bow.full }}
             </div>
             <div v-else>
@@ -142,10 +142,10 @@
                   <div class="score">{{ archer.total.score }}</div>
                   <div class="score">{{ archer.total.xCount }}</div>
                   <div v-if="tournament && tournament.id" class="score small">
-                    {{ archer.total.arrowCount }}/
+                    {{ archer.total.arrowCount }}/{{ arrowsPerTournament()}}
                   </div>
                   <div v-else class="average">
-                    {{ archer.total.average | averageFormat }}
+                    {{ archer.total.average | averageFormat( 2 ) }}
                   </div>
                 </div>
               </div>
@@ -204,9 +204,11 @@
 
         <div v-for="(end,index) in round.ends" class="end">
           <div>{{ index+1 }}</div>
-          <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow | score }} </div>
-          <div class="score">{{ end.score | score }}</div>
-          <div class="score">{{ end.runningTotal | score }}</div>
+          <div v-for="arrow in end.arrows" class="arrowScore">
+            {{arrow | score( prefs.missSmiley) }}
+          </div>
+          <div class="score">{{ end.score             | score( prefs.missSmiley ) }}</div>
+          <div class="score">{{ end.runningTotal | score( prefs.missSmiley ) }}</div>
         </div>
       </div>
 

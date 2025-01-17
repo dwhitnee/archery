@@ -109,3 +109,14 @@ viewBox="0 0 512 512" xml:space="preserve"> \
     <rect x="0" y="0" width="36" height="36" fill-opacity="0"/> \
 </svg>');
 }
+
+/* https://www.svgrepo.com/svg/441173/emoji-smile */
+.smileyFaceIcon {
+  background-image: url('data:image/svg+xml;utf8,\
+  <svg width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="miter">\
+  <circle cx="12" cy="12" r="10"></circle>\
+  <line x1="8" y1="9" x2="8.01" y2="9" stroke-width="2" stroke-linecap="round"></line>\
+  <line x1="15.99" y1="9" x2="16" y2="9" stroke-width="2" stroke-linecap="round"></line>\
+  <path d="M16.61,14A5,5,0,0,1,14,16.61a5.07,5.07,0,0,1-3.9,0A5,5,0,0,1,7.39,14"></path>\
+</svg>');
+}
