@@ -204,7 +204,7 @@ h3 .icon {
 .icon {
   display: inline-block;
 }
-.archerList .icon {
+.archerList .reorderIcon {
   cursor: grab;
   margin-right: .5em;
   filter: invert(0);  /* maybe? */
@@ -220,7 +220,7 @@ h3 .icon {
   align-content: space-between;
   align-items: center;
 }
-.scoresheetHeader .icon {
+.returnIcon {
   margin-right: .25em;
   margin-top: .25em;
 }

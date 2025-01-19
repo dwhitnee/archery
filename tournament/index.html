@@ -140,7 +140,7 @@
             <button :disabled="!archers.length || updateInProgress()"
                      class="btn btn-primary btn-lg"
                      id="scoringGroupStartButton" @click="startScoring()">
-              Start Scoring
+              Go To Scoring
             </button>
           </div>
         </div>
@@ -149,11 +149,13 @@
 
     <!-- List of archers in the scoring group - click to enter scores for a single archer -->
     <div v-if="isMode( ViewMode.ARCHER_LIST )" class="archerList">
-      Scoring group: {{ this.groupName }}
+      Scoring group:<b>{{ this.groupName }}</b>
+      <button @click="window.location.reload()">
+        <div class="icon returnIcon"></div>
+      </button>
       <div class="scoreLine header">
         <div>
           Name
-          <div class="icon reorderIcon" @click="window.location.reload()"></div>
         </div>
         <div class="center">Score</div>
         <div>X</div>
@@ -191,8 +193,8 @@
              @click="scoreEnd( archer, end, endNum, roundNum )">
           <div>{{ endNum+1 }}</div>
           <div v-for="arrow in end.arrows" class="arrowScore"> {{ arrow | score( prefs.missSmiley) }} </div>
-          <div class="score">{{ end.score             | score( prefs.missSmiley ) }}</div>
-          <div class="score">{{ end.runningTotal | score( prefs.missSmiley ) }}</div>
+          <div class="score">{{ end.score | score }}</div>
+          <div class="score">{{ end.runningTotal | score }}</div>
         </div>
       </div>
     </div>
