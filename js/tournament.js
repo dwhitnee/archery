@@ -97,6 +97,10 @@
 //   Seems stupid. Do in spreadsheet after the fact...?
 
 // Case-insensitve getArcherAllResults? (sub-string)
+//    save archer.name and archer.lower_name
+//    match auto-complete to lower_name? Does it matter with auto-complete? no
+//    if lower match found, then what? Take older name? could be wrong
+//    How to automate name cleanup.  Auto capitalize names? hmm
 
 
 // == HOW TO HANDLE BAD CONNECTIONS ===
@@ -142,10 +146,20 @@ GET https://sheets.googleapis.com/v4/spreadsheets/spreadsheetId/values/Sheet1
              ["Darcy", "14", "6", "0.0071"]]
 }
 
-Region TODO:
-An event belongs to a venue (eg, "Nock Point"), and venues belong to regions (eg, "WA")
-Archers belong to a region (for auto-complete)
+ Regions TODO:
+  - A tournament/league belongs to a venue (eg, "Nock Point"), and venues belong to regions (eg, "WA")
+  - Archers belong to a region (for auto-complete)
+Use case:
+  - display all regions, venues in tree view.
+  - leagues by region (and date range)
+  - tournaments by region (and date range)
+  - tournaments by venue (and date range)
+  - archers by region (recently?)
+  - create tournament at venue (and region)
 
+Are you part of WSAA or a resident of WA? resident.
+
+  Does archer need search_term
 
 */
 
@@ -165,9 +179,12 @@ Archers belong to a region (for auto-complete)
       date: "1/1/2024", // secondary HK with code
       code: "XYZ",      // secondary Index on code and date (to replace tournamentCodes)
 
-      leagueId: 0,      // if part of a multiday event (mail in, league, multiday?)
+      leagueId: 6,      // if part of a multiday event (mail in, league, multiday?)
       description: "Peanut Farmer 1000",
       type: { "WA 300", ends: 10, arrows: 3, rounds: 1 }
+
+      venue: 1,   // "Nock Point", ("WCW", "Silver Arrow")
+      region: 42  // Washington
     }
 
     // SELECT id from TOURNAMENTS where leagueId=6;
@@ -346,9 +363,11 @@ let app = new Vue({
     newGroupName: "",  // temp for data entry
     groupName: "",     // immutable key for this scoring group
 
-    newArcher: {},      // candidate new archer data model for UI before saving
-    newTournament: {},  // /create - model for UI before saving
-    newLeague: {},      // /create - model for UI before saving
+    newArcher: {},       // candidate new archer data model for UI before saving
+    newTournament: {},   // /create - model for UI before saving
+    newLeague: {},       // /create - model for UI before saving
+    regionVenuePair: [], // [regionId, venueId] for new tournament/league
+
     nextSequenceId: 0,  // ID just for local testing
 
     archer: {},     // current archer for ScoreSheet
@@ -360,6 +379,8 @@ let app = new Vue({
     isEndOfScoring: false,  // if this.archer has all arrows scored
 
     prefs: {
+      regionId: 1,   // sandbox by default
+      venueId: 1,    // sandbox by default
       ignoreAgeGender: false,  // if true, only "bow" matters not age or gender
       missSmiley: "M"
     },
@@ -391,11 +412,11 @@ let app = new Vue({
 
     tournamentTypes: [   // TODO: add a "roll your own" here?
       {
-        description: "WA Indoor 300",
+        description: "WA/Vegas 300",
         arrows: 3, ends: 10, maxArrowScore: 10, rounds:1, swapTargetsEnd: 5
       },
       {
-        description: "WA indoor 600",   // One day of an Indoor FITA (use league for 2-day)
+        description: "WA Indoor 600",   // One day of an Indoor FITA (use league for 2-day)
         arrows: 3, ends: 10, maxArrowScore: 10, rounds: 2
       },
       {
@@ -408,13 +429,18 @@ let app = new Vue({
         arrows: 5, ends: 12, maxArrowScore: 5, rounds: 1, swapTargetsEnd: 6
       },
       {
-        description: "Outdoor 720",
+        description: "WA Outdoor 720",
         arrows: 6, ends: 6, maxArrowScore: 10, rounds: 2
       },
       {
-        description: "American 900",
+        description: "NFAA 900",
         arrows: 6, ends: 5, maxArrowScore: 10, rounds: 3
-      }
+      },
+      {
+        description: "NFAA Classic 600",
+        arrows: 5, ends: 4, maxArrowScore: 10, rounds: 3
+      },
+
       // {
       //   description: "Blueface 300 x2",   // League?
       //   arrows: 5, ends: 12, maxArrowScore: 5, rounds: 2
@@ -430,6 +456,16 @@ let app = new Vue({
       //   description: "WA indoor 1200",    // FITA or National (this would be a "League")
       //   arrows: 3, ends: 10, maxArrowScore: 10, rounds: 4,
       // },
+    ],
+    regions: [   // regions.find( o => { o.id == 42 });
+      { id: 1, name: "Test", venues: [{ id: 1, name: "Sandbox" }] },
+      { id: 2, name: "Washington", venues: [
+        { id: 1, name: "Nock Point" },
+        { id: 2, name: "WCW" },
+        { id: 3, name: "Silver Arrow" },
+        { id: 4, name: "KBH" },
+        { id: 5, name: "Skookum" }
+      ]}
     ],
 
 
@@ -514,8 +550,12 @@ let app = new Vue({
 
     Util.setNamespace("TS_");  // tournamentScoring
 
-    this.prefs = Util.loadData("prefs") || this.prefs;
+    this.loadPrefs();
+
     this.prefs.ignoreAgeGender = this.$route.query.ignoreAge || this.prefs.ignoreAgeGender;
+    this.setRegionAndVenue( this.$route.query.regionId || this.getRegion(),
+                            this.$route.query.venueId  || this.getVenue() );
+    this.regionVenuePair = [this.getRegion(), this.getVenue()];
 
     // weak auth - TODO, allow editing only if user came through bale creation page?
     this.displayOnly = false || this.$route.query.do;
@@ -1276,6 +1316,8 @@ let app = new Vue({
     //----------------------------------------
     createTournament: async function( event ) {
       this.newTournament.leagueId = this.league.id | this.newTournament.leagueId | 0;
+      this.newTournament.regionId = this.getRegion();
+      this.newTournament.venueId  = this.getVenue();
 
       await this.saveTournament( this.newTournament );
       this.tournament = this.newTournament;
@@ -1299,6 +1341,8 @@ let app = new Vue({
     },
 
     prepopulateArcher: function() {
+      this.newArcher.name = Util.capitalizeWords( this.newArcher.name );
+
       let existingArcher = this.leagueArchersMap[this.newArcher.name];
 
       if (existingArcher) {
@@ -1326,6 +1370,8 @@ let app = new Vue({
 
       archer.tournamentId = this.tournament.id;
       archer.scoringGroup = this.groupName;
+
+      archer.name = Util.capitalizeWords( archer.name );
 
       if (!this.archerInitialized( archer )) {         // create new archer
         this.initArcher( archer, this.tournament );
@@ -1723,8 +1769,34 @@ let app = new Vue({
       }
     },
 
+    //----------------------------------------
+    // PREFS
+    //----------------------------------------
+    loadPrefs: function() {
+      // merge cached prefs into defaults
+      this.prefs = {...this.prefs, ...Util.loadData("prefs")};
+    },
     savePrefs: function() {
       Util.saveData("prefs", this.prefs);
+    },
+    getVenue: function() {
+      return this.prefs.venueId;
+    },
+    getRegion: function() {
+      return this.prefs.regionId;
+    },
+    // save region and venue from select option array
+    parseRegionAndVenueMenu: function() {
+      if (!this.regionVenuePair) {
+        this.regionVenuePair = [];
+      }
+      this.setRegionAndVenue( this.regionVenuePair[0] || 0,
+                              this.regionVenuePair[1] || 0);
+    },
+    setRegionAndVenue: function( regionId, venueId ) {
+      this.prefs.regionId = regionId;
+      this.prefs.venueId  = venueId;
+      this.savePrefs();
     },
 
     toggleAgeGender: function() {
@@ -1732,6 +1804,7 @@ let app = new Vue({
       this.sortedArchers = [];
       this.sortArchersForDisplay();
     },
+
 
     // either split this array by Bow, or by Bow-Age-Gender
     sortArchersForDisplay: function() {
@@ -1898,7 +1971,8 @@ let app = new Vue({
     async loadTournamentsSince( daysAgo ) {
       let date = new Date();
       date.setMinutes( date.getMinutes() - 60*24*daysAgo );
-      let serverCmd = "tournaments?date=" + date.toISOString();
+      let serverCmd = "tournaments?date=" + date.toISOString() +
+          "&regionId=" + this.getRegion();
       return await this.loadObjectsFromDB( serverCmd );
     },
     //----------------------------------------
@@ -1906,7 +1980,7 @@ let app = new Vue({
     // in an ad-hoc tournament the code will turn into an ID upon creation
     //----------------------------------------
     async loadTournamentByIdFromDB( id ) {
-      return await this.loadObjectsFromDB( "tournament?id=" + id );
+      return await this.loadObjectsFromDB("tournament?id=" + id );
     },
     //----------------------------------------
     // load all archers in this tournament and/or on a given bale (scoring group)
@@ -1917,7 +1991,8 @@ let app = new Vue({
     async loadLeaguesSince( daysAgo ) {
       let date = new Date();
       date.setMinutes( date.getMinutes() - 60*24*daysAgo );
-      let serverCmd = "leagues?date=" + date.toISOString();
+      let serverCmd = "leagues?date=" + date.toISOString() +
+                "&regionId=" + this.getRegion();
       return await this.loadObjectsFromDB( serverCmd );
     },
     //----------------------------------------
