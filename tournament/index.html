@@ -205,7 +205,7 @@
       <div class="archerName">end {{ currentEnd+1 }} </div>
       <div class="arrows">
         <div v-for="arrow in scoringEnd.arrows" class="arrowScore">
-          {{ arrow | score }}
+          {{ arrow | score( prefs.missSmiley) }}
         </div>
         <div class="arrowScore arrowTotals">{{ scoringEnd.score }}</div>
         <div class="arrowScore arrowTotals">{{ scoringEnd.runningTotal }}</div>
