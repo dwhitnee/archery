@@ -266,7 +266,7 @@ Vue.filter('score', function (value, missSmiley) {
   }
 });
 
-const SMILEYS = ["M", "😀", "😐","😜","😖"];
+const SMILEYS = ["M", "😀", "😐","😜","😖","💩"];
 
 // const router = createRouter({
 //   history: createWebHistory(),
