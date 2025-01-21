@@ -80,10 +80,11 @@
         <div style="padding-bottom: 1em">
           <label class="form-check-label" for="ignoreAgeGender">Ignore age and gender?</label>
           <input type="checkbox" id="ignoreAgeGender"
-                 v-model.trim="prefs.ignoreAgeGender" @change="toggleAgeGender()"  />
+                 v-model.trim="prefs.ignoreAgeGender" @change="resetScoreDisplay()"  />
 
           <div style="float: right; font-style: italic">Click scores for full scorecards</div>
         </div>
+
         <!-- results like  https://drive.google.com/file/d/1Zmz_iE0EUlASVKqjfVHt3Yms-moM1g9b/view   -->
 
         <div class="table">
