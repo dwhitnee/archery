@@ -382,7 +382,10 @@ let app = new Vue({
       regionId: 1,   // sandbox by default
       venueId: 1,    // sandbox by default
       ignoreAgeGender: false,  // if true, only "bow" matters not age or gender
-      missSmiley: "M"
+      missSmiley: "M",
+    },
+    tempPrefs: {
+      includeUnofficial: false   // leave unofficial scores out of league totals
     },
 
     genders: [
@@ -556,6 +559,9 @@ let app = new Vue({
     this.setRegionAndVenue( this.$route.query.regionId || this.getRegion(),
                             this.$route.query.venueId  || this.getVenue() );
     this.regionVenuePair = [this.getRegion(), this.getVenue()];
+
+    this.tempPrefs.includeUnofficial =
+      this.$route.query.includeUnofficial || this.tempPrefs.includeUnofficial;
 
     // weak auth - TODO, allow editing only if user came through bale creation page?
     this.displayOnly = false || this.$route.query.do;
@@ -1632,7 +1638,8 @@ let app = new Vue({
         let id = oneArcherDay.name;   // name should be the same, id changes each day
         oneArcherDay.total.average = oneArcherDay.total.score;
 
-        if (oneArcherDay.isUnofficial) {  // don't use unoffical scores in league totals
+        // don't use unoffical scores in league totals
+        if (oneArcherDay.isUnofficial && !this.tempPrefs.includeUnofficial) {
           return;
         }
 
@@ -1799,7 +1806,8 @@ let app = new Vue({
       this.savePrefs();
     },
 
-    toggleAgeGender: function() {
+    // reorder archers for display purposes based on new prefs
+    resetScoreDisplay: function() {
       this.savePrefs();
       this.sortedArchers = [];
       this.sortArchersForDisplay();
