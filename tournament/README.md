@@ -1,4 +1,4 @@
-# Archery Tournament Scorekeeper
+# Instant Archery Tournament Scorekeeper
 Copyright (c) 2024-2025 <a href="https://dwhitnee.github.io">David Whitney</a>
 
 [dwhitee.github.io/archery/tournament](https://dwhitnee.github.io/archery/tournament)
@@ -8,7 +8,7 @@ Keeps track of archer scores during a local tournament. Cloud based
 scoring viewable publically and instantly.
 This software is a simple web page where any group of archers can start an
 ad-hoc tournament or league easily and quickly. It is NOT designed as
-an Event Management solution like Ianseo, though it should look
+an Event Management solution like Ianseo/BetweenEnds, though it should look
 familiar if you have used such apps.
 
 ### Quick Start
@@ -56,6 +56,8 @@ backend for storage.
 
 ### Credits
 All code written and directed by David Whitney.
+
+Stress testing by the crowd at the Nock Point and Next Step Archery in Seattle
 
 Got a feature request or a bug?  Please add an Issue in github.
 https://github.com/dwhitnee/archery/issues
