@@ -79,8 +79,6 @@
 
 // League archer merge? (ui? just change name?)
 
-// Prod CORS on API-Gateway
-
 // Error handling: try/catch on awaits on DB side?
 
 //   Handicap system? (only on League?) end handicap = 80% * score/arrows * arrowsPerEnd
@@ -242,6 +240,7 @@ archer (so name can be changed, necessary? Old item destroyed, I think that's OK
  }
 */
 //  ----------------------------------------------------------------------
+
 
 // AWS Lambda serverless API deployment endpoint
 
