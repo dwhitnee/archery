@@ -245,11 +245,11 @@ archer (so name can be changed, necessary? Old item destroyed, I think that's OK
 
 // AWS Lambda serverless API deployment endpoint
 
-let dev = true;  // if on a desktop (ie, not deployed) FIXME -create prod
+let dev = false;  // if on a desktop (ie, not deployed) FIXME -create prod
 let localMode = false;
 
 // FIXME: prod lambda
-let ServerURL = "https://CREATE_ME.execute-api.us-west-2.amazonaws.com/prod/";
+let ServerURL = "https://aw9hsx9toi.execute-api.us-west-2.amazonaws.com/prod/";
 if (dev) {
   ServerURL = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev/";
 }
