@@ -315,8 +315,8 @@
     <!-- limit to archer names from the region/venue -->
 
     <datalist id="archerNames">
-      <option v-for="name in Object.keys(leagueArchersMap).sort()" :value="name"> </option>
-     <option value="Chocolate"></option>
+      <option v-for="name in Object.keys( allArchersInRegion).sort()" :value="name"> </option>
+      <option value="Chocolate"></option>
       <option value="Strawberry"></option>
       <option value="Liliko'i"></option>
     </datalist>

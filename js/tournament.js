@@ -79,8 +79,6 @@
 
 // League archer merge? (ui? just change name?)
 
-// Prod CORS on API-Gateway
-
 // Error handling: try/catch on awaits on DB side?
 
 //   Handicap system? (only on League?) end handicap = 80% * score/arrows * arrowsPerEnd
@@ -146,21 +144,14 @@ GET https://sheets.googleapis.com/v4/spreadsheets/spreadsheetId/values/Sheet1
              ["Darcy", "14", "6", "0.0071"]]
 }
 
- Regions TODO:
+ Regions:
   - A tournament/league belongs to a venue (eg, "Nock Point"), and venues belong to regions (eg, "WA")
-  - Archers belong to a region (for auto-complete)
-Use case:
-  - display all regions, venues in tree view.
-  - leagues by region (and date range)
-  - tournaments by region (and date range)
-  - tournaments by venue (and date range)
-  - archers by region (recently?)
-  - create tournament at venue (and region)
+  getVenuesByRegion         /venues?regionId=2    TODO: needed?
 
-Are you part of WSAA or a resident of WA? resident.
+  Are you part of WSAA or a resident of WA? resident.
 
-  Does archer need search_term
-
+  Does archer need lower_name? What use case? part of auto-complete?
+  Create "David whitney" and "David Whitney" does first archer get changed? Not really
 */
 
 
@@ -262,11 +253,11 @@ archer (so name can be changed, necessary? Old item destroyed, I think that's OK
 
 // AWS Lambda serverless API deployment endpoint
 
-let dev = true;  // if on a desktop (ie, not deployed) FIXME -create prod
+let dev = true;  // if on a desktop (ie, not deployed)
 let localMode = false;
 
-// FIXME: prod lambda
-let ServerURL = "https://CREATE_ME.execute-api.us-west-2.amazonaws.com/prod/";
+// prod lambda
+let ServerURL = "https://aw9hsx9toi.execute-api.us-west-2.amazonaws.com/prod/";
 if (dev) {
   ServerURL = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev/";
 }
@@ -358,7 +349,7 @@ let app = new Vue({
 
     archers: [],           // on a particular bale (scoring group)
     sortedArchers: [],     // For display only (broken down by division [FSLR-AF])
-    leagueArchersMap: [],  // for auto-complete (all current archers in this league)
+    allArchersInRegion: [],  // for auto-complete (all current archers in this league)
 
     newGroupName: "",  // temp for data entry
     groupName: "",     // immutable key for this scoring group
@@ -367,6 +358,8 @@ let app = new Vue({
     newTournament: {},   // /create - model for UI before saving
     newLeague: {},       // /create - model for UI before saving
     regionVenuePair: [], // [regionId, venueId] for new tournament/league
+    newRegion: {},
+    newVenue: {},
 
     nextSequenceId: 0,  // ID just for local testing
 
@@ -460,22 +453,18 @@ let app = new Vue({
       //   arrows: 3, ends: 10, maxArrowScore: 10, rounds: 4,
       // },
     ],
-    regions: [   // regions.find( o => { o.id == 42 });
+    regions: [   // Now in DB
       { id: 1, name: "Test", venues: [{ id: 1, name: "Sandbox" }] },
       { id: 2, name: "Washington", venues: [
-        { id: 1, name: "Nock Point" },
-        { id: 2, name: "WCW" },
-        { id: 3, name: "Silver Arrow" },
-        { id: 4, name: "KBH" },
-        { id: 5, name: "Skookum" }
+        { id: 2, name: "Nock Point" },
       ]}
     ],
 
 
     showCredits: false,
     // version: "0.1"  // create a tournament
-    version: "0.2"  // archer editable, league creation works
-    // version: "0.3"  // Events sorted by venue (and region?) with a "sandbox" venue
+    // version: "0.2",  // archer editable, league creation works
+    version: "0.3"  // Events sorted by venue (and region) with a "sandbox" venue
   },
 
   //----------------------------------------
@@ -574,6 +563,8 @@ let app = new Vue({
       groupId = 0;  // show all archers on overview page by default
     }
 
+    this.regions = await this.loadRegionsAndVenues();
+
     // put first so create pages work
     if (leagueId) {
       this.league = await this.getLeagueById( leagueId );
@@ -618,14 +609,13 @@ let app = new Vue({
     } else if (tournamentId) {  // a tournament overview (group=0) or scoring page (group=N)
 
       this.tournament = await this.getTournamentById( tournamentId );
+      this.allArchersInRegion = await this.loadAllArchersInRegionFromDB();
 
       if (this.tournament && this.tournament.type) {
 
         leagueId = leagueId || this.tournament.leagueId;
         if (leagueId) {
-          this.league = await this.getLeagueById( leagueId );  // redundant?
-          // populate auto-complete map for current league archers
-          await this.getArchersForLeague( this.league );
+          this.league = await this.getLeagueById( leagueId );  // if no league in URL
         }
 
         // scoring bale page
@@ -1339,6 +1329,33 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // Admin functions :create Region / Venue
+    //----------------------------------------
+    createRegion: async function() {
+      await this.saveRegionToDB( this.newRegion );
+      if (this.newRegion.id) {
+        alert("Success: " + JSON.stringify( this.newRegion ));
+        this.newRegion = {};
+        this.loadRegionsAndVenues();
+      } else {
+        alert("Failed to create Region. Whoops");
+      }
+    },
+    //----------------------------------------
+    // create Venue
+    //----------------------------------------
+    createVenue: async function() {
+      await this.saveVenueToDB( this.newVenue );
+      if (this.newVenue.id) {
+        alert("Success: " + JSON.stringify( this.newVenue ));
+        this.newVenue = {};
+        this.loadRegionsAndVenues();
+      } else {
+        alert("Failed to create Venue. Whoops");
+      }
+    },
+
+    //----------------------------------------
     // Change archer info, but keep original data around for comparison
     //----------------------------------------
     editArcher: function( archer ) {
@@ -1349,7 +1366,7 @@ let app = new Vue({
     prepopulateArcher: function() {
       this.newArcher.name = Util.capitalizeWords( this.newArcher.name );
 
-      let existingArcher = this.leagueArchersMap[this.newArcher.name];
+      let existingArcher = this.allArchersInRegion[this.newArcher.name];
 
       if (existingArcher) {
         console.log("Found " + JSON.stringify(existingArcher.name ));
@@ -1660,9 +1677,6 @@ let app = new Vue({
       // FIXME: how does this work for a two day regular tournament?
       // eg, changing bales each day.  Does this matter?
 
-      // keep this map, keyed by name for auto-populating
-      this.leagueArchersMap = archers;
-
       // convert name keyed map back to (sortable) array
       return [...Object.values( archers )];      // same asArray.from( archers.values() );
     },
@@ -1775,6 +1789,7 @@ let app = new Vue({
         return this.sortedArchers[cls.bow.abbrev + "-" + cls.age.abbrev + cls.gender.abbrev] || [];
       }
     },
+
 
     //----------------------------------------
     // PREFS
@@ -1980,7 +1995,8 @@ let app = new Vue({
       let date = new Date();
       date.setMinutes( date.getMinutes() - 60*24*daysAgo );
       let serverCmd = "tournaments?date=" + date.toISOString() +
-          "&regionId=" + this.getRegion();
+          "&regionId=" + this.getRegion() +
+          "&venueId=" + this.getVenue();
       return await this.loadObjectsFromDB( serverCmd );
     },
     //----------------------------------------
@@ -2000,7 +2016,8 @@ let app = new Vue({
       let date = new Date();
       date.setMinutes( date.getMinutes() - 60*24*daysAgo );
       let serverCmd = "leagues?date=" + date.toISOString() +
-                "&regionId=" + this.getRegion();
+          "&regionId=" + this.getRegion() +
+          "&venueId=" + this.getVenue();
       return await this.loadObjectsFromDB( serverCmd );
     },
     //----------------------------------------
@@ -2016,6 +2033,28 @@ let app = new Vue({
     async loadLeagueArchersFromDB( leagueId ) {
       let serverCmd = "archers?leagueId=" + leagueId;
       return await this.loadObjectsFromDB( serverCmd );
+    },
+    //----------------------------------------
+    // load all archer records in this region, convert from array to map keyed by name
+    // Everyone in the State, for auto-complete
+    //----------------------------------------
+    async loadAllArchersInRegionFromDB() {
+      let serverCmd = "archers?regionId=" + this.getRegion();
+      let archerList = await this.loadObjectsFromDB( serverCmd );
+
+      // convert array to map keyed by name (can't pass map over lambda easily?)
+      let archerMap = [];
+      archerMap = Object.fromEntries(
+        archerList.map( archer => [archer.name, archer])
+      );
+      return archerMap;
+    },
+
+    //----------------------------------------
+    // load all reigions and venues
+    //----------------------------------------
+    async loadRegionsAndVenues() {
+      return await this.loadObjectsFromDB("regions");
     },
 
     //----------------------------------------
@@ -2049,14 +2088,27 @@ let app = new Vue({
     // ID, version, metadata to be generated remotely and populated into given object
     //----------------------------------------
     async saveTournamentToDB( tournament ) {
+      tournament.regionId = this.getRegion();
+      tournament.venueId = this.getVenue();
       await this.saveObjectToDB( tournament, "Tournament");
     },
     async saveLeagueToDB( league ) {
+      league.regionId = this.getRegion();
+      league.venueId = this.getVenue();
       await this.saveObjectToDB( league, "League");
     },
     async saveArcherToDB( archer ) {
+      archer.regionId = this.getRegion();
+      archer.venueId = this.getVenue();
       await this.saveObjectToDB( archer, "Archer");
     },
+    async saveRegionToDB( archer ) {
+      await this.saveObjectToDB( archer, "Region");
+    },
+    async saveVenueToDB( archer ) {
+      await this.saveObjectToDB( archer, "Venue");
+    },
+
 
     //----------------------------------------
     // generic object save call updateTournament, updateArcher, updateLeague
