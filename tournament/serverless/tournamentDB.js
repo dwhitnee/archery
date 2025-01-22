@@ -174,7 +174,7 @@ module.exports = {
       data.id = await atomicCounter.getNextValueInSequence( ArcherSequence );
       console.log("Next ID: " + data.id );
     }
-    data.lowerName = this.toLower( data.name );
+    data.lowerName = this.collapseString( data.name );
     return await db.saveRecord( ArcherTableName, data );   // really, overwrite archer
   },
 
@@ -352,18 +352,14 @@ module.exports = {
     regions.sort( (a,b) => a.id - b.id );
     // venues.sort(  (a,b) => a.id - b.id );
     venues.sort( (a,b) => a.name.localeCompare(b.name));
-    // sort anything by id? Dyname sorts on Sort Key (and not Hash Key?)
 
     regions.forEach( (region) => {
       region.venues = [];
     });
 
-    console.info( regions );
-    console.info( venues );
-
     venues.forEach( (venue) => {
-      const ourRegion = regions.find( (region) => region.id == venue.regionId );
-      ourRegion.venues.push( venue );
+      const thisRegion = regions.find( (region) => region.id == venue.regionId );
+      thisRegion.venues.push( venue );
     });
 
     return regions;
