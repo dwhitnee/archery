@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<head>
+  <title>Tournament Scoring - Create Regions and Venues</title>
+  <meta charset="utf-8" />
+
+  <link rel="stylesheet"  href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous"/>
+  <link rel="stylesheet" type="text/css" href="../../styles/icons.css"/>
+  <link rel="stylesheet" type="text/css" href="../../styles/dialog.css"/>
+  <link rel="stylesheet" type="text/css" href="../../styles/tournament.css"/>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+  <meta name="theme-color" content="#ffff00" />
+
+  <!-- Open Graph (social metadata) -->
+  <meta property="og:title" content="Instant Archery Tournament" />
+  <meta property="og:description" content="A simple phone/tablet/laptop webapp to score a local archery tournament" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://dwhitnee.github.io/archery/" />
+  <meta property="og:image" content="https://dwhitnee.github.io/archery/media/icon.svg" />
+
+  <!-- for localhost testing -->
+  <meta name="Referrer-Policy" content="no-referrer-when-downgrade" />
+
+  <style>
+    [v-cloak] {  display:none !important; }
+  </style>
+
+</head>
+
+<body>
+  <div id="tournamentApp" class="appGrid" v-cloak>
+    <div v-if="loadingData" class="loading spinner-border spinner-border-lg"></div>
+
+    <div class="createTournamentGrid">
+      <h3>{{ newRegion.id ? "Edit" :"Create New" }}  Region</h3>
+
+      <div style="text-align: right;">
+        <a href="https://github.com/dwhitnee/archery/tree/main/tournament#readme">
+          About...
+        </a>
+      </div>
+
+      <div>
+        <label class="form-check-label" for="regionDesc">Name:</label>
+      </div>
+      <div>
+        <input type="text" id="regionDesc"
+               placeholder="Example (a state or country): Washington"
+               style="width: 100%"
+               v-model.trim="newRegion.name"
+               autofocus />
+      </div>
+
+      <div>
+        <label class="form-check-label" for="regionCreatedBy">Created by:</label>
+      </div>
+      <div>
+        <input size="30" type="text" id="regionCreatedBy"
+               placeholder="Your name"
+               v-model.trim="newRegion.createdBy"  />
+      </div>
+
+      <button class="btn btn-primary btn-sm" @click="createRegion( $event )"
+              :disabled=" !newRegion.name || !newRegion.createdBy">
+        {{ newRegion.id ? "Edit" :"Create" }}  Region
+      </button>
+
+    </div>
+
+
+    <div class="createTournamentGrid">
+      <h3>
+        {{ newVenue.id ? "Edit" :"Create New" }}  Venue (tournament location)
+      </h3>
+      <div style="font-size: smaller; margin-bottom: 1em">
+        A venue is any location a tournament can take place within a
+        region. For example, the "Nock Point" is a venue within the
+        region "Washington"
+      </div>
+      <div>
+        <label class="form-check-label" for="venueName">Name:</label>
+      </div>
+      <div>
+        <input type="text" id="venueName"
+               placeholder="Example: Nock Point"
+               style="width: 100%"
+               v-model.trim="newVenue.name"  />
+      </div>
+
+      <div>
+        <label class="form-check-label" for="venueRegion">Region:</label>
+      </div>
+      <div>
+        <select id="venueRegion" v-model="newVenue.regionId">
+          <option disabled value="">select one</option>
+          <option v-for="region in regions" :label="region.name" :value="region.id">
+              {{ region.name }}
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-check-label" for="venueCreatedBy">Created by:</label>
+      </div>
+      <div>
+        <input size="30" type="text" id="venueCreatedBy" placeholder="Your name"
+               v-model.trim="newVenue.createdBy"  />
+      </div>
+
+      <button class="btn btn-primary btn-sm" @click="createVenue( $event )"
+              :disabled=" !newVenue.name ||  !newVenue.createdBy || !newVenue.regionId">
+        {{ newVenue.id ? "Edit" :"Create" }}  Venue
+      </button>
+    </div>
+
+
+  </div>
+
+
+  <script src="../../js/vue-2.7.15.min.js"></script>
+  <script src="../../js/vue-router-3.1.3.min.js"></script>
+
+  <script src="../../js/util.js"></script>
+  <script src="../../js/dialog.js"></script>
+  <script src="../../js/tournament.js"></script>
+
+
+</body>
+</html>
