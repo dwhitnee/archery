@@ -21,11 +21,14 @@
   o updateLeague( id )
   o deleteLeague( id )
 
-  o getArcherAllResults( name )             // all of "Brandy Allison"s scores
-  o getArchers( tournamentId, [groupId] )   // All archers on a scoring bale or in a tournament
-  o getArchersForLeague( tournamentId )     // All archer records in any tournament in this league
+  o getArcherAllResults( name )         // all of "Brandy Allison"s scores
+  o getArchers( turnmtId, [groupId] )   // All archers on a scoring bale or in a tournament
+  o getArchers( leagueId )       // All archer records in any tournament in this league
+  o getArchers( regionId )       // All archer records in any tournament in this region
   o updateArcher( tournamentId, archerId )
   o deleteArcher( tournamentId, archerId )  // no PK so can't delete...easily
+
+  o getAllRegionsAndVenues()
 
   // not needed
   o getArcher( tournamentId, archerId )   // No need
@@ -62,6 +65,15 @@ _Archer_   ( PK name+tournament, query on tournament[+bale] )
   "ends"             // [["9","9","9"], ["X","8","7",.]
 }
 
+_Region_
+   "id"        // PK
+   "name"
+
+_Venue_
+   "id"         // PK/HK
+   "regionId"   // RK
+   "name"
+
 */
 //----------------------------------------------------------------------
 // Async calls, retrieve records from DB and invoke callback
@@ -86,6 +98,8 @@ let db = {
   // @param: tournamentId
   // @param: groupId - scoring bale [optional]
   // or
+  // @param: regionId - all archers in a State, say (for auto-complete)
+  // or
   // @param: leagueId - league of tournaments with archers to combine
   //----------------------------------------------------------------------
   getArchers: async function( request ) {
@@ -93,6 +107,8 @@ let db = {
 
     if (query.leagueId) {
       return await tournamentDB.getArchersByLeague( query.leagueId );
+    } else if (query.regionId) {
+      return await tournamentDB.getArchersByRegion( query.regionId );
     } else {
       message.verifyParam( request, "tournamentId");  // throws on error
       message.verifyParam( request, "groupId");
@@ -160,11 +176,15 @@ let db = {
   //----------------------------------------------------------------------
   // Get all tournaments since given date ("2024-01-01")
   // @param: date
+  // @param: regionId
+  // @param: venueId [optional]
   //----------------------------------------------------------------------
   getTournaments: async function( request ) {
     let query = request.queryStringParameters;
     message.verifyParam( request, "date");
-    return await tournamentDB.getTournamentsAfterDate( query.date );
+    message.verifyParam( request, "regionId");
+    return await tournamentDB.getTournamentsAfterDate( query.date,
+                                                       query.regionId, query.venueId );
   },
 
   //----------------------------------------------------------------------
@@ -205,11 +225,15 @@ let db = {
   // Get all leagues since given date ("2024-01-01")
   // Get all recent leagues? Unexpired leagues  FIXME
   // @param: date
+  // @param: regionId
+  // @param: venueId [optional]
   //----------------------------------------------------------------------
   getLeagues: async function( request ) {
     let query = request.queryStringParameters;
     message.verifyParam( request, "date");
-    return await tournamentDB.getLeaguesAfterDate( query.date );
+    message.verifyParam( request, "regionId");
+    return await tournamentDB.getLeaguesAfterDate( query.date,
+                                                   query.regionId, query.venueId );
   },
 
   //----------------------------------------------------------------------
@@ -230,7 +254,33 @@ let db = {
     message.verifyParam( request, "id");
     let params = JSON.parse( request.body );
     return await tournamentDB.deleteLeague( params.id );
-  }
+  },
+
+
+  //----------------------------------------------------------------------
+  // Get all regions and venues therein (two DB calls?)
+  //----------------------------------------------------------------------
+  getRegionsAndVenues: async function( request ) {
+    return await tournamentDB.getRegionsAndVenues();
+  },
+
+  //----------------------------------------------------------------------
+  // @param region data blob
+  // @return savedValue
+  //----------------------------------------------------------------------
+  updateRegion: async function( request ) {
+    let data = JSON.parse( request.body );
+    return await tournamentDB.updateRegion( data );
+  },
+
+  //----------------------------------------------------------------------
+  // @param venue data blob
+  // @return savedValue
+  //----------------------------------------------------------------------
+  updateVenue: async function( request ) {
+    let data = JSON.parse( request.body );
+    return await tournamentDB.updateVenue( data );
+  },
 
 };
 
@@ -317,6 +367,25 @@ module.exports = {
   deleteLeague: function( request, context, callback ) {
     message.runFunctionAndRespond( request, callback, async function() {
       return await db.deleteLeague( request ); });
-  }
+  },
+
+  //----------------------------------------
+  //  Region/Venue
+  //----------------------------------------
+  getRegionsAndVenues: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.getRegionsAndVenues( request ); });
+  },
+
+  updateRegion: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.updateRegion( request ); });
+  },
+
+  updateVenue: function( request, context, callback ) {
+    message.runFunctionAndRespond( request, callback, async function() {
+      return await db.updateVenue( request ); });
+  },
+
 
 };

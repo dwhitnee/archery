@@ -36,7 +36,8 @@ let errorResponse = {
 function respondWithSuccess( data, callback ) {
   let response = successResponse;
   response.body = JSON.stringify( data );  // prettify for transit
-  console.log("Successful Response: " + response.body );
+  console.info("Successful Response:");
+  console.info( response.body );
   callback( null, response );
 }
 

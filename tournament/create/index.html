@@ -62,13 +62,30 @@
       </div>
 
       <div>
+        <label class="form-check-label" for="tournamentLoc">Location:</label>
+      </div>
+      <div>
+        <select id="tournamentLoc" v-model="regionVenuePair"
+                @change="parseRegionAndVenueMenu()">
+          <option disabled value="">select one</option>
+          <optgroup v-for="region in regions" :label="region.name">
+            <option v-for="venue in region.venues"
+                    :value="[region.id,venue.id]"
+                    :selected="getRegion() == region.id && getVenue() == venue.id" >
+              {{ venue.name }}
+            </option>
+          </optgroup>
+        </select>
+        <span class="small">(Please use "Sandbox" if you are just experimenting)</span>
+      </div>
+
+      <div>
         <label class="form-check-label" for="tournamentType">Type:</label>
       </div>
       <div>
         <select id="tournamentType" v-model="newTournament.type">
           <option disabled value="">select one</option>
-          <option v-for="type in
-            tournamentTypes" :value="type">
+          <option v-for="type in tournamentTypes" :value="type">
             {{ type.description }} ({{ type.arrows}} arrows/{{ type.ends}} ends)
             {{ type.rounds>1 ? "x " + type.rounds: "" }}
           </option>
@@ -110,6 +127,24 @@
                style="width: 100%"
                v-model.trim="newLeague.name"  />
       </div>
+
+      <div>
+        <label class="form-check-label" for="leagueLoc">Location:</label>
+      </div>
+      <div>
+        <select id="leagueLoc" v-model="regionVenuePair"
+                @change="parseRegionAndVenueMenu()">
+          <option disabled value="">select one</option>
+          <optgroup v-for="region in regions" :label="region.name">
+            <option v-for="venue in region.venues"
+                    :value="[region.id,venue.id]"
+                    :selected="getRegion() == region.id && getVenue() == venue.id" >
+              {{ venue.name }}
+            </option>
+          </optgroup>
+        </select>
+      </div>
+
 
       <div>
         <label class="form-check-label" for="maxdays"

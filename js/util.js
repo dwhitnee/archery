@@ -19,6 +19,15 @@ var Util = {
     this.namespace = ns;
   },
 
+  // \b = word boundary, \w = non-white space character
+  // \s white space, \S non white space (unicode)
+  // https://stackoverflow.com/questions/2332811/capitalize-words-in-string
+  capitalizeWords: function( words ) {
+    // return words.replace(/\b\w/g, word => word.toUpperCase());
+    // return words.replace(/(?:^|\s|["'([{])+\S/g, word => word.toUpperCase());
+    return words.replace(/(^|\s)\S/g, word => word.toUpperCase());
+  },
+
   //----------------------------------------
   // Do HTTP whizbangery to post a JSON blob
   //----------------------------------------

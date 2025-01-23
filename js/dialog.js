@@ -10,6 +10,10 @@
 //    dh.openDialog("nameOfDialog")
 //    dh.closeDialog();
 
+//  A lot of this is obsoleted by "light dismiss" when it's supported
+//  <dialog closedby="any"> // clicking outside the dialog, or pressing ESC, closes the dialog.
+//  <dialog closedby="none"> forces the X to be clicked
+//
 // Prerequisites:
 //  dialog.css
 

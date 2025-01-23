@@ -21,16 +21,31 @@ const TournamentCodeIndex = "tournamentDateCode-index";  // secondary on code+da
 
 const ArcherTableName = "TS_Archers";           // PK on name (+tournament)
 const ArcherGroupIndex = "scoringGroup-index";  // secondary index on tournament (+bale)
-const ArcherLeagueIndex = "league-index";       // secondary index on league
 const ArcherNameIndex = "nameAndTournament-index";  // secondary index on archer name
+const ArcherLeagueIndex = "league-index";       // secondary index on league (standings)
+const ArcherRegionIndex = "region-index";       // secondary index on region (auto-compl)
 
 const LeagueTableName = "TS_Leagues";           // PK on name (+tournament)
 const LeagueDateIndex = "date-index";           // secondary index on tournament (+bale)
+
+const RegionTableName = "TS_Regions";     // id PK
+const VenueTableName  = "TS_Venues";      // id PK
 
 // row in AtomicCounters
 const TournamentSequence = "TS_Tournaments_sequence";
 const LeagueSequence = "TS_League_sequence";
 const ArcherSequence = "TS_Archer_sequence";
+const RegionSequence = "TS_Region_sequence";
+const VenueSequence  = "TS_Venue_sequence";
+
+
+//Index on Tournament/League doesn't help becuase we are full table scanning on date anyway
+// const LeagueRegionIndex = "region-index";       // secondary index on region (list)
+// const TournamentRegionIndex = "region-index";   // secondary index on region (list)
+// const LeagueVenueIndex = "venue-index";       // secondary index on venue (why? list?)
+// const TournamentVenueIndex = "venue-index";   // secondary index on venue (why? list?)
+
+
 
 
 let db = require('./dynamoDB');  // All the Dynamo stuff
@@ -80,7 +95,9 @@ module.exports = {
   },
 
   //----------------------------------------
-  // Get archer scoring records in all tournaments in a league
+  // Get archer scoring records in all tournaments in a league.
+  // Sorted by tournament creation ascending
+  //
   // @param leagueId
   //----------------------------------------
   getArchersByLeague: async function( leagueId ) {
@@ -89,21 +106,57 @@ module.exports = {
       ':leagueId': leagueId|0,  // ensure numeric
     };
 
-    let archers =
-        await db.getRecordsBySecondaryIndex( ArcherTableName, ArcherLeagueIndex, query, args );
-
-    // sort by creationDate ascending - doesn't work, archers could be created out of order
-    // archers.sort( (a,b) => a.createdDate.localeCompare( b.createdDate ));
+    let archers = await db.getRecordsBySecondaryIndex(
+      ArcherTableName, ArcherLeagueIndex, query, args );
 
     // sort by tournamentId ascending (assures right order of results because
-    // tournament createdDate is what we care about, not archer createdDate)
+    // tournament createdDate is what we care about, not Archer createdDate)
     archers.sort( (a,b) => a.tournamentId - b.tournamentId );
 
     return archers;
   },
 
   //----------------------------------------
-  // One archer's results for all tournaments (TODO: substring?)
+  // Get all archer base records in region as sorted array by name
+  // Only reason for this is list of all archers for auto-completion
+  // @param regionId
+  //----------------------------------------
+  getArchersByRegion: async function( regionId ) {
+    let query = "regionId = :regionId";
+    let args = {
+      ':regionId': regionId|0,  // ensure numeric
+    };
+    let archers = [];
+
+    let archerRecords = await db.getRecordsBySecondaryIndex(
+      ArcherTableName, ArcherRegionIndex, query, args );
+
+    archerRecords.forEach( (entry) => {
+
+      // exclude old entries?  TBD
+
+      // exclude unoffical rounds?
+      // if (entry.isUnofficial) { return; }
+
+      let archer = {
+        name: entry.name,
+        bow: entry.bow,
+        age: entry.age,
+        gender: entry.gender,
+      };
+
+      archers[archer.name] = archer;
+    });
+
+    // convert Map into array ordered by name
+    let names = Object.keys( archers );
+    let outArchers = [];
+    names.forEach( (name) => outArchers.push( archers[name] ));
+    return outArchers;
+  },
+
+  //----------------------------------------
+  // One archer's results for all tournaments (TODO: substring? case-insensitive?)
   //----------------------------------------
   getArcherAllResults: async function( archerName ) {
     let query =  "#name = :name";
@@ -121,7 +174,7 @@ module.exports = {
       data.id = await atomicCounter.getNextValueInSequence( ArcherSequence );
       console.log("Next ID: " + data.id );
     }
-
+    data.lowerName = this.collapseString( data.name );
     return await db.saveRecord( ArcherTableName, data );   // really, overwrite archer
   },
 
@@ -160,23 +213,42 @@ module.exports = {
   },
 
   //----------------------------------------
-  // get all tournaments after given date. If null, then all tournaments ever
+  // get all tournaments after given date. If no date, then all tournaments ever
+  // @param date [optional]
+  // @param regionId [optional] - restrict results to this region
+  // @param venueId [optional] - restrict results to this venue
   //----------------------------------------
-  getTournamentsAfterDate: async function( date ) {
-    if (!date) {
-      return await db.getAllRecords( TournamentTableName );
-    } else {
-      let filter = "#createdDate > :date";
-      let args = { ":date": date };
-      let argNames =  { "#createdDate": "createdDate" };
+  getTournamentsAfterDate: async function( date, regionId, venueId ) {
+    let filter = "";
+    let args = {};
+    let argNames =  {};
+    let outTournaments;
 
-      let tournaments = await db.getRecordsByFilterScan( TournamentTableName,
-                                                         filter, args, argNames );
-      // sorted by reverse date (most recent first)
-      tournaments.sort( (a,b) => b.createdDate.localeCompare( a.createdDate ));
-
-      return tournaments;
+    if (date) {
+      filter = this.appendANDClause( filter, "#createdDate > :date");
+      args[":date"] = date;
+      argNames["#createdDate"] = "createdDate";
     }
+    if (regionId) {
+      filter = this.appendANDClause( filter, "regionId = :regionId");
+      args[":regionId"] = regionId|0;
+    }
+    if (venueId) {
+      filter = this.appendANDClause( filter, "venueId = :venueId");
+      args[":venueId"] = venueId|0;
+    }
+
+    if (filter) {  // no params, get the whole ball of tournaments
+      outTournaments = await db.getRecordsByFilterScan( TournamentTableName,
+                                                        filter, args, argNames );
+    } else {
+      outTournaments = await db.getAllRecords( TournamentTableName );
+    }
+
+    // sorted by reverse date (most recent first)
+    outTournaments.sort( (a,b) => b.createdDate.localeCompare( a.createdDate ));
+
+    return outTournaments;
   },
 
   //----------------------------------------
@@ -200,8 +272,6 @@ module.exports = {
   },
 
 
-
-
   //----------------------------------------
   //----------------------------------------
   // LEAGUES - a collection of tournaments
@@ -213,23 +283,42 @@ module.exports = {
   },
 
   //----------------------------------------
-  // get all after given date. If null, then all leagues ever
+  // get all after given date. If no date, then all leagues ever
+  // @param date [optional]
+  // @param regionId [optional] - restrict results to this region
+  // @param venueId [optional] - restrict results to this venue
   //----------------------------------------
-  getLeaguesAfterDate: async function( date ) {
-    if (!date) {
-      return await db.getAllRecords( LeagueTableName );
-    } else {
-      let filter = "#createdDate > :date";
-      let args = { ":date": date };
-      let argNames =  { "#createdDate": "createdDate" };  // Naming variables avoids reserved words
+  getLeaguesAfterDate: async function( date, regionId, venueId ) {
+    let filter = "";
+    let args = {};
+    let argNames = {};
+    let outLeagues;
 
-      let leagues = await db.getRecordsByFilterScan( LeagueTableName,
-                                                     filter, args, argNames );
-      // sorted by reverse date (most recent first)
-      leagues.sort( (a,b) => b.createdDate.localeCompare( a.createdDate ));
-
-      return leagues;
+    if (date) {
+      filter = this.appendANDClause( filter, "#createdDate > :date");
+      args[":date"] = date;
+      argNames["#createdDate"] = "createdDate";
     }
+    if (regionId) {
+      filter = this.appendANDClause( filter, "regionId = :regionId");
+      args[":regionId"] = regionId|0;
+    }
+    if (venueId) {
+      filter = this.appendANDClause( filter, "venueId = :venueId");
+      args[":venueId"] = venueId|0;
+    }
+
+    if (filter) {  // no params, get the whole ball of leagues
+      outLeagues = await db.getRecordsByFilterScan( LeagueTableName,
+                                                    filter, args, argNames );
+    } else {
+      outLeagues = await db.getAllRecords( LeagueTableName );
+    }
+
+    // sorted by reverse date (most recent first)
+    outLeagues.sort( (a,b) => b.createdDate.localeCompare( a.createdDate ));
+
+    return outLeagues;
   },
 
   //----------------------------------------
@@ -249,6 +338,51 @@ module.exports = {
 
 
   //----------------------------------------
+  //----------------------------------------
+  // VENUES / REGIONS  - locations
+  //----------------------------------------
+
+  //----------------------------------------
+  // get all regions and venues, mush 'em together into one data structure
+  //----------------------------------------
+  getRegionsAndVenues: async function() {
+    let regions = await db.getAllRecords( RegionTableName );
+    let venues  = await db.getAllRecords( VenueTableName );
+
+    regions.sort( (a,b) => a.id - b.id );
+    // venues.sort(  (a,b) => a.id - b.id );
+    venues.sort( (a,b) => a.name.localeCompare(b.name));
+
+    regions.forEach( (region) => {
+      region.venues = [];
+    });
+
+    venues.forEach( (venue) => {
+      const thisRegion = regions.find( (region) => region.id == venue.regionId );
+      thisRegion.venues.push( venue );
+    });
+
+    return regions;
+  },
+
+  //----------------------------------------
+  //----------------------------------------
+  updateVenue: async function( data ) {
+    if (!data.id) {
+      data.id = await atomicCounter.getNextValueInSequence( VenueSequence );
+    }
+    return await db.saveRecord( VenueTableName, data );
+  },
+  //----------------------------------------
+  //----------------------------------------
+  updateRegion: async function( data ) {
+    if (!data.id) {
+      data.id = await atomicCounter.getNextValueInSequence( RegionSequence );
+    }
+    return await db.saveRecord( RegionTableName, data );
+  },
+
+  //----------------------------------------
   // Utility routines
   //----------------------------------------
 
@@ -266,6 +400,27 @@ module.exports = {
     }
     return randomId;
   },
+
+  //----------------------------------------
+  // add an AND condition to the WHERE clause (if necessary)
+  //----------------------------------------
+  appendANDClause: function( clause, phrase ) {
+    if (!clause) {
+      return phrase;
+    } else {
+      return clause + " AND " + phrase;
+    }
+  },
+
+  //----------------------------------------
+  // Makes a consistent lowercase/no-whitepace searchable key
+  // whitespace: remove outside whitespace,collpase internal whitespace, convert to dashes
+  // so "David Whitney" == " dAvid   Whitney" because david_whitney==david_whitney
+  //----------------------------------------
+  collapseString: function( name ) {
+    name = name || "";
+    return name.trim().replace(/\s+/g, ' ').split(" ").join("_").toLowerCase();
+  }
 
 
 };

@@ -64,13 +64,30 @@
 
     <div v-if="!tournament || !tournament.id" class="leagueList">
 
-      <h3>
-        All Leagues in last
-        <input type="number" size="2" v-model="daysAgo"
-               @change="loadLeagueHistory( daysAgo )">
-        </input>
-        days
-      </h3>
+      <div style="display: flex; justify-content: space-around; align-items: center">
+        <h3>
+          Everything in the last
+          <input type="number" size="2" v-model="daysAgo"
+                 @change="loadLeagueHistory( daysAgo )">
+          </input>
+          days
+        </h3>
+
+        <div>
+          <label class="form-check-label" for="defaultLocation">Location:</label>
+          <select id="defaultLocation" v-model="regionVenuePair"
+                  @change="parseRegionAndVenueMenu(); loadLeagueHistory( daysAgo );">
+            <option disabled value="">select one</option>
+            <optgroup v-for="region in regions" :label="region.name">
+              <option v-for="venue in region.venues" :value="[region.id,venue.id]"
+                      :selected="getRegion() == region.id && getVenue() == venue.id" >
+                {{ venue.name }}
+              </option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+
       <!-- <v-treeview :items="admin.leagues"></v-treeview> -->
 
       <ul>

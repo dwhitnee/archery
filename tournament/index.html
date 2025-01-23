@@ -284,6 +284,20 @@
           </select>
         </div>
 
+        <div>
+          <label class="form-check-label" for="defaultLocation">Preferred Location:</label>
+          <select id="defaultLocation" v-model="regionVenuePair"
+                  @change="parseRegionAndVenueMenu()">
+            <option disabled value="">select one</option>
+            <optgroup v-for="region in regions" :label="region.name">
+              <option v-for="venue in region.venues" :value="[region.id,venue.id]"
+                      :selected="getRegion() == region.id && getVenue() == venue.id" >
+                {{ venue.name }}
+              </option>
+            </optgroup>
+          </select>
+        </div>
+
       </div>
     </dialog>
 
@@ -301,8 +315,8 @@
     <!-- limit to archer names from the region/venue -->
 
     <datalist id="archerNames">
-      <option v-for="name in Object.keys(leagueArchersMap).sort()" :value="name"> </option>
-     <option value="Chocolate"></option>
+      <option v-for="name in Object.keys( allArchersInRegion).sort()" :value="name"> </option>
+      <option value="Chocolate"></option>
       <option value="Strawberry"></option>
       <option value="Liliko'i"></option>
     </datalist>

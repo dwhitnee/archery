@@ -43,6 +43,10 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: AtomicCounters
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
@@ -51,15 +55,15 @@ resources:
           - AttributeName: id
             KeyType: HASH
 
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-
 
     TournamentsTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: TS_Tournaments
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: N
@@ -72,10 +76,6 @@ resources:
           - AttributeName: id
             KeyType: HASH
 
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-
         GlobalSecondaryIndexes:
           - IndexName: tournamentDateCode-index
             KeySchema:
@@ -85,14 +85,16 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
-            ProvisionedThroughput:
-              ReadCapacityUnits: 1
-              WriteCapacityUnits: 1
+
 
     LeaguesTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: TS_Leagues
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: N
@@ -101,18 +103,21 @@ resources:
           - AttributeName: id
             KeyType: HASH
 
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
 
     ArchersTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: TS_Archers
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: N
           - AttributeName: leagueId
+            AttributeType: N
+          - AttributeName: regionId
             AttributeType: N
           - AttributeName: tournamentId
             AttributeType: N
@@ -125,10 +130,6 @@ resources:
           - AttributeName: id
             KeyType: HASH
 
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-
         GlobalSecondaryIndexes:
           - IndexName: scoringGroup-index
             KeySchema:
@@ -138,9 +139,6 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
-            ProvisionedThroughput:
-              ReadCapacityUnits: 1
-              WriteCapacityUnits: 1
 
           - IndexName: nameAndTournament-index
             KeySchema:
@@ -150,9 +148,6 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
-            ProvisionedThroughput:
-              ReadCapacityUnits: 1
-              WriteCapacityUnits: 1
 
           - IndexName: league-index
             KeySchema:
@@ -160,6 +155,44 @@ resources:
                 KeyType: HASH
             Projection:
               ProjectionType: ALL
-            ProvisionedThroughput:
-              ReadCapacityUnits: 1
-              WriteCapacityUnits: 1
+
+          - IndexName: region-index
+            KeySchema:
+              - AttributeName: regionId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+
+    RegionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: TS_Regions
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: N
+
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+
+    VenuesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: TS_Venues
+        BillingMode: PAY_PER_REQUEST
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: N
+
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH

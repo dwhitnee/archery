@@ -189,6 +189,32 @@ functions:
           method: post
           cors: true
 
+  getRegions:
+    handler: tournamentAPI.getRegionsAndVenues
+    description: Get all regions
+    events:
+      - http:
+          path: regions
+          method: get
+          cors: true
+
+  updateRegion:
+    handler: tournamentAPI.updateRegion
+    description: Create region
+    events:
+      - http:
+          path: updateRegion
+          method: post
+          cors: true
+
+  updateVenue:
+    handler: tournamentAPI.updateVenue
+    description: Create venue
+    events:
+      - http:
+          path: updateVenue
+          method: post
+          cors: true
 
 
 
