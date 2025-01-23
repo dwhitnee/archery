@@ -123,6 +123,13 @@ let app = new Vue({
       coach: "KSL",
     },
 
+    // FIXME: put in DB
+    organizations: [
+      "test",                   // id 0
+      "Next Step Archery",      // id 1
+      "something else"
+    ],
+
     coaches: [{ given_name: "loading..."}],
 //              "KSL", "Josh", "Diane", "Alice", "Joel", "Maria", "Connor", "Mac"],
 
