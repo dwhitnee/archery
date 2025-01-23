@@ -26,7 +26,7 @@ app: tournament-scoring
 
 # serverless logs -f gameList -t
 #
-# promote:
+# promote (creates differen API Gateway URLs):
 #  serverless deploy -s prod
 #
 # rollback:
