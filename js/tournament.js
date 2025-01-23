@@ -1474,6 +1474,15 @@ let app = new Vue({
       this.admin.leagues = leagues;  // don't return list, so this can be used from UI
     },
 
+    //----------------------------------------
+    // admin: list of leagues with active tournaments at current Venue (for display)
+    //----------------------------------------
+    leaguesWithTournaments:function() {
+      return Object.keys( this.admin.leagues ).filter(
+        (leagueId) =>
+          this.admin.leagues[leagueId].tournaments.length > 0);
+    },
+
 
     //----------------------------------------
     //----------------------------------------
@@ -1559,6 +1568,15 @@ let app = new Vue({
       return randomId;
     },
 
+    // 2025-01-19 format
+    generateDate: function( dateStr ) {
+      let date = new Date();
+      if (dateStr) {
+        date = new Date( dateStr );
+      }
+      return date.toLocaleDateString('en-CA');  // CA uses 2024-12-25
+    },
+
     //----------------------------------------
     saveTournament: async function( tournament ) {
       if (!tournament || !tournament.name) {
@@ -1566,7 +1584,7 @@ let app = new Vue({
       }
 
       // this should take place server-side? No, use the locale of the adhoc app user
-      tournament.date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
+      tournament.date = this.generateDate();
 
       if (localMode) {
         tournament.code = this.generateTournamentId();
@@ -1588,7 +1606,7 @@ let app = new Vue({
       // end-date - don't allow any more tournaments to be added
       // start-date - Show recent leagues (within the last two months?)
 
-      // league.date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
+      // league.date = new Date().toLocaleDateString('en-CA');toLocaleDateString('en-CA');  // CA uses 2024-12-25
 
       if (localMode) {
         league.id = this.nextSequenceId++;
@@ -1985,7 +2003,7 @@ let app = new Vue({
     // Server side will use date and short term code to get the persistent ID
     //----------------------------------------
     async loadTournamentByCodeFromDB( tournamentCode ) {
-      let date = new Date().toLocaleDateString('en-CA');  // CA uses 2024-12-25
+      let date = this.generateDate();
       // date = "2024-09-27"; // testing RTOS
 
       let serverCmd = "tournament?code=" + tournamentCode + "&date=" + date;
@@ -2016,8 +2034,7 @@ let app = new Vue({
       let date = new Date();
       date.setMinutes( date.getMinutes() - 60*24*daysAgo );
       let serverCmd = "leagues?date=" + date.toISOString() +
-          "&regionId=" + this.getRegion() +
-          "&venueId=" + this.getVenue();
+          "&regionId=" + this.getRegion();
       return await this.loadObjectsFromDB( serverCmd );
     },
     //----------------------------------------

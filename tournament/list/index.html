@@ -91,15 +91,16 @@
       <!-- <v-treeview :items="admin.leagues"></v-treeview> -->
 
       <ul>
-        <li v-for="lid in Object.keys( admin.leagues )" class="preventSelect branch"
+        <li v-for="lid in leaguesWithTournaments()"
+            class="preventSelect branch"
             @click="toggleTreeBranch( event )">
           {{ admin.leagues[lid].name }}
           <ul>
             <li v-for="tid in Object.keys( admin.leagues[lid].tournaments )">
               <a :href="'./?groupId=0&id=' + admin.leagues[lid].tournaments[tid].id">
+                {{ generateDate( admin.leagues[lid].tournaments[tid].createdDate) }}
                 {{ admin.leagues[lid].tournaments[tid].name }}
               </a>
-              <span class="small">{{ admin.leagues[lid].tournaments[tid].date }}</span>
             </li>
           </ul>
         </li>
