@@ -70,7 +70,10 @@
       <div class="resultsPage">
 
         <h3 title="Download as CSV spreadsheet">
-          {{ tournament.name || league.name }} results
+          {{ tournament.id ?
+              generateDate( tournament.createdDate ) + " " + tournament.name:
+              league.name }}
+          results
           <div class="icon saveIcon" @click="exportToCSV( tournament)"></div>
           <div class="small">
             {{ tournament.type.description }} [{{ isTournamentDone() ? "complete" : "in progress"}}]

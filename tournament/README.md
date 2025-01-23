@@ -20,6 +20,10 @@ familiar if you have used such apps.
 4. Click "Start Scoring" and tap the archer you want to score.
 5. Need an end timer? Try [this one](https://dwhitnee.github.io/archery/timer/)
 
+If you just want to try it out, please use the "Sandbox" venue as your
+location. Tournaments in the sandbox will be deleted periodically so
+pick a real venue if you want your tournament or league to hand around.
+
 ### Create a League
 A league is just a collection of tournaments.
 1. Create a league by clicking "New..." and specify how many scoring rounds to include. You can
