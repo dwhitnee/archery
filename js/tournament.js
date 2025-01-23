@@ -437,6 +437,7 @@ let app = new Vue({
         arrows: 5, ends: 4, maxArrowScore: 10, rounds: 3
       },
 
+      // TODO: make your own tournamnet?
       // {
       //   description: "Blueface 300 x2",   // League?
       //   arrows: 5, ends: 12, maxArrowScore: 5, rounds: 2
