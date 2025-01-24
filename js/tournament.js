@@ -611,6 +611,8 @@ let app = new Vue({
 
       this.tournament = await this.getTournamentById( tournamentId );
       this.allArchersInRegion = await this.loadAllArchersInRegionFromDB();
+      this.setRegionAndVenue( this.tournament.regionId,
+                              this.tournament.venueId );
 
       if (this.tournament && this.tournament.type) {
 
