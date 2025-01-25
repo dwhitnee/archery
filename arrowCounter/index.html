@@ -65,6 +65,10 @@
       </div>
     </div>
 
+    <h3 v-if="!user.auth" style="text-align:center; color: red">
+      DATA WILL NOT BE SAVED UNTIL YOU LOGIN
+    </h3>
+
     <div class="weeklyInput weeklyArrowInput">
       Enter this week's arrow counts here:
       <div class="days">
@@ -213,6 +217,7 @@
 
           <div class="name">Name:
             <input  v-model="user.name" size=10
+              :disabled="!user.auth"
               @change="updateArcher()"
               @focus="event.target.select()"/>
           </div>
