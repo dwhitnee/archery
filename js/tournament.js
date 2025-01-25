@@ -254,11 +254,11 @@ archer (so name can be changed, necessary? Old item destroyed, I think that's OK
 
 // AWS Lambda serverless API deployment endpoint
 
-let dev = true;  // if on a desktop (ie, not deployed)
+let devServer = false;  // if on a desktop (ie, not deployed)
 let localMode = false;
 
 let ServerURL = "https://aw9hsx9toi.execute-api.us-west-2.amazonaws.com/prod/";
-if (dev) {
+if (devServer) {
   ServerURL = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev/";
 }
 
@@ -329,8 +329,8 @@ let app = new Vue({
 
     offlineStart: null,           // when did we go offline?
     lastFailedAttempt: null,      // when did we last try to go online
-    goingOnlineInProgress: false,  // lock for "recovery mode"
-    staleArchers: new Set(),       // who wasn't updated while offline?
+    goingOnlineInProgress: false, // lock for "recovery mode"
+    staleArchers: new Set(),      // who wasn't updated while offline?
 
     displayOnly: false,
     displayArcher: {},    // just to look at, not edit
@@ -706,9 +706,9 @@ let app = new Vue({
       return Math.round( (now - this.lastFailedAttempt)/1000 );
     },
 
-    // Are we within 3 minutes of the last timeout?
+    // Are we within 3 minutes of the last timeout? (and not retrying already..)
     isBackingOff: function() {
-      return this.getBackoffTime() < 3*60;  // 3 minutes
+      return this.getBackoffTime() < 3*60 && !this.goingOnlineInProgress;  // 3 minutes
     },
 
     //----------------------------------------
@@ -2144,6 +2144,7 @@ let app = new Vue({
       if (this.isOffline() && this.isBackingOff() ) {
         console.log("Backing off for " + (180 - this.getBackoffTime()) +
                     " more seconds before trying to save");
+        this.goOffline( obj );  // make sure we don't accidentally lose this data
         return;
       }
 
