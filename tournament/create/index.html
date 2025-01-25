@@ -36,19 +36,23 @@
     <div v-if="loadingData" class="loading spinner-border spinner-border-lg"></div>
 
     <div class="createTournamentGrid">
-      <h3>{{ newTournament.id ? "Edit" :"Create New" }}  Tournament</h3>
-
       <div style="text-align: right;">
         <a href="https://github.com/dwhitnee/archery/tree/main/tournament#readme">
           About...
         </a>
       </div>
 
+      <h3>{{ newTournament.id ? "Edit this" :"Create an Instant" }}  Tournament</h3>
+
       <div v-if="league.id" style="color: red; font-weight: bold">
         This tournament is part of league "{{ league.name }}"
         <a class="small" :href="location.origin+location.pathname">
           (No it isn't!)
         </a>
+      </div>
+
+      <div style="font-size: smaller; margin-bottom: 1em">
+        Each bale will need a scorer with a phone/tablet
       </div>
 
       <div>
@@ -112,7 +116,7 @@
 
     <div class="createTournamentGrid">
       <h3>
-        {{ newLeague.id ? "Edit" :"Create New" }}  League
+        {{ newLeague.id ? "Edit this" :"Create a New" }}  League
       </h3>
       <div style="font-size: smaller; margin-bottom: 1em">
         A league is a collection of scoring tournaments that occur over
