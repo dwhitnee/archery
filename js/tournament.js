@@ -254,11 +254,11 @@ archer (so name can be changed, necessary? Old item destroyed, I think that's OK
 
 // AWS Lambda serverless API deployment endpoint
 
-let dev = true;  // if on a desktop (ie, not deployed)
+let devServer = false;  // if on a desktop (ie, not deployed)
 let localMode = false;
 
 let ServerURL = "https://aw9hsx9toi.execute-api.us-west-2.amazonaws.com/prod/";
-if (dev) {
+if (devServer) {
   ServerURL = "https://fc8w67eln8.execute-api.us-west-2.amazonaws.com/dev/";
 }
 
