@@ -483,3 +483,10 @@ h3 {
 .tournamentEditor input {
   width: 3em;
 }
+.tournamentEditor div {
+  width: 25%;
+}
+
+.tournamentEditor label {
+  display: table-cell;  /* fake center v-align */
+}

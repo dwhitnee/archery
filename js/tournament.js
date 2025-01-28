@@ -438,7 +438,7 @@ let app = new Vue({
       },
       {
         description: "Make your own",
-        arrows: 0, ends: 0, maxArrowScore: 10, rounds: 1, xBonus: 0, diy: true
+        arrows: 1, ends: 1, maxArrowScore: 10, rounds: 1, xBonus: 0, diy: true
       }
 
       // multi day tournaments would be done as "Leagues"
