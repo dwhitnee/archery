@@ -436,21 +436,22 @@ let app = new Vue({
         description: "NFAA Classic 600",
         arrows: 5, ends: 4, maxArrowScore: 10, rounds: 3
       },
+      {
+        description: "Make your own",
+        arrows: 0, ends: 0, maxArrowScore: 10, rounds: 1, xBonus: 0, diy: true
+      }
 
-      // TODO: make your own tournamnet?
-      // {
-      //   description: "Blueface 300 x2",   // League?
+      // multi day tournaments would be done as "Leagues"
+      //   description: "Blueface 300 x2",
       //   arrows: 5, ends: 12, maxArrowScore: 5, rounds: 2
-      // },
-      // {
-      //   description: "Outdoor 1440",   // "League"? Nationals
+
+      //   description: "Outdoor 1440",   // Nationals
       //   arrows: 6, ends: 6, maxArrowScore: 10, rounds: 4
-      // },
-      //   description: "Vegas 900",   // "League"
+
+      //   description: "Vegas 900",   // 3 day League
       //   arrows: 3, ends: 10, maxArrowScore: 10, rounds: 3
-      // },
-      // {
-      //   description: "WA indoor 1200",    // FITA or National (this would be a "League")
+
+      //   description: "WA indoor 1200",    // FITA or National (2 rounds, 2 days)
       //   arrows: 3, ends: 10, maxArrowScore: 10, rounds: 4,
       // },
     ],

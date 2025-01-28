@@ -296,6 +296,7 @@ h3 {
 
 .round {
   display: table;
+  table-layout: fixed;
   width: 100%;
   border-collapse: collapse;
 }
@@ -305,7 +306,6 @@ h3 {
 }
 .end div {
   display: table-cell;
-  width: 10%;
 }
 .end .score {
   border: 1px solid black;
@@ -468,4 +468,18 @@ h3 {
 
 #showQRCode {
   font-weight: bold;
+}
+
+.tournamentEditor {  /* evenly spaced values inside one cell */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-evenly;
+  background-color: yellowgreen;
+  border-radius: .5em;
+  margin: 1em;
+  padding: .5em;
+}
+.tournamentEditor input {
+  width: 3em;
 }

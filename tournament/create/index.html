@@ -96,6 +96,45 @@
         </select>
       </div>
 
+      <div v-if="newTournament.type && newTournament.type.diy" class="tournamentEditor">
+
+        <div>
+          <label class="form-check-label" for="newTournyTypeArrows">Arrows per end:</label>
+        </div>
+        <div>
+          <input type="number" id="newTournyTypeArrows"
+                 v-model.number="newTournament.type.arrows"  />
+        </div>
+
+        <div>
+          <label class="form-check-label" for="newTournyTypeEnds">Ends:</label>
+        </div>
+        <div>
+          <input type="number" id="newTournyTypeEnds"
+                 v-model.number="newTournament.type.ends"  />
+        </div>
+
+        <div>
+          <label class="form-check-label"
+                 for="newTournyTypeMaxScore">Max arrow score:</label>
+        </div>
+        <div>
+          <input type="number" id="newTournyTypeMaxScore"
+                 v-model.number="newTournament.type.maxArrowScore"  />
+        </div>
+
+        <div>
+          <label class="form-check-label"
+                 for="newTournyTypeRounds">Rounds:</label>
+        </div>
+        <div>
+          <input type="number" id="newTournyTypeRounds"
+                 v-model.number="newTournament.type.rounds"  />
+        </div>
+
+      </div>
+
+
       <div>
         <label class="form-check-label" for="tournyCreatedBy">Created by:</label>
       </div>
