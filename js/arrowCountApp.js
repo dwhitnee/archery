@@ -316,6 +316,7 @@ let app = new Vue({
       await this.getArcher( this.coachView );
       if (this.user.id) {
         await this.getArcherData();
+        this.tournamentScores = await this.getTournamentScores();
 
       } else {
         this.user.name = "No archer found";

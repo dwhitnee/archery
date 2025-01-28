@@ -47,7 +47,7 @@
       <div>
         <div v-if="updateInProgress()" class="spinner-border spinner-border-sm"></div>
         <div v-else>
-          <a :href='"../create?leagueId=" + league.id' title="Create new tournament">New...</a>
+          <a :href='"../create?leagueId=" + league.id' title="Create new tournament">Admin</a>
         </div>
       </div>
       <div>
@@ -56,8 +56,8 @@
         </div></b>
       </div>
       <div >
-        <a href="#"  @click="openDialog('settings')"
-           class="settings icon settingsIcon" title="Feedback"></a>
+        <!-- <a href="#"  @click="generateTouramentQRCode(); openDialog('showQRCode')" -->
+        <!--    class="settings icon settingsIcon" title="Tournament info"></a> -->
       </div>
 
     </div>
@@ -66,7 +66,7 @@
 
       <div style="display: flex; justify-content: space-around; align-items: center">
         <h3>
-          Tournaments in the last
+          Admin for the last
           <input type="number" size="2" v-model="daysAgo"
                  @change="loadLeagueHistory( daysAgo )">
           </input>
@@ -94,12 +94,10 @@
         <li v-for="lid in leaguesWithTournaments()"
             class="preventSelect branch"
             @click="toggleTreeBranch( event )">
-          <a :href="leagueResultsURL( lid )">
-            {{ admin.leagues[lid].name }}
-          </a>
+          {{ admin.leagues[lid].name }}
           <ul>
             <li v-for="tid in Object.keys( admin.leagues[lid].tournaments )">
-              <a :href="resultsURL( admin.leagues[lid].tournaments[tid].id )">
+              <a :href="'./?groupId=0&id=' + admin.leagues[lid].tournaments[tid].id">
                 {{ generateDate( admin.leagues[lid].tournaments[tid].createdDate) }}
                 {{ admin.leagues[lid].tournaments[tid].name }}
               </a>
@@ -160,18 +158,12 @@
           </div>
         </div>
 
-        <div style="padding-top: 2em;">
-          <a href="https://github.com/dwhitnee/archery/tree/main/tournament#readme">
-            About This App
-          </a>
-        </div>
-
         <hr/>
         <div class="feedback">
           <div>Feedback:</div>
           <div><ul>
-            <li><a :href="'mailto:dwhitnee@gmail.com?subject=Tournament%20App%20Feedback&body='+deviceData">Email</a></li>
-            <li><a href="https://www.facebook.com/sharer.php?u=http://dwhitnee.github.io/archery/tournament" target="_blank" rel="noopener">Facebook</a></li>
+            <li><a :href="'mailto:dwhitnee@gmail.com?subject=Tournament%20Feedback&body='+deviceData">Email</a></li>
+            <li><a href="https://www.facebook.com/sharer.php?u=http://dwhitnee.github.io/archery/" target="_blank" rel="noopener">Facebook</a></li>
           </ul>
           </div>
         </div>
@@ -182,7 +174,7 @@
           <div v-if="showCredits">
             Author: <ul><li>David Whitney</li></ul>
             Testers: <ul>
-            <li>The fine folk at Next Step and Nock Point Sunday League</li>
+            <li>your name here!</li>
           </ul>
           Credits:
           <ul>
