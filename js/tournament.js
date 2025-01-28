@@ -416,17 +416,17 @@ let app = new Vue({
         arrows: 3, ends: 10, maxArrowScore: 10, rounds: 2
       },
       {
-        description: "Lancaster 600",
-        arrows: 3, ends: 20, maxArrowScore: 10, rounds: 1, swapTargetsEnd: 10,
-        xBonus: 1,    // Lancaster X is 11
+        description: "WA Outdoor 720",
+        arrows: 6, ends: 6, maxArrowScore: 10, rounds: 2
       },
       {
         description: "Blueface 300",
         arrows: 5, ends: 12, maxArrowScore: 5, rounds: 1, swapTargetsEnd: 6
       },
       {
-        description: "WA Outdoor 720",
-        arrows: 6, ends: 6, maxArrowScore: 10, rounds: 2
+        description: "Lancaster 600",
+        arrows: 3, ends: 20, maxArrowScore: 10, rounds: 1, swapTargetsEnd: 10,
+        xBonus: 1,    // Lancaster X is 11
       },
       {
         description: "NFAA 900",
