@@ -325,7 +325,7 @@ let app = new Vue({
     loadingData: false,      // prevent other actions while this is going on
     isAdmin: false,
     admin: { leagues: []},
-    daysAgo: 30,          // for history pages
+    daysAgo: 90,          // for history pages
 
     offlineStart: null,           // when did we go offline?
     lastFailedAttempt: null,      // when did we last try to go online
@@ -589,8 +589,9 @@ let app = new Vue({
       }
     }
 
-    // admin page
-    if (window.location.href.match( /list/ ) && !tournamentId) {
+    // Load all recent tournaments
+    if (window.location.href.match( /list|admin/ ) && !tournamentId) {
+      this.setMessage("Recent Tournaments");
       this.daysAgo = this.$route.query.days || this.daysAgo;  // how many days to load
       await this.loadLeagueHistory( this.daysAgo );
     }
@@ -1271,11 +1272,14 @@ let app = new Vue({
     tournamentURL: function() {
       return this.baseURL() + "?id=" + this.tournament.id;
     },
-    resultsURL: function() {
-      return this.baseURL() + "/overview?id=" + this.tournament.id;
+    resultsURL: function( tournamentId ) {
+      return this.baseURL() + "/overview?id=" + (tournamentId || this.tournament.id);
     },
-    leagueResultsURL: function() {
-      return this.baseURL() + "/overview?leagueId=" + this.league.id;
+    leagueResultsURL: function( leagueId ) {
+      if (!(leagueId|0) && !this.league.id) {
+        return "#";
+      }
+      return this.baseURL() + "/overview?leagueId=" + (leagueId || this.league.id);
     },
 
     // generate the tournament home page (where you can create a new scoring bale
@@ -1405,7 +1409,7 @@ let app = new Vue({
       } else {
         if (JSON.stringify( archer ) != JSON.stringify( this.oldArcher )) {
           // udpate, log previous values
-          this.audit( archer, "was " + this.oldArcher.updatedDate + ":" +
+          this.audit( archer, "[detail edit] was " + this.oldArcher.updatedDate + ":" +
                       this.oldArcher.name + ":" + this.getClassification( this.oldArcher ));
         }
       }

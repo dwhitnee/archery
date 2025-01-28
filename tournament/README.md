@@ -4,8 +4,9 @@ Copyright (c) 2024-2025 <a href="https://dwhitnee.github.io">David Whitney</a>
 [dwhitee.github.io/archery/tournament](https://dwhitnee.github.io/archery/tournament)
 
 ## About
-Keeps track of archer scores during a local tournament. Cloud based
-scoring viewable publically and instantly.
+Start digital scoring for a local tournament or league in less than 60 seconds.
+
+Keeps track of archer scores. Cloud based scoring viewable publically and instantly.
 This software is a simple web page where any group of archers can start an
 ad-hoc tournament or league easily and quickly. It is NOT designed as
 an Event Management solution like Ianseo/BetweenEnds, though it should look
