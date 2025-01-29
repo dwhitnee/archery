@@ -438,7 +438,7 @@ let app = new Vue({
       },
       {
         description: "Make your own",
-        arrows: 1, ends: 1, maxArrowScore: 10, rounds: 1, xBonus: 0, diy: true
+        arrows: 0, ends: 10, maxArrowScore: 10, rounds: 1, xBonus: 0, diy: true
       }
 
       // multi day tournaments would be done as "Leagues"
@@ -683,6 +683,26 @@ let app = new Vue({
       // this doesn't get displayed anymore, just the default "You sure?"
       event.returnValue = "you will lose any scores since " +
         this.offlineStart.toLocaleTimeString();
+    },
+
+    // see if tournament.type is legit before saving
+    // arrows: 1-100, ends: 1-100, maxArrowScore: 1-100, rounds: 1-100
+    diyTournamentIsValid: function() {
+      if (!this.newTournament.type.diy) {
+        return true;
+      }
+      let t = this.newTournament.type;
+      return this.validateRange( t.arrows, 1, 100 ) &&
+        this.validateRange( t.ends, 1, 100 ) &&
+        this.validateRange( t.rounds, 1, 100 ) &&
+        this.validateRange( t.maxArrowScore, 1, 100 );
+    },
+    validateRange: function( val, min, max ) {
+      let valid = Number.isInteger( val ) && (val >= min) && (val <= max);
+      // if (!valid) {
+      //   alert( val + " invalid. Must be between 1-100");
+      // }
+      return valid;
     },
 
     //----------------------------------------

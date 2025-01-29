@@ -490,3 +490,7 @@ h3 {
 .tournamentEditor label {
   display: table-cell;  /* fake center v-align */
 }
+
+.red {
+  color: red;
+}

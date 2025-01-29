@@ -103,6 +103,7 @@
         </div>
         <div>
           <input type="number" id="newTournyTypeArrows"
+                 :class="{ red : !diyTournamentIsValid() }"
                  v-model.number="newTournament.type.arrows"  />
         </div>
 
@@ -112,6 +113,7 @@
         </div>
         <div>
           <input type="number" id="newTournyTypeMaxScore"
+                 :class="{ red : !diyTournamentIsValid() }"
                  v-model.number="newTournament.type.maxArrowScore"  />
         </div>
 
@@ -120,6 +122,7 @@
         </div>
         <div>
           <input type="number" id="newTournyTypeEnds"
+                 :class="{ red : !diyTournamentIsValid() }"
                  v-model.number="newTournament.type.ends"  />
         </div>
 
@@ -129,9 +132,9 @@
         </div>
         <div>
           <input type="number" id="newTournyTypeRounds"
+                 :class="{ red : !diyTournamentIsValid() }"
                  v-model.number="newTournament.type.rounds"  />
         </div>
-
       </div>
 
 
@@ -145,7 +148,8 @@
       </div>
 
       <button class="btn btn-primary btn-sm" @click="createTournament( $event )"
-              :disabled=" !newTournament.name || !newTournament.type || !newTournament.createdBy">
+              :disabled=" !newTournament.name || !newTournament.type
+                         || !newTournament.createdBy || !diyTournamentIsValid()">
         {{ newTournament.id ? "Edit" :"Create" }}  Tournament
       </button>
 
