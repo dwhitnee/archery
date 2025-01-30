@@ -1506,9 +1506,10 @@ let app = new Vue({
     // admin: list of leagues with active tournaments at current Venue (for display)
     //----------------------------------------
     leaguesWithTournaments:function() {
-      return Object.keys( this.admin.leagues ).filter(
-        (leagueId) =>
-          this.admin.leagues[leagueId].tournaments.length > 0);
+      return Object.keys( this.admin.leagues );
+      // return Object.keys( this.admin.leagues ).filter(
+      //   (leagueId) =>
+      //     this.admin.leagues[leagueId].tournaments.length > 0);
     },
 
 
