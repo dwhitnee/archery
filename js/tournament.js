@@ -1512,7 +1512,6 @@ let app = new Vue({
       //     this.admin.leagues[leagueId].tournaments.length > 0);
     },
 
-
     //----------------------------------------
     //----------------------------------------
     // Tournament persistence
