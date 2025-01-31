@@ -1504,12 +1504,15 @@ let app = new Vue({
 
     //----------------------------------------
     // admin: list of leagues with active tournaments at current Venue (for display)
+    // Leagues with no tournaments could have tournaments in other venues.
+    // Does a league have a venue? I guess. Show empty leagues at the same venue too
     //----------------------------------------
     leaguesWithTournaments:function() {
-      return Object.keys( this.admin.leagues );
-      // return Object.keys( this.admin.leagues ).filter(
-      //   (leagueId) =>
-      //     this.admin.leagues[leagueId].tournaments.length > 0);
+      // return Object.keys( this.admin.leagues );
+      return Object.keys( this.admin.leagues ).filter(
+        (leagueId) =>
+          this.admin.leagues[leagueId].venueId == this.getVenue() ||
+          this.admin.leagues[leagueId].tournaments.length > 0);
     },
 
     //----------------------------------------
