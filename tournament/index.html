@@ -263,15 +263,14 @@
         <div id="qrcode">
           [ Join a tournament to see the scoring QR code ]
         </div>
+        <ul>
+          <li v-if="tournament.id"><a :href="resultsURL()">Live Tournament Results</a>
+          <li v-if="league.id"><a :href="leagueResultsURL()">Overall League Results</a></li>
+          <li><a href="list">All Recent Tournaments</a></li>
+        </ul>
         <div>
-          <a v-if="tournament.id" :href="resultsURL()">Live Tournament Results</a>
-        </div>
-        <div>
-          <a v-if="league.id" :href="leagueResultsURL()">Overall League Results</a>
-        </div>
-        <div style="padding-top: 2em;">
           <a href="https://github.com/dwhitnee/archery/tree/main/tournament#readme">
-            About This App
+            About...
           </a>
         </div>
 
