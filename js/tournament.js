@@ -1442,7 +1442,7 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // set deleted flag on deleted archer
+    // set deleted flag on archer and remove from scoringGroup
     // this should only be called for archers with no score
     //----------------------------------------
     deleteArcher: async function( event ) {
