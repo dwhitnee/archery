@@ -376,6 +376,11 @@
           Confirm
         </button>
 
+        <button v-if="archerInitialized( newArcher ) && newArcher.total.score == 0"
+            class="btn btn-danger btn-med" @click="deleteArcher(event )">
+          Delete Archer
+        </button>
+
       </div>
     </dialog>
 
