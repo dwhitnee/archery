@@ -1442,17 +1442,22 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // set deleted flag on deleted archer
+    // set deleted flag on archer and remove from scoringGroup
     // this should only be called for archers with no score
+    // Really we're just moving the record to a graveyard tournament because reliable deleting
+    // is hard, but we already have reliable update
     //----------------------------------------
     deleteArcher: async function( event ) {
       let deadArcher = this.newArcher;  // update using the data in the UI
 
-      if (this.archerInitialized( deadArcher )) {
-        // remove fron bale, tournament, add deleted flag?
+      if (this.archerInitialized( deadArcher ) &&
+          window.confirm("Are you sure you want to remove " + deadArcher.name +
+                         " from the bale?"))
+      {
+        // remove fron bale, tournamnt, add deleted flag (should just delete from DB, too lazy)
         deadArcher.deleted = true;
-        deadArcher.scoringGroup = "_deleted_";
-        // deadArcher.tournamentId = 0;  // should just delete from DB if doing this
+        deadArcher.tournamentId = 0;
+        // deadArcher.scoringGroup = "_deleted_"; // this doesn't remove from tournament totals
 
         // remove from this.archers (scoringGroupOrder might be wrong from dragging)
         let deadIndex = this.archers.findIndex( a => (a.name == deadArcher.name));
@@ -1464,10 +1469,9 @@ let app = new Vue({
 
         // nuke archer in DB
         await this.updateArcher( deadArcher );  // save and update metadata
+        // await this.deleteArcherFromDB( deadArcher );
 
         // recalc scoringGroupOrder will happen at startScoring
-      } else {
-        alert("WTH? I can't delete that :" + deadArcher.name );
       }
     },
 
@@ -1824,6 +1828,14 @@ let app = new Vue({
         await this.saveArcherToDB( archer );
       }
     },
+
+    //----------------------------------------
+    // delete archer's score from DB.
+    // @arg archer - data to save
+    //----------------------------------------
+    // deleteArcher: async function( archer ) {
+    //   await this.deleteArcherFromDB( archer.id );
+    // },
 
     //----------------------------------------
     // return all permutations of bow, gender, and age
