@@ -1435,15 +1435,40 @@ let app = new Vue({
         }
       }
 
-      await this.updateArcher( archer );  // save and update metadata
-
       this.newArcher = {};
-
       this.closeDialog();
+
+      await this.updateArcher( archer );  // save and update metadata (in background)
     },
 
-    removeArcherFromBale: function( archer ) {
-      // this.bale.pop( archer );
+    //----------------------------------------
+    // set deleted flag on deleted archer
+    // this should only be called for archers with no score
+    //----------------------------------------
+    deleteArcher: async function( event ) {
+      let deadArcher = this.newArcher;  // update using the data in the UI
+
+      if (this.archerInitialized( deadArcher )) {
+        // remove fron bale, tournament, add deleted flag?
+        deadArcher.deleted = true;
+        deadArcher.scoringGroup = "_deleted_";
+        // deadArcher.tournamentId = 0;  // should just delete from DB if doing this
+
+        // remove from this.archers (scoringGroupOrder might be wrong from dragging)
+        let deadIndex = this.archers.findIndex( a => (a.name == deadArcher.name));
+        this.archers.splice( deadIndex, 1);
+
+        // dismiss and do save in the background
+        this.newArcher = {};
+        this.closeDialog();
+
+        // nuke archer in DB
+        await this.updateArcher( deadArcher );  // save and update metadata
+
+        // recalc scoringGroupOrder will happen at startScoring
+      } else {
+        alert("WTH? I can't delete that :" + deadArcher.name );
+      }
     },
 
     // save current archer list to DB and begin tournament
