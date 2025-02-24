@@ -612,9 +612,9 @@ let app = new Vue({
     } else if (tournamentId) {  // a tournament overview (group=0) or scoring page (group=N)
 
       this.tournament = await this.getTournamentById( tournamentId );
-      this.allArchersInRegion = await this.loadAllArchersInRegionFromDB();
       this.setRegionAndVenue( this.tournament.regionId,
                               this.tournament.venueId );
+      this.allArchersInRegion = await this.loadAllArchersInRegionFromDB();
 
       if (this.tournament && this.tournament.type) {
 
