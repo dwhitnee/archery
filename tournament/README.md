@@ -1,6 +1,6 @@
 # Instant Archery Tournament Scorekeeper
 Copyright (c) 2024-2025 <a href="https://dwhitnee.github.io">David Whitney</a> 
-(<a href="mailto:dwhitnee@gmail.com">Email</a>)
+(<a href="mailto:dwhitnee@gmail.com">email</a>)
 
 [dwhitee.github.io/archery/tournament](https://dwhitnee.github.io/archery/tournament)
 
