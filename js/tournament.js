@@ -1457,6 +1457,7 @@ let app = new Vue({
         // remove fron bale, tournamnt, add deleted flag (should just delete from DB, too lazy)
         deadArcher.deleted = true;
         deadArcher.tournamentId = 0;
+        deadArcher.leagueId = 0;
         // deadArcher.scoringGroup = "_deleted_"; // this doesn't remove from tournament totals
 
         // remove from this.archers (scoringGroupOrder might be wrong from dragging)
