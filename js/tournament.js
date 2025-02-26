@@ -1072,6 +1072,7 @@ let app = new Vue({
 
     toggleColors: function() {
       this.prefs.colorArrows = !this.prefs.colorArrows;
+      this.savePrefs();
     },
 
     // display arrow scores as standard 10 ring colors
