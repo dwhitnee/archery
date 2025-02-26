@@ -193,6 +193,7 @@
 
     <dialog id="scorecardDialog">
       <button class="close" @click="closeDialog( $event )"></button>
+      <button class="toggle" @click="toggleColors( $event )">colors?</button>
 
       <div v-for="(round, index) in displayRounds" class="round">
         <h3 style="display: table-caption; padding-left: 1em;">
@@ -213,7 +214,8 @@
 
         <div v-for="(end,index) in round.ends" class="end">
           <div>{{ index+1 }}</div>
-          <div v-for="arrow in end.arrows" class="arrowScore">
+          <div v-for="arrow in end.arrows" class="arrowScore"
+               :class="arrowColor( round, arrow )">
             {{ arrow | score( prefs.missSmiley) }}
           </div>
           <div class="score">{{ end.score | score }}</div>

@@ -14,6 +14,11 @@ html,body {
   --evencol: #85cbccbb;
   --oddcol: #a8dee0bb;
   --total: #a7d676bb;
+  --archeryWhite:  #ffffff;
+  --archeryBlack:  #030210;
+  --archeryBlue:   #28a9e0;
+  --archeryRed:    #ed1c24;
+  --archeryYellow: #fde11c;
 }
 .foo {
   color: var(--blue);
@@ -493,4 +498,58 @@ h3 {
 
 .red {
   color: red;
+}
+
+/* Target face colors */
+.bluefaceX,
+.blueface5 {
+  background-color: var(--archeryWhite);
+}
+
+.blueface4,
+.blueface3,
+.blueface2,
+.blueface1,
+.bluefaceM
+{
+  background-color: var(--archeryBlue);
+}
+
+.vegasX,
+.vegas10,
+.vegas9 {
+  background-color: var(--archeryYellow);
+  /* -webkit-text-stroke-width: 1px; */
+  /* -webkit-text-stroke-color: black; */
+}
+.vegas8,
+.vegas7 {
+  background-color: var(--archeryRed);
+}
+.vegas6,
+.vegas5 {
+  background-color: var(--archeryBlue);
+}
+.vegas4,
+.vegas3 {
+  background-color: var(--archeryBlack);
+  color: white;
+}
+.vegas2,
+.vegas1,
+.vegasM {
+  background-color: var(--archeryWhite);
+}
+
+button.toggle {
+  position: absolute;
+  top: 1em;
+  left: 1em;
+  opacity: 50%;
+  border: 1px solid grey;
+  font-size: inherit;
+  padding: 0 .25em;
+}
+button.toggle:hover {
+  opacity: 100%;
 }
