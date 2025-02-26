@@ -1080,9 +1080,11 @@ let app = new Vue({
     //----------------------------------------
     arrowColor: function( round, arrow ) {
       if (this.prefs.colorArrows) {
+        // 10/11 ring assume multicolor (or no type set)
         if (round.maxArrowScore == 10 || round.maxArrowScore == 11 || !round.maxArrowScore) {
           return "vegas" + arrow;
         }
+        // 5 ring assume blueface (but could be Field)
         if (round.maxArrowScore == 5) {
           return "blueface" + arrow;
         }
