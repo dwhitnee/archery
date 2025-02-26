@@ -376,6 +376,7 @@ let app = new Vue({
       venueId: 1,    // sandbox by default
       ignoreAgeGender: false,  // if true, only "bow" matters not age or gender
       missSmiley: "M",
+      colorArrows: true,
     },
     tempPrefs: {
       includeUnofficial: false   // leave unofficial scores out of league totals
@@ -1069,6 +1070,28 @@ let app = new Vue({
       return b-a;
     },
 
+    toggleColors: function() {
+      this.prefs.colorArrows = !this.prefs.colorArrows;
+      this.savePrefs();
+    },
+
+    //----------------------------------------
+    // display arrow scores as standard 10 ring multicolor or 5 ring blueface colors
+    //----------------------------------------
+    arrowColor: function( round, arrow ) {
+      if (this.prefs.colorArrows) {
+        // 10/11 ring assume multicolor (or no type set)
+        if (round.maxArrowScore == 10 || round.maxArrowScore == 11 || !round.maxArrowScore) {
+          return "vegas" + arrow;
+        }
+        // 5 ring assume blueface (but could be Field)
+        if (round.maxArrowScore == 5) {
+          return "blueface" + arrow;
+        }
+      }
+      return "";
+    },
+
     deleteArrowScore() {
       if (this.currentArrow > 0) {
         console.log("deleting last arrow " + this.currentArrow );
@@ -1176,6 +1199,7 @@ let app = new Vue({
         round.score = runningTotal;
         round.arrowCount = arrowCount;
         round.xCount = xCount;
+        round.maxArrowScore = this.tournament.type.maxArrowScore;  // for stats and color later
       }
 
       // all round totals - do we need this?
