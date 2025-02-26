@@ -1075,7 +1075,9 @@ let app = new Vue({
       this.savePrefs();
     },
 
-    // display arrow scores as standard 10 ring colors
+    //----------------------------------------
+    // display arrow scores as standard 10 ring multicolor or 5 ring blueface colors
+    //----------------------------------------
     arrowColor: function( round, arrow ) {
       if (this.prefs.colorArrows) {
         if (round.maxArrowScore == 10 || round.maxArrowScore == 11 || !round.maxArrowScore) {
