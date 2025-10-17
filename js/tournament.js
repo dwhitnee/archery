@@ -388,7 +388,7 @@ let app = new Vue({
     ],
     ages: [
       // { full: "Pee Wee (U8)", abbrev: "U8" },
-      { full: "Cub (U12)", abbrev: "U12" },
+      { full: "Cub (U13)", abbrev: "U13" },
       { full: "Youth (U15)", abbrev: "U15" },
       { full: "YA (U18)", abbrev: "U18" },
       { full: "College  (U21)", abbrev: "U21" },
@@ -437,6 +437,7 @@ let app = new Vue({
         description: "NFAA Classic 600",
         arrows: 5, ends: 4, maxArrowScore: 10, rounds: 3
       },
+
       {
         description: "Make your own",
         arrows: 0, ends: 10, maxArrowScore: 10, rounds: 1, xBonus: 0, diy: true
