@@ -45,7 +45,6 @@
 // TEST league - create league, start tournament, see if QR code and bale creation works)
 //  Try multi round tournament (in league? why?)
 //  - FITA
-//  - mail-in
 //  - 900 round
 
 // make over page reload 3 hours after initial page load? cookie? (can't store heartbeat in tournament without race condition
@@ -99,6 +98,9 @@
 //    match auto-complete to lower_name? Does it matter with auto-complete? no
 //    if lower match found, then what? Take older name? could be wrong
 //    How to automate name cleanup.  Auto capitalize names? hmm
+
+// Distinguish between a mail-in (shot any day) vs a real League
+// (where each day is a single competition)
 
 
 // == HOW TO HANDLE BAD CONNECTIONS ===
@@ -375,6 +377,7 @@ let app = new Vue({
       regionId: 1,   // sandbox by default
       venueId: 1,    // sandbox by default
       ignoreAgeGender: false,  // if true, only "bow" matters not age or gender
+      showLeagueResultsByDay: false,  // if true, show zeros for days archer didn't shoot
       missSmiley: "M",
       colorArrows: true,
     },
@@ -1755,6 +1758,10 @@ let app = new Vue({
       // for a handicap league there may not be archer classes, just one big list of archers
       let archers = [];
 
+      // index rounds by tournamentId in order, start with all tournamentIds for this league
+      let tournamentIds = new Set(archerRecords.map(
+        rec => rec.tournamentId)).keys().toArray().sort();
+
       archerRecords.forEach( (oneArcherDay) => {
         let id = oneArcherDay.name;   // name should be the same, id changes each day
         oneArcherDay.total.average = oneArcherDay.total.score;
@@ -1769,13 +1776,32 @@ let app = new Vue({
           oneArcherDay.rounds[r].tournamentId = oneArcherDay.tournamentId;
           oneArcherDay.rounds[r].scoringGroup = oneArcherDay.scoringGroup;
         }
-        if (!archers[id]) {
-          archers[id] = oneArcherDay;
+
+        if (!this.prefs.showLeagueResultsByDay) {
+
+          if (!archers[id]) {
+            archers[id] = oneArcherDay;
+          } else {
+            // add this day's rounds and totals to the pile
+            archers[id].rounds = archers[id].rounds.concat( oneArcherDay.rounds );
+          }
+
         } else {
+          // alternatively, assign zeros to days in the league this archer did not shoot
+          // find all tournamentIds and map 75=>0, 76=>1, etc
+          let tournamentId = oneArcherDay.tournamentId;
+          let index = tournamentIds.indexOf( tournamentId );
+          let rounds = oneArcherDay.rounds;
+
+          if (!archers[id]) {
+            archers[id] = oneArcherDay;
+            archers[id].rounds = [];  // delete, first record might not be first tournament
+          }
           // add this day's rounds and totals to the pile
-          archers[id].rounds = archers[id].rounds.concat( oneArcherDay.rounds );
-          this.addUpArcherRounds( archers[id], league );
+          archers[id].rounds[index] = rounds[0];  // fixme, does this break for 900 rounds?
         }
+
+        this.addUpArcherRounds( archers[id], league );
       });
 
       // FIXME: how does this work for a two day regular tournament?
