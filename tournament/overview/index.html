@@ -80,12 +80,20 @@
           </div>
         </h3>
 
-        <div style="padding-bottom: 1em">
+        <div>
           <label class="form-check-label" for="ignoreAgeGender">Ignore age and gender?</label>
           <input type="checkbox" id="ignoreAgeGender"
                  v-model.trim="prefs.ignoreAgeGender" @change="resetScoreDisplay()"  />
 
           <div style="float: right; font-style: italic">Click scores for full scorecards</div>
+        </div>
+
+        <div style="padding-bottom: 1em">
+          <label class="form-check-label"
+                 for="showLeagueResultsByDay">Show league results by day?</label>
+          <input type="checkbox" id="showLeagueResultsByDay"
+                 v-model.trim="prefs.showLeagueResultsByDay"
+                 @change="savePrefs(); location.reload()"  />
         </div>
 
         <!-- results like  https://drive.google.com/file/d/1Zmz_iE0EUlASVKqjfVHt3Yms-moM1g9b/view   -->
