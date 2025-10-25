@@ -1798,7 +1798,9 @@ let app = new Vue({
             archers[id].rounds = [];  // delete, first record might not be first tournament
           }
           // add this day's rounds and totals to the pile
-          archers[id].rounds[index] = rounds[0];  // fixme, does this break for 900 rounds?
+          if (rounds[0].arrowCount) {  // make sure empty entries don't nuke good ones
+            archers[id].rounds[index] = rounds[0];  // fixme, does this break for 900 rounds?
+          }
         }
 
         this.addUpArcherRounds( archers[id], league );
