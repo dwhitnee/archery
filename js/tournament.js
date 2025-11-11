@@ -1820,6 +1820,7 @@ let app = new Vue({
     //----------------------------------------
     addUpArcherRounds: function( archer, league ) {
       let totalRounds = league.maxDays;
+      let completedRounds = 0;
       if (league.doMulligan) {
         totalRounds -= 1;  // skip lowest score
       }
@@ -1832,13 +1833,16 @@ let app = new Vue({
       const sortedRounds = archer.rounds.toSorted( this.compareArcherRounds );
       for (let i=0; i < totalRounds; i++) {
         if (!sortedRounds[i]) { break; }
+        completedRounds++;
         archer.total.score += sortedRounds[i].score;
         archer.total.xCount += sortedRounds[i].xCount;
         archer.total.arrowCount += sortedRounds[i].arrowCount;
         // archer.total.handicap = this.calcHandicap( this.tournament, archer );
       }
       // ignore mulligan for average
-      archer.total.average = archer.total.score / Math.min( sortedRounds.length, totalRounds);
+      if (completedRounds) {
+        archer.total.average = archer.total.score / completedRounds;
+      }
 
       if (league.doMulligan) {
         // find and drop lowest score
