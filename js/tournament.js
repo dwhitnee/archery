@@ -1839,10 +1839,9 @@ let app = new Vue({
         archer.total.arrowCount += sortedRounds[i].arrowCount;
         // archer.total.handicap = this.calcHandicap( this.tournament, archer );
       }
-      // ignore mulligan for average
-      if (completedRounds) {
-        archer.total.average = archer.total.score / completedRounds;
-      }
+      // ignore mulligan for average, but assume at least one
+      let averagedRounds = Math.min( sortedRounds.length, completedRounds ) || 1;
+      archer.total.average = archer.total.score / averagedRounds;
 
       if (league.doMulligan) {
         // find and drop lowest score

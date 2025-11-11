@@ -151,13 +151,13 @@
                 <div class="dayScore"
                      @click="displayRounds = archer.rounds; currentRound = 0;openDialog('scorecardDialog')">
                      <!-- @click="if (admin) { location.href = getScoringGroupURL( archer )}"> -->
-                  <div class="score">{{ archer.total.score }}</div>
+                  <div class="score">{{ archer.total.score }}-</div>
                   <div class="score">{{ archer.total.xCount }}</div>
                   <div v-if="tournament && tournament.id" class="score small">
                     {{ archer.total.arrowCount }}/{{ arrowsPerTournament()}}
                   </div>
                   <div v-else class="average">
-                    {{ archer.total.average | averageFormat( 2 ) }}
+                    {{ archer.total.average | averageFormat( 1 ) }}
                   </div>
                 </div>
               </div>
