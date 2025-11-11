@@ -2052,11 +2052,13 @@ let app = new Vue({
       for (let i=0; i < archers.length; i++) {
         let archer = archers[i];
         let row = [archer.name];
+        let completedRounds = 0;
         if (tournament.type.rounds > 1) {
           for (let r=0; r < tournament.type.rounds; r++) {
             if (archer.rounds[r]) {       // round might not be complete
               row.push( archer.rounds[r].score );
               row.push( archer.rounds[r].xCount );
+              completedRounds++;
             } else {
               row.push("");               // but keep formating right for last column
               row.push("");
@@ -2065,8 +2067,8 @@ let app = new Vue({
         }
         row.push( archer.total.score );
         row.push( archer.total.xCount );
-        if (tournament.type.rounds > 2) {
-          row.push( (archer.total.score / archer.rounds.length).toFixed(1) );
+        if ((tournament.type.rounds > 2) && (completedRounds)) {
+          row.push( (archer.total.score / completedRounds).toFixed(1) );
         }
         csv.push( row );
       }
