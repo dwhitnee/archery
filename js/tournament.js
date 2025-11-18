@@ -578,7 +578,7 @@ let app = new Vue({
     }
 
     // admin override on any page
-    if (window.location.href.match( /#admin/ )) {
+    if (window.location.href.match( /#admin/ ) || this.$route.query.admin !== undefined) {
       this.isAdmin = true;
     }
 
@@ -1502,6 +1502,16 @@ let app = new Vue({
 
         // recalc scoringGroupOrder will happen at startScoring
       }
+    },
+
+    // rounds is an array of length 1
+    showScorecardForRounds: function( rounds, roundNum ) {
+      this.displayRounds = rounds;
+      this.currentRound = roundNum;
+      this.openDialog('scorecardDialog');
+      // if (this.isAdmin) {
+      //   location.href = this.getScoringGroupURL( rounds[0] );
+      // }
     },
 
     // save current archer list to DB and begin tournament

@@ -75,7 +75,7 @@
               league.name }}
           results
           <div class="icon saveIcon" @click="exportToCSV( tournament)"></div>
-          <div class="small">
+          <div class="small" v-if="tournament && tournament.id">
             {{ tournament.type.description }} [{{ isTournamentDone() ? "complete" : "in progress"}}]
           </div>
         </h3>
@@ -88,17 +88,18 @@
           <div style="float: right; font-style: italic">Click scores for full scorecards</div>
         </div>
 
-        <div style="padding-bottom: 1em">
+        <div v-if="!tournament || !tournament.id">
           <label class="form-check-label"
                  for="showLeagueResultsByDay">Show league results by day?</label>
           <input type="checkbox" id="showLeagueResultsByDay"
                  v-model.trim="prefs.showLeagueResultsByDay"
                  @change="savePrefs(); location.reload()"  />
         </div>
+        <div style="padding-bottom: 1em"></div>
 
         <!-- results like  https://drive.google.com/file/d/1Zmz_iE0EUlASVKqjfVHt3Yms-moM1g9b/view   -->
 
-        <div class="table">
+        <div class="table" v-if="tournament.type">
           <div class="header">
             <div class="rowLead">Category</div>
             <div v-for="roundNum in tournament.type.rounds"  v-if="tournament.type.rounds > 1">
@@ -118,7 +119,7 @@
           </div>
         </div>
 
-        <div v-for="classification in getAllCompetitionClasses()">
+        <div v-for="classification in getAllCompetitionClasses()" v-if="tournament.type">
 
           <div v-if="getArchersByClass( classification ).length" class="header">
             <div v-if="prefs.ignoreAgeGender">
@@ -133,10 +134,12 @@
             <div class="resultLine" v-for="archer in getArchersByClass( classification )">
               <div class="rowLead">{{ archer.name }}</div>
               <div v-for="r in tournament.type.rounds" v-if="tournament.type.rounds > 1">
-                <div class="dayScore"
-                      @click="displayRounds = [archer.rounds[r-1]];
-                              currentRound = r; openDialog('scorecardDialog')">
-                  <!-- @click="if (admin) { location.href = getScoringGroupURL( archer.rounds[r-1] ); } "> -->
+                <div class="dayScore" @click="showScorecardForRounds( [archer.rounds[r-1]], r )">
+
+                     <!-- @click="displayRounds = [archer.rounds[r-1]]; -->
+                     <!--          currentRound = r; openDialog('scorecardDialog')"> -->
+                     <!-- @click="if (isAdmin) { location.href = getScoringGroupURL( archer.rounds[r-1] ); } "> -->
+
                   <div v-if="archer.rounds[r-1]" class="score"
                        :class="{ mulligan: archer.rounds[r-1].isMulligan }">
                     {{ archer.rounds[r-1].score }}
@@ -150,7 +153,7 @@
               <div>
                 <div class="dayScore"
                      @click="displayRounds = archer.rounds; currentRound = 0;openDialog('scorecardDialog')">
-                     <!-- @click="if (admin) { location.href = getScoringGroupURL( archer )}"> -->
+                     <!-- @click="if (isAdmin) { location.href = getScoringGroupURL( archer )}"> -->
                   <div class="score">{{ archer.total.score }}</div>
                   <div class="score">&nbsp;{{ archer.total.xCount }}</div>
                   <div v-if="tournament && tournament.id" class="score small">
@@ -203,31 +206,35 @@
       <button class="close" @click="closeDialog( $event )"></button>
       <button class="toggle" @click="toggleColors( $event )">colors?</button>
 
-      <div v-for="(round, index) in displayRounds" class="round">
-        <h3 style="display: table-caption; padding-left: 1em;">
-          <a v-if="round.tournamentId" :href="'./?id=' + round.tournamentId">
-            round {{ currentRound || index+1 }}
-          </a>
-          <span v-else>
-            round {{ currentRound || index+1 }}
-          </span>
-        </h3>
+      <div v-for="(round, index) in displayRounds">
+        <div v-if="round" class="round">
+          <h3 style="display: table-caption; padding-left: 1em;">
+            <a v-if="round.tournamentId" :href="'./?id=' + round.tournamentId">
+              round {{ currentRound || index+1 }}
+            </a>
+            <span v-else>
+              round {{ currentRound || index+1 }}
+            </span>
+            <div v-if="isAdmin" class="icon settingsIcon"
+                 @click="location.href = getScoringGroupURL( round )" ></div>
+          </h3>
 
-        <div class="end" style="color: gray">
-          <div>end</div>
-          <div v-for="arrow in round.ends[0].arrows"></div>
-          <div>sum</div>
-          <div>total</div>
-        </div>
-
-        <div v-for="(end,index) in round.ends" class="end">
-          <div>{{ index+1 }}</div>
-          <div v-for="arrow in end.arrows" class="arrowScore"
-               :class="arrowColor( round, arrow )">
-            {{ arrow | score( prefs.missSmiley) }}
+          <div class="end" style="color: gray">
+            <div>end</div>
+            <div v-for="arrow in round.ends[0].arrows"></div>
+            <div>sum</div>
+            <div>total</div>
           </div>
-          <div class="score">{{ end.score | score }}</div>
-          <div class="score">{{ end.runningTotal | score }}</div>
+
+          <div v-for="(end,index) in round.ends" class="end">
+            <div>{{ index+1 }}</div>
+            <div v-for="arrow in end.arrows" class="arrowScore"
+                 :class="arrowColor( round, arrow )">
+              {{ arrow | score( prefs.missSmiley) }}
+            </div>
+            <div class="score">{{ end.score | score }}</div>
+            <div class="score">{{ end.runningTotal | score }}</div>
+          </div>
         </div>
       </div>
 
