@@ -362,6 +362,7 @@ let app = new Vue({
     regionVenuePair: [], // [regionId, venueId] for new tournament/league
     newRegion: {},
     newVenue: {},
+    importedArchers: [],
 
     nextSequenceId: 0,  // ID just for local testing
 
@@ -1142,6 +1143,9 @@ let app = new Vue({
         return false; // no tournament specified, must be a league overview
       }
 
+      // NOTE: 3 hours is not enough, could be a multi-day multi-line tournament.
+      // But will leave this since it affects display only and tournament is "alive" again
+      // when arrows are scored.
       if (this.isTournamentExpired()) {
         return true;    // tournament has not been updated in 3 hours
       }
@@ -2052,6 +2056,102 @@ let app = new Vue({
       } else {
         return b.xCount - a.xCount;
       }
+    },
+
+
+
+
+    //----------------------------------------
+    // CSV format is
+    // user, first, last, email, gender/class, age, etc
+    // user, first, last, email, gender, class, age, etc
+    // Éric Malebranche,"Éric, Malebranche, emaileric551@gmail.com",Men's Barebow,Adult - 18+,Other,Burke Mountain Archers,"Nov 7, 2025 -  5:54 PM"
+
+    // Rowan Lew,"Rowan, Lew, bethany.lark@gmail.com, Male",Open Compound (Freestyle),U13 - 12 years or under in 2025,Let 'Er Fly,,"Nov 14, 2025 -  7:27 PM"
+
+    //----------------------------------------
+    readCSVFile: async function( event ) {
+      let files = event.target.files;
+      if (files && files[0]) {
+        let csv = await files[0].text();
+        let lines = csv.split(/\r\n|\n/);
+
+        let archers = [];
+
+        for (let i = 1; i < lines.length; i++) {        // skip line 1 header
+          let archer = {};
+          console.log( lines[i] );
+          // split by commas, parse out division,
+          let fields = lines[i].split(",");
+          if (fields.length > 4) {
+            fields.shift();  // pop user info
+
+            archer.name = fields.shift() + " " + fields.shift();   // next two are name
+            archer.name = archer.name.replace(/\"/g, "");  // remove quotes
+            archer.name = Util.capitalizeWords( archer.name );
+
+            fields.shift();  // pop email
+
+            // fields 4,5,6 are a non-deterministic combination of class/age/gender
+            let info = fields.shift() + " " + fields.shift() + " " + fields.shift();
+
+            // division regex Olympic|Barebow|Bowhunter|Fixed
+            // age regex on 50+, 60+, 70+, Senior, Adult, U**
+
+            if (info.match(/bowhunter|fixed pin/i)) {
+              archer.bow = "BHFS";
+            } else if (info.match(/barebow/i)) {
+              archer.bow = "BBR";
+            } else if (info.match(/olympic|recurve/i)) {
+              archer.bow = "FSLR";
+            } else if (info.match(/compound|freestyle/i)) {
+              archer.bow = "FS";
+            }
+
+            let match;
+            if ((match = info.match(/U\d\d/i))) {  // U13, U15, U18, U21
+              archer.age = match[0];
+            } else if (info.match(/70\+|master senior/)) {
+              archer.age = "MS";
+            } else if (info.match(/60\+|silver senior/i)) {
+              archer.age = "SS";
+            } else if (info.match(/50\+|master/i)) {
+              archer.age = "S";
+            } else if (info.match(/21\+|adult|senior/i)) {
+              archer.age = "A";
+            }
+
+            if (info.match(/female|women/i)) {
+              archer.gender = "F";
+            } else {
+              archer.gender = "M";
+            }
+
+          } else {
+            // empty line, no archer, insert dummy?
+          }
+
+          // two things we can do here, 1) add archer to prepopulate data or 2) create a tournament
+
+          archers.push( archer );
+          // this.addNewArcher( archer );  // confirm before doing this?
+        }
+        this.importedArchers = archers;  // for autopopulate
+        this.archers = archers;  // REMOVE ME when addNewArcher is used instead
+      }
+    },
+
+    //----------------------------------------
+    // take list of imported archers and randomly assign to bales
+    // need a way to identify bales? Or a way to sort archers?
+    // drag and drop?
+    //----------------------------------------
+    autoPopulateTournamentBales: function() {
+      if (!confirm("Really overwrite every archer in this tournament?")) {
+        return;
+      }
+      console.log("boom");
+      alert("TBD...");
     },
 
 
