@@ -123,6 +123,25 @@
       </div>
 
       <div class="resultsPage">
+
+        <div id="importDiv">
+          <div style="font-weight: bold">
+            Import a CSV file of archers
+          </div>
+          <div>
+            <input type="file" v-on:change="readCSVFile( $event )"/>
+          </div>
+        </div>
+
+        <div v-if="importedArchers.length"
+             id="autoPopulateBales"
+             style="padding: 1em; background-color: yellow">
+          Auto assign these archers to bales in this tournament?
+          (destroy current bales)
+          <button  class="btn btn-danger btn-sm" @click="autoPopulateTournamentBales()">
+          Auto-populate bales</button>
+        </div>
+
         <div v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )">
           <div class="header">
             <a :href="getScoringGroupURLByName( scoringGroup ) ">{{ scoringGroup }}</a>

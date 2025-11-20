@@ -424,6 +424,23 @@ h3 {
   padding: 1em;
 }
 
+
+#importDiv {
+  background: lightgreen;
+  width: max-content;
+  border-radius: .5em;
+  border: 1px solid;
+  padding: 1em;
+}
+
+#autoPopulateBales {
+  background-color: yellow;
+  width: max-content;
+  border-radius: .5em;
+  border: 1px solid;
+  padding: 1em;
+}
+
 #settings {
   margin: auto;
 }
