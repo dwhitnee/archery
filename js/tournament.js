@@ -2155,14 +2155,9 @@ let app = new Vue({
     //----------------------------------------
     // take list of imported archers and randomly assign to bales
     // need a way to identify bales? Or a way to sort archers?
-    // drag and drop?
     //----------------------------------------
     autoPopulateTournamentBales: function() {
-      if (!confirm("Really overwrite every archer in this tournament?")) {
-        return;
-      }
-
-      // create struct of bales of archers for dragging?  FIXME
+      // create struct of bales of archers for dragging
 
       // this.archers = [];  // nuke what was there (what about DB?)
 
@@ -2175,7 +2170,7 @@ let app = new Vue({
         archer.scoringGroup = baleId;
 
         if (!this.importedBales[baleId]) {
-          this.importedBales[baleId] = { name: baleId, archers: [] };
+          this.importedBales[baleId] = { name: baleId+1, archers: [] };
         }
         this.importedBales[baleId].archers.push( archer );
       }
