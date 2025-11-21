@@ -2214,9 +2214,7 @@ let app = new Vue({
 
           // FIXME
           // await this.updateArcher( archer );  // save and update metadata
-
-          // add fake pause here FIXME
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await new Promise(resolve => setTimeout(resolve, 50));   // fake pause (remove)
         }
         this.progress++;
       }
