@@ -325,6 +325,9 @@ let app = new Vue({
     message: "Join a tournament",
     saveInProgress: false,   // prevent other actions while this is going on
     loadingData: false,      // prevent other actions while this is going on
+    progress: 1,
+    maxProgress: 100,
+
     isAdmin: false,
     admin: { leagues: []},
     daysAgo: 90,          // for history pages
@@ -2164,7 +2167,7 @@ let app = new Vue({
     autoPopulateTournamentBales: function() {
       // create struct of bales of archers for dragging
 
-      // this.archers = [];  // nuke what was there (what about DB?)
+      this.archers = [];  // nuke what was there (what about DB?)
 
       let assignedTargets = 0;
       for (let i=0; i < this.importedArchers.length; i++) {
@@ -2182,18 +2185,42 @@ let app = new Vue({
       this.$forceUpdate();     // updating arrays is messy
     },
 
-    // after auto-populate and editing, convert importedArchers to a real tournament in DB
-    createTournamentFromEditedImport: function() {
+    //----------------------------------------
+    // Commit all tournament changes to DB after auto-populate and editing
+    // Update scoringGroup in all archers in importedBales and save to DB
+    //----------------------------------------
+    createTournamentFromEditedImport: async function() {
       if (!confirm("Are you sure? This will overwrite everything in this tournament and editing will be more difficult later")) {
         return;
       }
+
       alert("cool");
 
-      // for all imported and sorted archers do
-      // this.initArcher( archer, this.tournament );
-      // this.archers.push( archer );   // add archer to list (order matters)
+      // reset old data
+      document.getElementById("csvImportFilename").value="";
+      this.archers = [];
+      this.importedArchers = [];
 
-      // await this.updateArcher( archer );  // save and update metadata
+      this.progress = 0;
+      this.maxProgress = this.importedBales.length;
+
+      // for all imported and sorted archers
+      for (let b=0; b < this.importedBales.length; b++) {
+        let baleName = this.importedBales[b].name;
+        let archers = this.importedBales[b].archers;
+        for (let i=0; i < archers.length; i++) {
+          let archer = archers[i];
+          archer.scoringGroup = baleName;
+          this.initArcher( archers, this.tournament );
+          this.archers.push( archer );   // add archer to list (order matters)
+
+          // FIXME
+          // await this.updateArcher( archer );  // save and update metadata
+        }
+        this.progress++;
+      }
+      this.importedBales = [];
+      debugger;
     },
 
 
