@@ -2144,11 +2144,16 @@ let app = new Vue({
       }
     },
 
+    // called when a drag is complete. Force array list update in display
     dragArcher: function( event ) {
       this.$forceUpdate();   // updating arrays is messy
 
-      // Vue.set( archer.something, 'attachments', newThing)   // reactive update, avoid force
+      // ick
+      // $this.set( this.importedBales[i], 'archers', value)
+
       // data[index].prop = value  NO
+
+      // Vue.set( archer.something, 'attachments', newThing)   // reactive update, avoid force
       // $this.set(item, 'prop', value)  YES
     },
 
@@ -2174,7 +2179,7 @@ let app = new Vue({
         }
         this.importedBales[baleId].archers.push( archer );
       }
-      this.$forceUpdate();
+      this.$forceUpdate();     // updating arrays is messy
     },
 
     // after auto-populate and editing, convert importedArchers to a real tournament in DB
