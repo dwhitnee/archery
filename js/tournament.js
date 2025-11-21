@@ -2197,9 +2197,7 @@ let app = new Vue({
       alert("cool");
 
       // reset old data
-      document.getElementById("csvImportFilename").value="";
       this.archers = [];
-      this.importedArchers = [];
 
       this.progress = 0;
       this.maxProgress = this.importedBales.length;
@@ -2216,10 +2214,18 @@ let app = new Vue({
 
           // FIXME
           // await this.updateArcher( archer );  // save and update metadata
+
+          // add fake pause here FIXME
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
         this.progress++;
       }
+
+      // erase import temps
+      this.importedArchers = [];
       this.importedBales = [];
+      document.getElementById("csvImportFilename").value="";
+
       debugger;
     },
 
