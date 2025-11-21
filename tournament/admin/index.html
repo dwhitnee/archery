@@ -145,10 +145,10 @@
              class="infoBox">
 
           Drag and drop archers between bales as needed, then click
-          <button  class="btn btn-danger btn-sm" @click="createTournamentFromEditedImport()">
+          <button  v-if="!progress" class="btn btn-danger btn-sm" @click="createTournamentFromEditedImport()">
             Create Tournament
           </button>
-          <progress :value="progress" :max="maxProgress"></progress>
+          <progress v-else :value="progress" :max="maxProgress"></progress>
         </div>
 
         <!-- list of freshly imported archers and auto-created bales -->
@@ -177,7 +177,9 @@
 
         <!-- regular list of archers and bales -->
         <div v-if="!importedBales.length" v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )">
-          <div class="header">{{ scoringGroup }} </div>
+          <!-- <div class="header">{{ scoringGroup }} </div> -->
+          <a :href="getScoringGroupURLByName( scoringGroup ) ">{{ scoringGroup }}</a>
+
          <div class="table archerResultList">
             <div class="resultLine" v-for="archer in getArchersByScoringGroup()[scoringGroup]">
               <div class="rowLead">
