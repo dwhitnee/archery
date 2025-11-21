@@ -325,7 +325,7 @@ let app = new Vue({
     message: "Join a tournament",
     saveInProgress: false,   // prevent other actions while this is going on
     loadingData: false,      // prevent other actions while this is going on
-    progress: 1,
+    progress: 0,
     maxProgress: 100,
 
     isAdmin: false,
@@ -2066,9 +2066,18 @@ let app = new Vue({
 
 
     //----------------------------------------
-    // CSV format is
+    // Read file in CSV format
+    // Row 1 ignored, all other rows have a single archer
+    //
+    // Col 1 ignored
+    // Col 2,3 full name
+    // Col 4,5,6,7 - some combination of gender/class/age
+
     // user, first, last, email, gender/class, age, etc
     // user, first, last, email, gender, class, age, etc
+    //
+    // If name is blank, leave a dummy archer
+
     // Éric Malebranche,"Éric, Malebranche, emaileric551@gmail.com",Men's Barebow,Adult - 18+,Other,Burke Mountain Archers,"Nov 7, 2025 -  5:54 PM"
 
     // Rowan Lew,"Rowan, Lew, bethany.lark@gmail.com, Male",Open Compound (Freestyle),U13 - 12 years or under in 2025,Let 'Er Fly,,"Nov 14, 2025 -  7:27 PM"
@@ -2138,7 +2147,6 @@ let app = new Vue({
           // two things we can do here, 1) add archer to prepopulate data or 2) create a tournament
 
           archers.push( archer );
-          // this.addNewArcher( archer );  // confirm before doing this?
         }
         this.importedArchers = archers;  // for autopopulate
         this.importedBales = [];         // for drag and drop editing
@@ -2147,7 +2155,9 @@ let app = new Vue({
       }
     },
 
+    //----------------------------------------
     // called when a drag is complete. Force array list update in display
+    //----------------------------------------
     dragArcher: function( event ) {
       this.$forceUpdate();   // updating arrays is messy
 
@@ -2157,7 +2167,7 @@ let app = new Vue({
       // data[index].prop = value  NO
 
       // Vue.set( archer.something, 'attachments', newThing)   // reactive update, avoid force
-      // $this.set(item, 'prop', value)  YES
+      // $this.set(item, 'prop', value)  YES, but hard to pull array info out of event
     },
 
     //----------------------------------------
@@ -2180,7 +2190,9 @@ let app = new Vue({
         if (!this.importedBales[baleId]) {
           this.importedBales[baleId] = { name: baleId+1, archers: [] };
         }
-        this.importedBales[baleId].archers.push( archer );
+        if (archer.name) {
+          this.importedBales[baleId].archers.push( archer );
+        }
       }
       this.$forceUpdate();     // updating arrays is messy
     },
@@ -2199,8 +2211,8 @@ let app = new Vue({
       // reset old data
       this.archers = [];
 
-      this.progress = 0;
-      this.maxProgress = this.importedBales.length;
+      this.progress = 1;
+      this.maxProgress = this.importedBales.length+1;
 
       // for all imported and sorted archers
       for (let b=0; b < this.importedBales.length; b++) {
