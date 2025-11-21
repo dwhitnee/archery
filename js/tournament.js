@@ -865,7 +865,7 @@ let app = new Vue({
       }
     },
     setGroupName: function() {
-      this.groupName = this.newGroupName;
+      this.groupName = this.newGroupName.trim();   // v-model.trim doesn't always work
       window.location.search += "&groupId=" + this.groupName;
     },
 
@@ -1429,6 +1429,7 @@ let app = new Vue({
 
     prepopulateArcher: function() {
       this.newArcher.name = Util.capitalizeWords( this.newArcher.name );
+      this.newArcher.name = this.newArcher.name.trim();   // v-model.trim is flakey
 
       let existingArcher = this.allArchersInRegion[this.newArcher.name];
 
@@ -2141,7 +2142,8 @@ let app = new Vue({
             }
 
           } else {
-            // empty line, no archer, insert dummy?
+            // empty line, no archer, insert dummy
+            // FIXME
           }
 
           // two things we can do here, 1) add archer to prepopulate data or 2) create a tournament
