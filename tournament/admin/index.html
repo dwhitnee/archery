@@ -124,7 +124,7 @@
 
       <div class="resultsPage">
 
-        <div id="importDiv">
+        <div id="importDiv" class="infoBox">
           <div style="font-weight: bold">
             Import a CSV file of archers
           </div>
@@ -133,20 +133,46 @@
           </div>
         </div>
 
-        <div v-if="importedArchers.length"
-             id="autoPopulateBales"
-             style="padding: 1em; background-color: yellow">
+        <div v-if="importedArchers.length && !importedBales.length"
+             id="autoPopulateBales" class="infoBox">
           Auto assign these archers to bales in this tournament?
           (destroy current bales)
-          <button  class="btn btn-danger btn-sm" @click="autoPopulateTournamentBales()">
+          <button  class="btn btn-primary btn-sm" @click="autoPopulateTournamentBales()">
           Auto-populate bales</button>
         </div>
 
-        <div v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )">
+        <div v-if="importedBales.length" id="createImportedTournament"
+             class="infoBox">
+          Drag and drop archers between bales as needed, then click
+          <button  class="btn btn-danger btn-sm" @click="createTournamentFromEditedImport()">
+            Create Tournament
+          </button>
+        </div>
+
+        <div v-for="(bale,index) in importedBales">
           <div class="header">
-            <a :href="getScoringGroupURLByName( scoringGroup ) ">{{ scoringGroup }}</a>
+            Bale {{ bale.name }}
           </div>
 
+          <div>
+            <draggable v-model="importedBales[index].archers"
+                       class="archerList preventSelect" ghost-class="sort-ghost"
+                       group="archers"
+                       @start="drag=true"
+                       @end="drag=false; dragArcher( $event )">
+              <div class="resultLine" v-for="archer in bale.archers">
+                <div class="rowLead">
+                  {{ archer.name }} ({{ getClassification( archer ) }})
+                  <span v-if="archer.isUnofficial"
+                        style="color: #800020; font-weigth: bold; font-style: italic">practice</span>
+                  <div class="small">{{ archer.auditlog }}</div>
+                </div>
+              </div>
+            </draggable>
+          </div>
+        </div>
+
+        <div v-if="!importedBales.length" v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )">
           <div class="table archerResultList">
             <div class="resultLine" v-for="archer in getArchersByScoringGroup()[scoringGroup]">
               <div class="rowLead">
@@ -158,9 +184,12 @@
             </div>
           </div>
         </div>
-      </div>
 
+      </div>
     </div>
+
+    <!-- need each bale to be draggable, but also, each archer can be
+         dragged out of one bale into another -->
 
     <!-- Settings-->
 
@@ -210,6 +239,9 @@
 
   <script src="../../js/vue-2.7.15.min.js"></script>
   <script src="../../js/vue-router-3.1.3.min.js"></script>
+
+  <script src="../../js/Sortable-1.8.4.min.js"></script>
+  <script src="../../js/vue-draggable-2.20.0.min.js"></script>
 
   <!-- <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script> -->
 

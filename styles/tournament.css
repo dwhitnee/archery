@@ -427,14 +427,17 @@ h3 {
 
 #importDiv {
   background: lightgreen;
-  width: max-content;
-  border-radius: .5em;
-  border: 1px solid;
-  padding: 1em;
 }
 
 #autoPopulateBales {
   background-color: yellow;
+}
+
+#createImportedTournament {
+  background-color: lightgreen;
+}
+
+.infoBox {
   width: max-content;
   border-radius: .5em;
   border: 1px solid;

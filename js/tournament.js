@@ -362,7 +362,8 @@ let app = new Vue({
     regionVenuePair: [], // [regionId, venueId] for new tournament/league
     newRegion: {},
     newVenue: {},
-    importedArchers: [],
+    importedArchers: [],  // from CSV file
+    importedBales: [],      // draggable list of imported archers
 
     nextSequenceId: 0,  // ID just for local testing
 
@@ -2137,8 +2138,18 @@ let app = new Vue({
           // this.addNewArcher( archer );  // confirm before doing this?
         }
         this.importedArchers = archers;  // for autopopulate
-        this.archers = archers;  // REMOVE ME when addNewArcher is used instead
+        this.importedBales = [];         // for drag and drop editing
+
+        this.archers = archers;   // for display of raw archer list only
       }
+    },
+
+    dragArcher: function( event ) {
+      this.$forceUpdate();   // updating arrays is messy
+
+      // Vue.set( archer.something, 'attachments', newThing)   // reactive update, avoid force
+      // data[index].prop = value  NO
+      // $this.set(item, 'prop', value)  YES
     },
 
     //----------------------------------------
@@ -2150,8 +2161,39 @@ let app = new Vue({
       if (!confirm("Really overwrite every archer in this tournament?")) {
         return;
       }
-      console.log("boom");
-      alert("TBD...");
+
+      // create struct of bales of archers for dragging?  FIXME
+
+      // this.archers = [];  // nuke what was there (what about DB?)
+
+      let assignedTargets = 0;
+      for (let i=0; i < this.importedArchers.length; i++) {
+        let archer = this.importedArchers[i];
+        let baleId = 0 + Math.floor( assignedTargets++/4 );
+
+        archer.tournamentId = this.tournament.id;
+        archer.scoringGroup = baleId;
+
+        if (!this.importedBales[baleId]) {
+          this.importedBales[baleId] = { name: baleId, archers: [] };
+        }
+        this.importedBales[baleId].archers.push( archer );
+      }
+      this.$forceUpdate();
+    },
+
+    // after auto-populate and editing, convert importedArchers to a real tournament in DB
+    createTournamentFromEditedImport: function() {
+      if (!confirm("Are you sure? This will overwrite everything in this tournament and editing will be more difficult later")) {
+        return;
+      }
+      alert("cool");
+
+      // for all imported and sorted archers do
+      // this.initArcher( archer, this.tournament );
+      // this.archers.push( archer );   // add archer to list (order matters)
+
+      // await this.updateArcher( archer );  // save and update metadata
     },
 
 
