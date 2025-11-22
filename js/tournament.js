@@ -2077,7 +2077,7 @@ let app = new Vue({
     // user, first, last, email, gender/class, age, etc
     // user, first, last, email, gender, class, age, etc
     //
-    // If name is blank, leave a dummy archer
+    // If name is blank, leave a dummy archer as marker to skip to next bale
 
     // Éric Malebranche,"Éric, Malebranche, emaileric551@gmail.com",Men's Barebow,Adult - 18+,Other,Burke Mountain Archers,"Nov 7, 2025 -  5:54 PM"
 
@@ -2102,7 +2102,7 @@ let app = new Vue({
 
             archer.name = fields.shift() + " " + fields.shift();   // next two are name
             archer.name = archer.name.replace(/\"/g, "");  // remove quotes
-            archer.name = Util.capitalizeWords( archer.name );
+            archer.name = Util.capitalizeWords( archer.name ).trim();
 
             fields.shift();  // pop email
 
@@ -2172,31 +2172,59 @@ let app = new Vue({
       // $this.set(item, 'prop', value)  YES, but hard to pull array info out of event
     },
 
+    // -1, 0, +1
+    compareArcherClassAndAge: function(a,b) {
+      if (!a.bow) { return 1; }
+      if (!b.bow) { return -1; }
+
+      if (a.bow != b.bow) {
+        return a.bow.localeCompare( b.bow );
+      } else {
+        return a.age.localeCompare( b.age );
+      }
+    },
+
+    sortImportByClassAndAge: function() {
+      this.importedArchers.sort( this.compareArcherClassAndAge );
+    },
+
     //----------------------------------------
     // take list of imported archers and randomly assign to bales
     // need a way to identify bales? Or a way to sort archers?
+    // if empty archer, skip to next bale
     //----------------------------------------
     autoPopulateTournamentBales: function() {
       // create struct of bales of archers for dragging
 
       this.archers = [];  // nuke what was there (what about DB?)
 
-      let assignedTargets = 0;
+      let archersOnBale = 0;
+      let baleId = 0;
+
       for (let i=0; i < this.importedArchers.length; i++) {
         let archer = this.importedArchers[i];
-        let baleId = 0 + Math.floor( assignedTargets++/4 );
+
+        if (!archer.name) {       // skip to next bale if blank line encountered
+          baleId++;
+          archersOnBale = 0;
+          continue;
+        }
+
+        if (++archersOnBale > 4) {  // 4 archers max per bale
+          baleId++;
+          archersOnBale = 1;
+        }
 
         archer.tournamentId = this.tournament.id;
         archer.scoringGroup = baleId;
 
         if (!this.importedBales[baleId]) {
-          this.importedBales[baleId] = { name: baleId+1, archers: [] };
+          this.importedBales[baleId] = { name: "Bale " + (baleId+1), archers: [] };
         }
-        if (archer.name) {
-          this.importedBales[baleId].archers.push( archer );
-        }
+        this.importedBales[baleId].archers.push( archer );
       }
-      this.$forceUpdate();     // updating arrays is messy
+
+      this.$forceUpdate();     // updating arrays is messy in reactive models
     },
 
     //----------------------------------------
