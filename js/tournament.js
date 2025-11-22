@@ -571,7 +571,7 @@ let app = new Vue({
     let leagueId = this.$route.query.leagueId;
     let groupId = this.$route.query.groupId;  // scoring bale ("0" means all)
 
-    if (window.location.pathname.match( /overview/ )) {
+    if (window.location.pathname.match( /overview|admin/ )) {
       groupId = 0;  // show all archers on overview page by default
     }
 
