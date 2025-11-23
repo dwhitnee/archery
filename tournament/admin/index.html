@@ -162,6 +162,9 @@
         </div>
 
         <!-- list of freshly imported archers and auto-created bales -->
+        <!-- archers within each bale are draggable, -->
+        <!-- but also, each archer can be dragged out of one bale into another -->
+
         <div v-for="(bale,index) in importedBales">
           <div v-if="bale" class="header">
             {{ bale.name }}
@@ -204,16 +207,15 @@
             </div>
           </div>
 
-          <div :id='Util.noWhitespace("qrcode_" + scoringGroup)' style="background-color: grey;">
-            {{ generateBaleQRCode( scoringGroup , Util.noWhitespace ("qrcode_" + scoringGroup )) }}
-            QR code here
+          <div :id="getBaleQRCodeId( scoringGroup )" class="qrcode">
+            <!-- need a trigger to generate QR codes -->
+            <!-- {{ generateBaleQRCode( scoringGroup , Util.noWhitespace ("qrcode_" + scoringGroup )) }} -->
+            <button class="btn btn-info btn-sm" @click="renderBaleQRCodes()">
+            Bale QR code</button>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- need each bale to be draggable, but also, each archer can be
-         dragged out of one bale into another -->
 
     <!-- Settings-->
 

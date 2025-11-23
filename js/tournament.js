@@ -583,7 +583,7 @@ let app = new Vue({
     }
 
     // admin override on any page
-    if (window.location.href.match( /#admin/ ) || this.$route.query.admin !== undefined) {
+    if (window.location.href.match( /#admin|\/admin/ ) || this.$route.query.admin !== undefined) {
       this.isAdmin = true;
     }
 
@@ -664,6 +664,17 @@ let app = new Vue({
       }
     };
     document.body.addEventListener("keydown", this.handleKeypress );
+  },
+
+  // add qrcodes to admin page (can't add them in Vue because element needs to exist first
+  // still need a timeout because even in mounted, the element doesn't exist yet
+  mounted: async function() {
+
+    // Jump out of event loop for a bit to await page render HACK
+    setTimeout(() => {
+      this.renderBaleQRCodes();
+    }, "500");
+
   },
 
   // synchronous app setup before event handling starts
@@ -1351,9 +1362,30 @@ let app = new Vue({
     generateBaleQRCode: function( scoringGroup, elementId ) {
       if (this.tournament.id) {
         Util.generateQRCode( this.getScoringGroupURLByName( scoringGroup ), elementId );
-
       }
     },
+
+    getBaleQRCodeId: function( scoringGroup ) {
+      return Util.noWhitespace("qrcode_" + scoringGroup );
+    },
+
+    // replace all html elements with QR codes for each bale
+    renderBaleQRCodes: function() {
+      if (this.isAdmin) {
+        let bales = Object.keys( this.getArchersByScoringGroup() );
+
+        console.log("Bales: " + JSON.stringify(bales ));
+
+        for (let i=0; i < bales.length; i++) {
+          let element = this.getBaleQRCodeId( bales[i] );
+          this.generateBaleQRCode( bales[i], element );
+        }
+      }
+
+    },
+
+
+
 
     joinTournament: async function() {
       this.joinCode = this.joinCode.toUpperCase();
@@ -2265,7 +2297,7 @@ let app = new Vue({
 
           // FIXME
           // await this.updateArcher( archer );  // save and update metadata
-          await new Promise(resolve => setTimeout(resolve, 50));   // fake pause (remove)
+          await new Promise(resolve => setTimeout(resolve, 10));   // fake pause (remove)
         }
         this.progress++;
       }
