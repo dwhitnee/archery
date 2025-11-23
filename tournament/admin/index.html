@@ -187,8 +187,10 @@
         </div>
 
         <!-- regular list of archers and bales -->
-        <div v-if="!importedBales.length" v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )">
-          <!-- <div class="header">{{ scoringGroup }} </div> -->
+        <div v-if="!importedBales.length"
+             v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )"
+             class="baleAdmin">
+
           <a :href="getScoringGroupURLByName( scoringGroup ) ">{{ scoringGroup }}</a>
 
          <div class="table archerResultList">
@@ -201,8 +203,12 @@
               </div>
             </div>
           </div>
-        </div>
 
+          <div :id='Util.noWhitespace("qrcode_" + scoringGroup)' style="background-color: grey;">
+            {{ generateBaleQRCode( scoringGroup , Util.noWhitespace ("qrcode_" + scoringGroup )) }}
+            QR code here
+          </div>
+        </div>
       </div>
     </div>
 

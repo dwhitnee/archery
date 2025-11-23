@@ -444,6 +444,11 @@ h3 {
   padding: 1em;
 }
 
+.baleAdmin {
+  display: grid;
+  grid-template-columns: 1fr 8fr 1fr;
+}
+
 #settings {
   margin: auto;
 }
