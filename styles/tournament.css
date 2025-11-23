@@ -445,14 +445,15 @@ h3 {
 }
 
 .baleAdmin {
-  /* display: grid; */
+  display: grid;
+  grid-template-columns: 3fr 1fr;
   /* grid-template-rows: auto; */
   /* grid-template-areas: */
   /*   "." */
   /*   ". qrcode"; */
 }
 .qrcode {
-  float: right;
+  padding: 1em;
   grid-area: "qrcode";
   /* grid-area: 2 / 2 / span 1 / span 1; */
   /* Make qrcode start on row 2 column2, and span 2 rows and 3 columns: */

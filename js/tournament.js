@@ -2184,7 +2184,6 @@ let app = new Vue({
 
           } else {
             // empty line, no archer, insert dummy
-            // FIXME
           }
 
           // two things we can do here, 1) add archer to prepopulate data or 2) create a tournament
@@ -2193,7 +2192,6 @@ let app = new Vue({
         }
         this.importedArchers = archers;  // for autopopulate
         this.importedBales = [];         // for drag and drop editing
-
         this.archers = archers;   // for display of raw archer list only
       }
     },
@@ -2301,6 +2299,7 @@ let app = new Vue({
         }
         this.progress++;
       }
+      this.progress = 0;  // hide progress bar
 
       // erase import temps
       this.importedArchers = [];

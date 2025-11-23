@@ -194,15 +194,17 @@
              v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )"
              class="baleAdmin">
 
-          <a :href="getScoringGroupURLByName( scoringGroup ) ">{{ scoringGroup }}</a>
+          <div>
+            <a :href="getScoringGroupURLByName( scoringGroup ) ">{{ scoringGroup }}</a>
 
-         <div class="table archerResultList">
-            <div class="resultLine" v-for="archer in getArchersByScoringGroup()[scoringGroup]">
-              <div class="rowLead">
-                {{ archer.name }} ({{ getClassification( archer ) }})
-                <span v-if="archer.isUnofficial"
-                      style="color: #800020; font-weigth: bold; font-style: italic">practice</span>
-                <div class="small">{{ archer.auditlog }}</div>
+            <div class="table archerResultList">
+              <div class="resultLine" v-for="archer in getArchersByScoringGroup()[scoringGroup]">
+                <div class="rowLead">
+                  {{ archer.name }} ({{ getClassification( archer ) }})
+                  <span v-if="archer.isUnofficial"
+                        style="color: #800020; font-weigth: bold; font-style: italic">practice</span>
+                  <div class="small">{{ archer.auditlog }}</div>
+                </div>
               </div>
             </div>
           </div>
