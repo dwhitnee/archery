@@ -195,7 +195,9 @@
              class="baleAdmin">
 
           <div>
-            <a :href="getScoringGroupURLByName( scoringGroup ) ">{{ scoringGroup }}</a>
+            <a v-if="scoringGroup != 'undefined'" :href="getScoringGroupURLByName( scoringGroup ) ">
+              {{ scoringGroup }}
+            </a>
 
             <div class="table archerResultList">
               <div class="resultLine" v-for="archer in getArchersByScoringGroup()[scoringGroup]">
@@ -212,8 +214,9 @@
           <div :id="getBaleQRCodeId( scoringGroup )" class="qrcode">
             <!-- need a trigger to generate QR codes -->
             <!-- {{ generateBaleQRCode( scoringGroup , Util.noWhitespace ("qrcode_" + scoringGroup )) }} -->
-            <button class="btn btn-info btn-sm" @click="renderBaleQRCodes()">
-            Bale QR code</button>
+            <button v-if="scoringGroup != 'undefined'" class="btn btn-info btn-sm" @click="renderBaleQRCodes()">
+              Bale QR code
+            </button>
           </div>
         </div>
       </div>

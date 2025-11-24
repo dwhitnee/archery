@@ -1360,7 +1360,7 @@ let app = new Vue({
     // generate the bale-specific code for the scoring archer
     // element gets created later, how to attach?
     generateBaleQRCode: function( scoringGroup, elementId ) {
-      if (this.tournament.id) {
+      if (this.tournament.id && scoringGroup) {
         Util.generateQRCode( this.getScoringGroupURLByName( scoringGroup ), elementId );
       }
     },
