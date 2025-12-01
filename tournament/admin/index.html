@@ -127,10 +127,14 @@
         <div id="importDiv" class="infoBox">
           <div style="font-weight: bold">
             Import a comma separated (CSV) file of archers.
-            <div class="small">
-              Name is in columns 2 and/or 3. Division, age, gender in any order in col 4,5,6,7.
-              Column 1 is ignored
-          </div>
+            <ul class="small">
+              <li>
+                Name is in columns 2 and/or 3. Division, age, gender in any order in col 4,5,6,7.
+                Column 1 is ignored.
+              </li>
+              <li>Blank line ends bale</li>
+              <li>Two blank lines end shooting line and starts a new one</li>
+            </ul>
           </div>
           <div>
             <input type="file" id="csvImportFilename" v-on:change="readCSVFile( $event )"/>
