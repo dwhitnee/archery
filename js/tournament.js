@@ -2238,27 +2238,50 @@ let app = new Vue({
       this.archers = [];  // nuke what was there (what about DB?)
 
       let archersOnBale = 0;
-      let baleId = 0;
+      let lastLineWasBlank = false;
+      let baleId = 0;   // array index for whole tournament
+      let lineNum = 1, baleNum = 1;  // naming only (per line)
 
       for (let i=0; i < this.importedArchers.length; i++) {
         let archer = this.importedArchers[i];
 
         if (!archer.name) {       // skip to next bale if blank line encountered
-          baleId++;
+
+          if (lastLineWasBlank) { // two blank lines means end of current shooting line
+            lineNum++;
+            baleNum = 1;  // next shooting session
+            continue;
+          }
+          baleId++;        // next bale
+          baleNum++;         // could be derived from baleId, but error-prone
           archersOnBale = 0;
+          lastLineWasBlank = true;
           continue;
         }
 
+        lastLineWasBlank = false;
+
         if (++archersOnBale > 4) {  // 4 archers max per bale
           baleId++;
+          baleNum++;
           archersOnBale = 1;
         }
 
+        // unique name for all bales for all lines of this tournament
+        let lineName = "";
+        if (lineNum > 1) {
+          lineName = "Line " + lineNum + ", ";
+        }
+        let baleName =  lineName + "Bale " + baleNum;
+
         archer.tournamentId = this.tournament.id;
-        archer.scoringGroup = baleId;
+        archer.scoringGroup = baleName;
 
         if (!this.importedBales[baleId]) {
-          this.importedBales[baleId] = { name: "Bale " + (baleId+1), archers: [] };
+          this.importedBales[baleId] = {
+            name: baleName,
+            archers: []
+          };
         }
         this.importedBales[baleId].archers.push( archer );
       }
