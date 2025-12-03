@@ -158,7 +158,8 @@
         <div v-if="importedBales.length" id="createImportedTournament"
              class="infoBox">
 
-          Drag and drop archers between bales as needed, then click
+          Drag and drop archers between bales as needed and click to edit
+          bale names. When done, click
           <button  v-if="!progress" class="btn btn-danger btn-sm" @click="createTournamentFromEditedImport()">
             Create Tournament
           </button>
@@ -169,10 +170,17 @@
         <!-- archers within each bale are draggable, -->
         <!-- but also, each archer can be dragged out of one bale into another -->
 
-        <div v-for="(bale,index) in importedBales">
-          <div v-if="bale" class="header">
-            {{ bale.name }}
-          </div>
+        <div v-for="(bale,index) in importedBales" class="importedBaleName">
+          <!-- <div v-if="bale" class="header"> -->
+          <!--   {{ bale.name }} -->
+          <!-- </div> -->
+
+          <div v-if="bale" class="editable" contenteditable="true "spellcheck="false"
+               title="click to edit bale name"
+               @blur="changeBaleName( $event, bale )"
+               @keypress.enter="changeBaleName( $event, bale )"
+               @keypress.enter.prevent>{{ bale.name }}</div>
+
           <div v-else>bale error</div>
 
           <div v-if="bale">

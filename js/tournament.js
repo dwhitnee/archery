@@ -2235,6 +2235,8 @@ let app = new Vue({
     autoPopulateTournamentBales: function() {
       // create struct of bales of archers for dragging
 
+      // TODO: ediatable line names and bale names (after import, before create)
+
       this.archers = [];  // nuke what was there (what about DB?)
 
       let archersOnBale = 0;
@@ -2287,6 +2289,16 @@ let app = new Vue({
       }
 
       this.$forceUpdate();     // updating arrays is messy in reactive models
+    },
+
+    //----------------------------------------
+    // callback from import page to change bale name, also updates archers scoring groups therein
+    //----------------------------------------
+    changeBaleName: function( event, bale ) {
+      let newBaleName = event.target.innerHTML.trim();
+
+      console.log("scooby dooby doo " + bale.name + " to " + newBaleName );
+      event.target.blur();
     },
 
     //----------------------------------------
