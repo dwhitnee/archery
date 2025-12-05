@@ -2141,7 +2141,7 @@ let app = new Vue({
           if (fields.length > 4) {
             fields.shift();  // pop user info
 
-            archer.name = fields.shift() + " " + fields.shift();   // next two are name
+            archer.name = fields.shift().trim() + " " + fields.shift().trim(); // next two are name
             archer.name = archer.name.replace(/\"/g, "");  // remove quotes
             archer.name = Util.capitalizeWords( archer.name ).trim();
 
@@ -2293,12 +2293,31 @@ let app = new Vue({
 
     //----------------------------------------
     // callback from import page to change bale name, also updates archers scoring groups therein
+    // aborts if duplcate bale name
     //----------------------------------------
     changeBaleName: function( event, bale ) {
       let newBaleName = event.target.innerHTML.trim();
+      if (newBaleName === bale.name) {
+        return;
+      }
+      console.log("Changing " + bale.name + " to " + newBaleName );
 
-      console.log("scooby dooby doo " + bale.name + " to " + newBaleName );
-      event.target.blur();
+      // ensure unique bale names, abort if dupe
+      for (let i = 0; i < this.importedBales.length; i++) {
+        if (this.importedBales[i].name == newBaleName) {
+          event.target.innerHTML = bale.name;
+          alert("Name '" + newBaleName + "' is already in use");
+          return;
+        }
+      }
+
+      // Update bale and archer scoring groups
+      bale.name = newBaleName;
+      for (let i=0; i < bale.archers.length; i++) {
+        bale.archers[i].scoringGroup = newBaleName;
+        console.log("Chaning bale for " + bale.archers[i].name);
+      }
+
     },
 
     //----------------------------------------
@@ -2325,10 +2344,10 @@ let app = new Vue({
         for (let i=0; i < archers.length; i++) {
           let archer = archers[i];
           archer.scoringGroup = baleName;
-          this.initArcher( archers, this.tournament );
+          this.initArcher( archer, this.tournament );
           this.archers.push( archer );   // add archer to list (order matters)
 
-          // FIXME
+          // FIXME FIXME FIXME
           // await this.updateArcher( archer );  // save and update metadata
           await new Promise(resolve => setTimeout(resolve, 10));   // fake pause (remove)
         }

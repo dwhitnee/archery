@@ -494,6 +494,9 @@ h3 {
   background-color: lightyellow;
   border-radius: .5em;
 }
+.importedBaleName .editable:hover {
+  border-width: 2px;  /* to indicate editable */
+}
 .importedBaleName .resultLine {
   cursor: grab;
 }
