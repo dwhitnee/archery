@@ -2329,8 +2329,6 @@ let app = new Vue({
         return;
       }
 
-      alert("cool");
-
       // reset old data
       this.archers = [];
 
@@ -2347,9 +2345,9 @@ let app = new Vue({
           this.initArcher( archer, this.tournament );
           this.archers.push( archer );   // add archer to list (order matters)
 
-          // FIXME FIXME FIXME
-          // await this.updateArcher( archer );  // save and update metadata
-          await new Promise(resolve => setTimeout(resolve, 10));   // fake pause (remove)
+          await this.updateArcher( archer );  // save and update metadata
+
+          // await new Promise(resolve => setTimeout(resolve, 10));   // fake pause (remove)
         }
         this.progress++;
       }
