@@ -2223,19 +2223,23 @@ let app = new Vue({
       }
     },
 
+    //----------------------------------------
+    // sort all archers by age and bow.
+    // This nukes different shooting lines though (ie, blank entries)
+    //----------------------------------------
     sortImportByClassAndAge: function() {
+      // FIXME: is there a way to preserve double blank lines?
+      // split into multiple arrays, sort, concat?
       this.importedArchers.sort( this.compareArcherClassAndAge );
     },
 
     //----------------------------------------
     // take list of imported archers and randomly assign to bales
-    // need a way to identify bales? Or a way to sort archers?
-    // if empty archer, skip to next bale
+    // if empty archer, skip to next bale.
+    // if two empty archers, skip to next shooting line
     //----------------------------------------
     autoPopulateTournamentBales: function() {
       // create struct of bales of archers for dragging
-
-      // TODO: ediatable line names and bale names (after import, before create)
 
       this.archers = [];  // nuke what was there (what about DB?)
 
