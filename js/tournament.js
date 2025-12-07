@@ -2228,9 +2228,39 @@ let app = new Vue({
     // This nukes different shooting lines though (ie, blank entries)
     //----------------------------------------
     sortImportByClassAndAge: function() {
+      this.importedArchers.sort( this.compareArcherClassAndAge );
+      return;
+
+
       // FIXME: is there a way to preserve double blank lines?
       // split into multiple arrays, sort, concat?
-      this.importedArchers.sort( this.compareArcherClassAndAge );
+
+      let startIndex = 0;
+      let sortedArchersSplitByShootingLine = [];
+      let blankLines = false;
+
+      for (let i=0; i < this.importedArchers.length; i++) {
+        if (this.importedArchers[i].name) {
+          blankLines = false;
+        } else {
+          if (!blankLines) {
+            blankLines = true;
+          } else {
+            let shootingLine = this.importedArchers.slice( startIndex, i-startIndex-2);
+            shootingLine.sort( this.compareArcherClassAndAge );
+            sortedArchersSplitByShootingLine =
+              sortedArchersSplitByShootingLine.concat( shootingLine );
+            startIndex = i+1;
+            blankLines = false;
+          }
+        }
+      }
+      if (!sortedArchersSplitByShootingLine.length) {
+        this.importedArchers.sort( this.compareArcherClassAndAge );
+      } else {
+        this.importedArchers = sortedArchersSplitByShootingLine;
+      }
+      // this.$forceUpdate();  // hack
     },
 
     //----------------------------------------
