@@ -28,6 +28,10 @@ var Util = {
     return words.replace(/(^|\s)\S/g, word => word.toUpperCase());
   },
 
+  noWhitespace: function( str ) {
+    return str.replace(/\s+/g, '');
+  },
+
   //----------------------------------------
   // Do HTTP whizbangery to post a JSON blob
   //----------------------------------------
@@ -130,6 +134,10 @@ var Util = {
   generateQRCode: function( qrcodeURL, elementId ) {
     elementId = elementId || "qrcode";
     let el = document.getElementById( elementId );
+    if (!el) {
+      console.error("No QR code element named: " + elementId);
+      return;
+    }
     el.replaceChildren();  // toss old QR codes
 
     // let qrcode = new QRCode( el, qrcodeURL);

@@ -209,7 +209,8 @@ h3 .icon {
 .icon {
   display: inline-block;
 }
-.archerList .reorderIcon {
+.archerList .reorderIcon,
+#createImportedTournament .resultLine {
   cursor: grab;
   margin-right: .5em;
   filter: invert(0);  /* maybe? */
@@ -427,18 +428,36 @@ h3 {
 
 #importDiv {
   background: lightgreen;
+}
+
+#autoPopulateBales {
+  background-color: yellow;
+}
+
+#createImportedTournament {
+  background-color: lightgreen;
+}
+
+.infoBox {
   width: max-content;
   border-radius: .5em;
   border: 1px solid;
   padding: 1em;
 }
 
-#autoPopulateBales {
-  background-color: yellow;
-  width: max-content;
-  border-radius: .5em;
-  border: 1px solid;
+.baleAdmin {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  /* grid-template-rows: auto; */
+  /* grid-template-areas: */
+  /*   "." */
+  /*   ". qrcode"; */
+}
+.qrcode {
   padding: 1em;
+  grid-area: "qrcode";
+  /* grid-area: 2 / 2 / span 1 / span 1; */
+  /* Make qrcode start on row 2 column2, and span 2 rows and 3 columns: */
 }
 
 #settings {
@@ -466,6 +485,20 @@ h3 {
   z-index: 10;
   opacity: 60%;
   background: #FAEF00;
+}
+
+.importedBaleName {
+  padding-top: .5em;
+}
+.importedBaleName .editable {
+  background-color: lightyellow;
+  border-radius: .5em;
+}
+.importedBaleName .editable:hover {
+  border-width: 2px;  /* to indicate editable */
+}
+.importedBaleName .resultLine {
+  cursor: grab;
 }
 
 .editable {

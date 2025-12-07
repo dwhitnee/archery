@@ -325,6 +325,9 @@ let app = new Vue({
     message: "Join a tournament",
     saveInProgress: false,   // prevent other actions while this is going on
     loadingData: false,      // prevent other actions while this is going on
+    progress: 0,
+    maxProgress: 100,
+
     isAdmin: false,
     admin: { leagues: []},
     daysAgo: 90,          // for history pages
@@ -362,7 +365,8 @@ let app = new Vue({
     regionVenuePair: [], // [regionId, venueId] for new tournament/league
     newRegion: {},
     newVenue: {},
-    importedArchers: [],
+    importedArchers: [],  // from CSV file
+    importedBales: [],      // draggable list of imported archers
 
     nextSequenceId: 0,  // ID just for local testing
 
@@ -567,7 +571,7 @@ let app = new Vue({
     let leagueId = this.$route.query.leagueId;
     let groupId = this.$route.query.groupId;  // scoring bale ("0" means all)
 
-    if (window.location.pathname.match( /overview/ )) {
+    if (window.location.pathname.match( /overview|admin/ )) {
       groupId = 0;  // show all archers on overview page by default
     }
 
@@ -579,7 +583,7 @@ let app = new Vue({
     }
 
     // admin override on any page
-    if (window.location.href.match( /#admin/ ) || this.$route.query.admin !== undefined) {
+    if (window.location.href.match( /#admin|\/admin/ ) || this.$route.query.admin !== undefined) {
       this.isAdmin = true;
     }
 
@@ -660,6 +664,17 @@ let app = new Vue({
       }
     };
     document.body.addEventListener("keydown", this.handleKeypress );
+  },
+
+  // add qrcodes to admin page (can't add them in Vue because element needs to exist first
+  // still need a timeout because even in mounted, the element doesn't exist yet
+  mounted: async function() {
+
+    // Jump out of event loop for a bit to await page render HACK
+    setTimeout(() => {
+      this.renderBaleQRCodes();
+    }, "500");
+
   },
 
   // synchronous app setup before event handling starts
@@ -861,7 +876,7 @@ let app = new Vue({
       }
     },
     setGroupName: function() {
-      this.groupName = this.newGroupName;
+      this.groupName = this.newGroupName.trim();   // v-model.trim doesn't always work
       window.location.search += "&groupId=" + this.groupName;
     },
 
@@ -1342,6 +1357,36 @@ let app = new Vue({
       }
     },
 
+    // generate the bale-specific code for the scoring archer
+    // element gets created later, how to attach?
+    generateBaleQRCode: function( scoringGroup, elementId ) {
+      if (this.tournament.id && scoringGroup) {
+        Util.generateQRCode( this.getScoringGroupURLByName( scoringGroup ), elementId );
+      }
+    },
+
+    getBaleQRCodeId: function( scoringGroup ) {
+      return Util.noWhitespace("qrcode_" + scoringGroup );
+    },
+
+    // replace all html elements with QR codes for each bale
+    renderBaleQRCodes: function() {
+      if (this.isAdmin) {
+        let bales = Object.keys( this.getArchersByScoringGroup() );
+
+        console.log("Bales: " + JSON.stringify(bales ));
+
+        for (let i=0; i < bales.length; i++) {
+          let element = this.getBaleQRCodeId( bales[i] );
+          this.generateBaleQRCode( bales[i], element );
+        }
+      }
+
+    },
+
+
+
+
     joinTournament: async function() {
       this.joinCode = this.joinCode.toUpperCase();
       this.tournament = await this.getTournamentByCode( this.joinCode ) || {};
@@ -1425,6 +1470,7 @@ let app = new Vue({
 
     prepopulateArcher: function() {
       this.newArcher.name = Util.capitalizeWords( this.newArcher.name );
+      this.newArcher.name = this.newArcher.name.trim();   // v-model.trim is flakey
 
       let existingArcher = this.allArchersInRegion[this.newArcher.name];
 
@@ -2062,9 +2108,18 @@ let app = new Vue({
 
 
     //----------------------------------------
-    // CSV format is
+    // Read file in CSV format
+    // Row 1 ignored, all other rows have a single archer
+    //
+    // Col 1 ignored
+    // Col 2,3 full name
+    // Col 4,5,6,7 - some combination of gender/class/age
+
     // user, first, last, email, gender/class, age, etc
     // user, first, last, email, gender, class, age, etc
+    //
+    // If name is blank, leave a dummy archer as marker to skip to next bale
+
     // Éric Malebranche,"Éric, Malebranche, emaileric551@gmail.com",Men's Barebow,Adult - 18+,Other,Burke Mountain Archers,"Nov 7, 2025 -  5:54 PM"
 
     // Rowan Lew,"Rowan, Lew, bethany.lark@gmail.com, Male",Open Compound (Freestyle),U13 - 12 years or under in 2025,Let 'Er Fly,,"Nov 14, 2025 -  7:27 PM"
@@ -2086,9 +2141,9 @@ let app = new Vue({
           if (fields.length > 4) {
             fields.shift();  // pop user info
 
-            archer.name = fields.shift() + " " + fields.shift();   // next two are name
+            archer.name = fields.shift().trim() + " " + fields.shift().trim(); // next two are name
             archer.name = archer.name.replace(/\"/g, "");  // remove quotes
-            archer.name = Util.capitalizeWords( archer.name );
+            archer.name = Util.capitalizeWords( archer.name ).trim();
 
             fields.shift();  // pop email
 
@@ -2128,30 +2183,216 @@ let app = new Vue({
             }
 
           } else {
-            // empty line, no archer, insert dummy?
+            // empty line, no archer, insert dummy
           }
 
           // two things we can do here, 1) add archer to prepopulate data or 2) create a tournament
 
           archers.push( archer );
-          // this.addNewArcher( archer );  // confirm before doing this?
         }
         this.importedArchers = archers;  // for autopopulate
-        this.archers = archers;  // REMOVE ME when addNewArcher is used instead
+        this.importedBales = [];         // for drag and drop editing
+        this.archers = archers;   // for display of raw archer list only
       }
     },
 
     //----------------------------------------
+    // called when a drag is complete. Force array list update in display
+    //----------------------------------------
+    dragArcher: function( event ) {
+      this.$forceUpdate();   // updating arrays is messy
+
+      // ick
+      // $this.set( this.importedBales[i], 'archers', value)
+
+      // data[index].prop = value  NO
+
+      // Vue.set( archer.something, 'attachments', newThing)   // reactive update, avoid force
+      // $this.set(item, 'prop', value)  YES, but hard to pull array info out of event
+    },
+
+    // -1, 0, +1
+    compareArcherClassAndAge: function(a,b) {
+      if (!a.bow) { return 1; }
+      if (!b.bow) { return -1; }
+
+      if (a.bow != b.bow) {
+        return a.bow.localeCompare( b.bow );
+      } else {
+        return a.age.localeCompare( b.age );
+      }
+    },
+
+    //----------------------------------------
+    // sort all archers by age and bow.
+    // This nukes different shooting lines though (ie, blank entries)
+    //----------------------------------------
+    sortImportByClassAndAge: function() {
+      this.importedArchers.sort( this.compareArcherClassAndAge );
+      return;
+
+
+      // FIXME: is there a way to preserve double blank lines?
+      // split into multiple arrays, sort, concat?
+
+      let startIndex = 0;
+      let sortedArchersSplitByShootingLine = [];
+      let blankLines = false;
+
+      for (let i=0; i < this.importedArchers.length; i++) {
+        if (this.importedArchers[i].name) {
+          blankLines = false;
+        } else {
+          if (!blankLines) {
+            blankLines = true;
+          } else {
+            let shootingLine = this.importedArchers.slice( startIndex, i-startIndex-2);
+            shootingLine.sort( this.compareArcherClassAndAge );
+            sortedArchersSplitByShootingLine =
+              sortedArchersSplitByShootingLine.concat( shootingLine );
+            startIndex = i+1;
+            blankLines = false;
+          }
+        }
+      }
+      if (!sortedArchersSplitByShootingLine.length) {
+        this.importedArchers.sort( this.compareArcherClassAndAge );
+      } else {
+        this.importedArchers = sortedArchersSplitByShootingLine;
+      }
+      // this.$forceUpdate();  // hack
+    },
+
+    //----------------------------------------
     // take list of imported archers and randomly assign to bales
-    // need a way to identify bales? Or a way to sort archers?
-    // drag and drop?
+    // if empty archer, skip to next bale.
+    // if two empty archers, skip to next shooting line
     //----------------------------------------
     autoPopulateTournamentBales: function() {
-      if (!confirm("Really overwrite every archer in this tournament?")) {
+      // create struct of bales of archers for dragging
+
+      this.archers = [];  // nuke what was there (what about DB?)
+
+      let archersOnBale = 0;
+      let lastLineWasBlank = false;
+      let baleId = 0;   // array index for whole tournament
+      let lineNum = 1, baleNum = 1;  // naming only (per line)
+
+      for (let i=0; i < this.importedArchers.length; i++) {
+        let archer = this.importedArchers[i];
+
+        if (!archer.name) {       // skip to next bale if blank line encountered
+
+          if (lastLineWasBlank) { // two blank lines means end of current shooting line
+            lineNum++;
+            baleNum = 1;  // next shooting session
+            continue;
+          }
+          baleId++;        // next bale
+          baleNum++;         // could be derived from baleId, but error-prone
+          archersOnBale = 0;
+          lastLineWasBlank = true;
+          continue;
+        }
+
+        lastLineWasBlank = false;
+
+        if (++archersOnBale > 4) {  // 4 archers max per bale
+          baleId++;
+          baleNum++;
+          archersOnBale = 1;
+        }
+
+        // unique name for all bales for all lines of this tournament
+        let lineName = "";
+        if (lineNum > 1) {
+          lineName = "Line " + lineNum + ", ";
+        }
+        let baleName =  lineName + "Bale " + baleNum;
+
+        archer.tournamentId = this.tournament.id;
+        archer.scoringGroup = baleName;
+
+        if (!this.importedBales[baleId]) {
+          this.importedBales[baleId] = {
+            name: baleName,
+            archers: []
+          };
+        }
+        this.importedBales[baleId].archers.push( archer );
+      }
+
+      this.$forceUpdate();     // updating arrays is messy in reactive models
+    },
+
+    //----------------------------------------
+    // callback from import page to change bale name, also updates archers scoring groups therein
+    // aborts if duplcate bale name
+    //----------------------------------------
+    changeBaleName: function( event, bale ) {
+      let newBaleName = event.target.innerHTML.trim();
+      if (newBaleName === bale.name) {
         return;
       }
-      console.log("boom");
-      alert("TBD...");
+      console.log("Changing " + bale.name + " to " + newBaleName );
+
+      // ensure unique bale names, abort if dupe
+      for (let i = 0; i < this.importedBales.length; i++) {
+        if (this.importedBales[i].name == newBaleName) {
+          event.target.innerHTML = bale.name;
+          alert("Name '" + newBaleName + "' is already in use");
+          return;
+        }
+      }
+
+      // Update bale and archer scoring groups
+      bale.name = newBaleName;
+      for (let i=0; i < bale.archers.length; i++) {
+        bale.archers[i].scoringGroup = newBaleName;
+        console.log("Chaning bale for " + bale.archers[i].name);
+      }
+
+    },
+
+    //----------------------------------------
+    // Commit all tournament changes to DB after auto-populate and editing
+    // Update scoringGroup in all archers in importedBales and save to DB
+    //----------------------------------------
+    createTournamentFromEditedImport: async function() {
+      if (!confirm("Are you sure? This will overwrite everything in this tournament and editing will be more difficult later")) {
+        return;
+      }
+
+      // reset old data
+      this.archers = [];
+
+      this.progress = 1;
+      this.maxProgress = this.importedBales.length+1;
+
+      // for all imported and sorted archers
+      for (let b=0; b < this.importedBales.length; b++) {
+        let baleName = this.importedBales[b].name;
+        let archers = this.importedBales[b].archers;
+        for (let i=0; i < archers.length; i++) {
+          let archer = archers[i];
+          archer.scoringGroup = baleName;
+          this.initArcher( archer, this.tournament );
+          this.archers.push( archer );   // add archer to list (order matters)
+
+          await this.updateArcher( archer );  // save and update metadata
+
+          // await new Promise(resolve => setTimeout(resolve, 10));   // fake pause (remove)
+        }
+        this.progress++;
+      }
+      this.progress = 0;  // hide progress bar
+
+      // erase import temps
+      this.importedArchers = [];
+      this.importedBales = [];
+      document.getElementById("csvImportFilename").value="";
+
+      debugger;
     },
 
 

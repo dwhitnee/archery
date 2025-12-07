@@ -124,42 +124,115 @@
 
       <div class="resultsPage">
 
-        <div id="importDiv">
+        <div id="importDiv" class="infoBox">
           <div style="font-weight: bold">
-            Import a CSV file of archers
+            Import a comma separated (CSV) file of archers.
+            <ul class="small">
+              <li>
+                Name is in columns 2 and/or 3. Division, age, gender in any order in col 4,5,6,7.
+                Column 1 is ignored.
+              </li>
+              <li>Blank line ends bale</li>
+              <li>Two blank lines end shooting line and starts a new one</li>
+            </ul>
           </div>
           <div>
-            <input type="file" v-on:change="readCSVFile( $event )"/>
+            <input type="file" id="csvImportFilename" v-on:change="readCSVFile( $event )"/>
           </div>
         </div>
 
-        <div v-if="importedArchers.length"
-             id="autoPopulateBales"
-             style="padding: 1em; background-color: yellow">
+        <div v-if="importedArchers.length && !importedBales.length"
+             id="autoPopulateBales" class="infoBox">
           Auto assign these archers to bales in this tournament?
           (destroy current bales)
-          <button  class="btn btn-danger btn-sm" @click="autoPopulateTournamentBales()">
-          Auto-populate bales</button>
+          <div>
+            <button class="btn btn-secondary btn-sm" @click="sortImportByClassAndAge()">
+              Sort by division and age
+            </button>
+            <button  class="btn btn-primary btn-sm" @click="autoPopulateTournamentBales()">
+              Auto-populate bales
+            </button>
+          </div>
         </div>
 
-        <div v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )">
-          <div class="header">
-            <a :href="getScoringGroupURLByName( scoringGroup ) ">{{ scoringGroup }}</a>
-          </div>
+        <div v-if="importedBales.length" id="createImportedTournament"
+             class="infoBox">
 
-          <div class="table archerResultList">
-            <div class="resultLine" v-for="archer in getArchersByScoringGroup()[scoringGroup]">
-              <div class="rowLead">
-                {{ archer.name }} ({{ getClassification( archer ) }})
-                <span v-if="archer.isUnofficial"
-                      style="color: #800020; font-weigth: bold; font-style: italic">practice</span>
-                <div class="small">{{ archer.auditlog }}</div>
+          Drag and drop archers between bales as needed and click to edit
+          bale names. <br/>
+          When done, click
+          <button  v-if="!progress" class="btn btn-danger btn-sm" @click="createTournamentFromEditedImport()">
+            Create Tournament
+          </button>
+          <progress v-else :value="progress" :max="maxProgress"></progress>
+        </div>
+
+        <!-- list of freshly imported archers and auto-created bales -->
+        <!-- archers within each bale are draggable, -->
+        <!-- but also, each archer can be dragged out of one bale into another -->
+
+        <div v-for="(bale,index) in importedBales" class="importedBaleName">
+          <!-- <div v-if="bale" class="header"> -->
+          <!--   {{ bale.name }} -->
+          <!-- </div> -->
+
+          <div v-if="bale" class="editable" contenteditable="true "spellcheck="false"
+               title="click to edit bale name"
+               @blur="changeBaleName( $event, bale )"
+               @keypress.enter="$event.target.blur()"
+               @keypress.enter.prevent>{{ bale.name }}</div>
+
+          <div v-else>bale error</div>
+
+          <div v-if="bale">
+            <draggable v-model="importedBales[index].archers"
+                       class="archerList preventSelect" ghost-class="sort-ghost"
+                       group="archers"
+                       @start="drag=true"
+                       @end="drag=false; dragArcher( $event )">
+              <div class="resultLine" v-for="archer in bale.archers">
+                <div class="rowLead">
+                  {{ archer.name }} ({{ getClassification( archer ) }})
+                  <span v-if="archer.isUnofficial"
+                        style="color: #800020; font-weigth: bold; font-style: italic">practice</span>
+                  <div class="small">{{ archer.auditlog }}</div>
+                </div>
+              </div>
+            </draggable>
+          </div>
+        </div>
+
+        <!-- regular list of archers and bales -->
+        <div v-if="!importedBales.length"
+             v-for="scoringGroup in Object.keys( getArchersByScoringGroup() )"
+             class="baleAdmin">
+
+          <div>
+            <a v-if="scoringGroup != 'undefined'" :href="getScoringGroupURLByName( scoringGroup ) ">
+              {{ scoringGroup }}
+            </a>
+
+            <div class="table archerResultList">
+              <div class="resultLine" v-for="archer in getArchersByScoringGroup()[scoringGroup]">
+                <div class="rowLead">
+                  {{ archer.name }} ({{ getClassification( archer ) }})
+                  <span v-if="archer.isUnofficial"
+                        style="color: #800020; font-weigth: bold; font-style: italic">practice</span>
+                  <div class="small">{{ archer.auditlog }}</div>
+                </div>
               </div>
             </div>
           </div>
+
+          <div :id="getBaleQRCodeId( scoringGroup )" class="qrcode">
+            <!-- need a trigger to generate QR codes -->
+            <!-- {{ generateBaleQRCode( scoringGroup , Util.noWhitespace ("qrcode_" + scoringGroup )) }} -->
+            <button v-if="scoringGroup != 'undefined'" class="btn btn-info btn-sm" @click="renderBaleQRCodes()">
+              Bale QR code
+            </button>
+          </div>
         </div>
       </div>
-
     </div>
 
     <!-- Settings-->
@@ -210,6 +283,9 @@
 
   <script src="../../js/vue-2.7.15.min.js"></script>
   <script src="../../js/vue-router-3.1.3.min.js"></script>
+
+  <script src="../../js/Sortable-1.8.4.min.js"></script>
+  <script src="../../js/vue-draggable-2.20.0.min.js"></script>
 
   <!-- <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script> -->
 
