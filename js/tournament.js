@@ -2312,42 +2312,48 @@ let app = new Vue({
       this.archers = [];  // nuke what was there (what about DB?)
 
       let archersOnBale = 0;
-      let lastLineWasBlank = false;
+      let blankLines = 0;
       let baleId = 0;   // array index for whole tournament
       let lineNum = 1, baleNum = 1;  // naming only (per line)
 
       for (let i=0; i < this.importedArchers.length; i++) {
         let archer = this.importedArchers[i];
 
-        if (!archer.name) {       // skip to next bale if blank line encountered
+        // skip to next bale if blank line encountered
+        // but don't if a new shooting line is starting
+        if (!archer.name) {
+          blankLines++;
 
-          if (lastLineWasBlank) { // two blank lines means end of current shooting line
-            lineNum++;
-            baleNum = 1;  // next shooting session
-            continue;
+          if (blankLines == 1) {  // create next bale (but only once if multiple blank lines)
+            baleId++;          // next bale
+            baleNum++;         // could be derived from baleId, but error-prone
+            archersOnBale = 0;
           }
-          baleId++;        // next bale
-          baleNum++;         // could be derived from baleId, but error-prone
-          archersOnBale = 0;
-          lastLineWasBlank = true;
           continue;
         }
 
-        lastLineWasBlank = false;
+        // two+ blank lines means end of current shooting line, start next line
+        if (blankLines > 1) {
+          lineNum++;
+          baleNum = 1;  // next shooting session
+        }
+        blankLines = 0;
 
-        if (++archersOnBale > 4) {  // 4 archers max per bale
+        // 4 archers max per bale, next bale
+        if (++archersOnBale > 4) {
           baleId++;
           baleNum++;
           archersOnBale = 1;
         }
 
-        // unique name for all bales for all lines of this tournament
+        // ensure unique name for all bales in all lines of this tournament
         let lineName = "";
         if (lineNum > 1) {
           lineName = "Line " + lineNum + ", ";
         }
         let baleName =  lineName + "Bale " + baleNum;
 
+        // finally, add archer to bale
         archer.tournamentId = this.tournament.id;
         archer.scoringGroup = baleName;
 
