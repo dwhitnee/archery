@@ -2133,7 +2133,7 @@ let app = new Vue({
         let lines = csv.split(/\r\n|\n/);
 
         let archers = [];
-        let errors = [];
+        let error, errors = [];
         this.errors = [];
 
         for (let i = 1; i < lines.length; i++) {        // skip line 1 header
@@ -2147,6 +2147,10 @@ let app = new Vue({
             archer.name = fields.shift().trim() + " " + fields.shift().trim(); // next two are name
             archer.name = archer.name.replace(/\"/g, "");  // remove quotes
             archer.name = Util.capitalizeWords( archer.name ).trim();
+
+            archer.bow = "";
+            archer.age = "";
+            archer.gender = "";
 
             if (!archer.name) {
               archers.push( archer );  // dummy
@@ -2171,8 +2175,7 @@ let app = new Vue({
               archer.bow = "FS";
             } else {
               archer.bow = "FS";
-              errors.push("Could not parse bow from '" + info + "'");
-              console.error("Could not parse bow from '" + info + "'");
+              error = archer.name + ": Could not parse bow from '" + info + "'";
             }
 
             let match;
@@ -2188,8 +2191,7 @@ let app = new Vue({
               archer.age = "A";
             } else {
               archer.age = "A";
-              errors.push("Could not parse age from '" + info + "'");
-              console.error("Could not parse age from '" + info + "'");
+              error = archer.name + ": Could not parse age from '" + info + "'";
             }
 
             if (info.match(/female|women|woman|girl/i)) {
@@ -2198,10 +2200,14 @@ let app = new Vue({
               archer.gender = "M";
             } else {
               archer.gender = "M";
-              errors.push("Could not parse gender from '" + info + "'");
-              console.error("Could not parse gender from '" + info + "'");
+              error = archer.name + ": Could not parse gender from '" + info + "'";
             }
 
+            if (error) {
+              errors.push( error );
+              console.error( error );
+              error = "";
+            }
           } else {
             // No fields at all, ignore. Perhaps should also be a dummy?
           }
@@ -2251,41 +2257,48 @@ let app = new Vue({
     //----------------------------------------
     // sort all archers by age and bow.
     // This nukes different shooting lines though (ie, blank entries)
+
+    // iterate until 2+ blank lines. Sort first array.
+    // repeat, concat all arrays
     //----------------------------------------
     sortImportByClassAndAge: function() {
-      this.importedArchers.sort( this.compareArcherClassAndAge );
-      return;
-
-
-      // FIXME: is there a way to preserve double blank lines?
-      // split into multiple arrays, sort, concat?
+      // this.importedArchers.sort( this.compareArcherClassAndAge );
 
       let startIndex = 0;
       let sortedArchersSplitByShootingLine = [];
-      let blankLines = false;
+      let blankLines = 0;
 
       for (let i=0; i < this.importedArchers.length; i++) {
-        if (this.importedArchers[i].name) {
-          blankLines = false;
+        if (!this.importedArchers[i].name) {
+          blankLines++;
         } else {
-          if (!blankLines) {
-            blankLines = true;
-          } else {
-            let shootingLine = this.importedArchers.slice( startIndex, i-startIndex-2);
+          if (blankLines>1) {   // found a shooting line boundary
+            // slice is [start, end) copy so a[i] is left out
+            let shootingLine = this.importedArchers.slice( startIndex, i);
+            startIndex = i;
             shootingLine.sort( this.compareArcherClassAndAge );
             sortedArchersSplitByShootingLine =
               sortedArchersSplitByShootingLine.concat( shootingLine );
-            startIndex = i+1;
-            blankLines = false;
+            // fixme: add two blank lines?
           }
+          blankLines = 0;
         }
       }
-      if (!sortedArchersSplitByShootingLine.length) {
+
+      if (!sortedArchersSplitByShootingLine.length) {   // only one shooting line
         this.importedArchers.sort( this.compareArcherClassAndAge );
       } else {
+        // add remainder to end of list
+        let shootingLine = this.importedArchers.slice( startIndex, this.importedArchers.length);
+        shootingLine.sort( this.compareArcherClassAndAge );
+        sortedArchersSplitByShootingLine =
+          sortedArchersSplitByShootingLine.concat( shootingLine );
+
         this.importedArchers = sortedArchersSplitByShootingLine;
       }
-      // this.$forceUpdate();  // hack
+
+      this.archers = this.importedArchers;  // huh?
+      this.$forceUpdate();
     },
 
     //----------------------------------------
@@ -2299,42 +2312,48 @@ let app = new Vue({
       this.archers = [];  // nuke what was there (what about DB?)
 
       let archersOnBale = 0;
-      let lastLineWasBlank = false;
+      let blankLines = 0;
       let baleId = 0;   // array index for whole tournament
       let lineNum = 1, baleNum = 1;  // naming only (per line)
 
       for (let i=0; i < this.importedArchers.length; i++) {
         let archer = this.importedArchers[i];
 
-        if (!archer.name) {       // skip to next bale if blank line encountered
+        // skip to next bale if blank line encountered
+        // but don't if a new shooting line is starting
+        if (!archer.name) {
+          blankLines++;
 
-          if (lastLineWasBlank) { // two blank lines means end of current shooting line
-            lineNum++;
-            baleNum = 1;  // next shooting session
-            continue;
+          if (blankLines == 1) {  // create next bale (but only once if multiple blank lines)
+            baleId++;          // next bale
+            baleNum++;         // could be derived from baleId, but error-prone
+            archersOnBale = 0;
           }
-          baleId++;        // next bale
-          baleNum++;         // could be derived from baleId, but error-prone
-          archersOnBale = 0;
-          lastLineWasBlank = true;
           continue;
         }
 
-        lastLineWasBlank = false;
+        // two+ blank lines means end of current shooting line, start next line
+        if (blankLines > 1) {
+          lineNum++;
+          baleNum = 1;  // next shooting session
+        }
+        blankLines = 0;
 
-        if (++archersOnBale > 4) {  // 4 archers max per bale
+        // 4 archers max per bale, next bale
+        if (++archersOnBale > 4) {
           baleId++;
           baleNum++;
           archersOnBale = 1;
         }
 
-        // unique name for all bales for all lines of this tournament
+        // ensure unique name for all bales in all lines of this tournament
         let lineName = "";
         if (lineNum > 1) {
           lineName = "Line " + lineNum + ", ";
         }
         let baleName =  lineName + "Bale " + baleNum;
 
+        // finally, add archer to bale
         archer.tournamentId = this.tournament.id;
         archer.scoringGroup = baleName;
 
