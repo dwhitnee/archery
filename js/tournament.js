@@ -327,6 +327,7 @@ let app = new Vue({
     loadingData: false,      // prevent other actions while this is going on
     progress: 0,
     maxProgress: 100,
+    errors: [],
 
     isAdmin: false,
     admin: { leagues: []},
@@ -2132,6 +2133,8 @@ let app = new Vue({
         let lines = csv.split(/\r\n|\n/);
 
         let archers = [];
+        let errors = [];
+        this.errors = [];
 
         for (let i = 1; i < lines.length; i++) {        // skip line 1 header
           let archer = {};
@@ -2145,6 +2148,11 @@ let app = new Vue({
             archer.name = archer.name.replace(/\"/g, "");  // remove quotes
             archer.name = Util.capitalizeWords( archer.name ).trim();
 
+            if (!archer.name) {
+              archers.push( archer );  // dummy
+              continue;
+            }
+
             fields.shift();  // pop email
 
             // fields 4,5,6 are a non-deterministic combination of class/age/gender
@@ -2153,14 +2161,18 @@ let app = new Vue({
             // division regex Olympic|Barebow|Bowhunter|Fixed
             // age regex on 50+, 60+, 70+, Senior, Adult, U**
 
-            if (info.match(/bowhunter|fixed pin/i)) {
+            if (info.match(/bowhunter|fixed pin|bhfs/i)) {
               archer.bow = "BHFS";
-            } else if (info.match(/barebow/i)) {
+            } else if (info.match(/barebow|bbr/i)) {
               archer.bow = "BBR";
-            } else if (info.match(/olympic|recurve/i)) {
+            } else if (info.match(/olympic|recurve|fslr/i)) {
               archer.bow = "FSLR";
-            } else if (info.match(/compound|freestyle/i)) {
+            } else if (info.match(/compound|freestyle|fs/i)) {
               archer.bow = "FS";
+            } else {
+              archer.bow = "FS";
+              errors.push("Could not parse bow from '" + info + "'");
+              console.error("Could not parse bow from '" + info + "'");
             }
 
             let match;
@@ -2174,22 +2186,35 @@ let app = new Vue({
               archer.age = "S";
             } else if (info.match(/21\+|adult|senior/i)) {
               archer.age = "A";
+            } else {
+              archer.age = "A";
+              errors.push("Could not parse age from '" + info + "'");
+              console.error("Could not parse age from '" + info + "'");
             }
 
-            if (info.match(/female|women/i)) {
+            if (info.match(/female|women|woman|girl/i)) {
               archer.gender = "F";
+            } else if (info.match(/male|men|man|boy/i)) {
+              archer.gender = "M";
             } else {
               archer.gender = "M";
+              errors.push("Could not parse gender from '" + info + "'");
+              console.error("Could not parse gender from '" + info + "'");
             }
 
           } else {
-            // empty line, no archer, insert dummy
+            // No fields at all, ignore. Perhaps should also be a dummy?
           }
 
           // two things we can do here, 1) add archer to prepopulate data or 2) create a tournament
 
           archers.push( archer );
         }
+        if (errors.length) {   // d'oh. Show the screwups all at one.
+          this.errors = errors;
+          this.openDialog("errorDialog");
+        }
+
         this.importedArchers = archers;  // for autopopulate
         this.importedBales = [];         // for drag and drop editing
         this.archers = archers;   // for display of raw archer list only

@@ -128,10 +128,10 @@
           <div style="font-weight: bold">
             Import a comma separated (CSV) file of archers.
             <ul class="small">
-              <li>
-                Name is in columns 2 and/or 3. Division, age, gender in any order in col 4,5,6,7.
-                Column 1 is ignored.
-              </li>
+              <li>Column 1 is ignored</li>
+              <li>Column 2 and 3 is Name</li>
+              <li>Column 4 is ignored</li>
+              <li>Column 5,6,7 are any combination of division, age, gender </li>
               <li>Blank line ends bale</li>
               <li>Two blank lines end shooting line and starts a new one</li>
             </ul>
@@ -235,10 +235,23 @@
       </div>
     </div>
 
-    <!-- Settings-->
+    <!-- Settings/Errors-->
 
     <div id="dialogBackdrop"></div>
 
+    <!-- -->
+    <dialog id="errorDialog" style="display: grid'">
+      <button class="close" @click="closeDialog( $event )"></button>
+
+      <div style="display: grid'">
+        <h3 style="color: orangered">Error</h3>
+        <div v-for="error in errors">
+          {{ error }}
+        </div>
+      </div>
+    </dialog>
+
+    <!-- -->
 
     <dialog id="settings">
       <button class="close" @click="closeDialog( $event )"></button>
