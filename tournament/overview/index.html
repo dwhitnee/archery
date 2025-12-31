@@ -198,7 +198,7 @@
           </a>
         </div>
 
-        <div style="padding-top: 1em">
+        <div v-if="tournament.id" style="padding-top: 1em">
           <a :href='"../admin?id="  + tournament.id'>
             Manage this tournmant (admin)
           </a>
