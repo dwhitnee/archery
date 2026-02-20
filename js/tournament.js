@@ -412,7 +412,7 @@ let app = new Vue({
       { full: "Recurve",   abbrev: "FSLR",  nfaa: "Freestyle Limited Recurve" },
       { full: "Compound",  abbrev: "FS",    nfaa: "Freestyle" },
       { full: "Fixed Pins", abbrev: "BHFS", nfaa: "Bowhunter Freestyle" },
-   // { full: "Traditional", abbrev: "TRAD", nfaa: "Traditional" }
+      { full: "Traditional", abbrev: "TRAD", nfaa: "Traditional" }
    // { full: "Longbow",     abbrev: "LB",   nfaa: "Longbow" }
     ],
 
@@ -2171,6 +2171,8 @@ let app = new Vue({
               archer.bow = "BBR";
             } else if (info.match(/olympic|recurve|fslr/i)) {
               archer.bow = "FSLR";
+            } else if (info.match(/traditional/i)) {
+              archer.bow = "TRAD";
             } else if (info.match(/compound|freestyle|fs/i)) {
               archer.bow = "FS";
             } else {
