@@ -2171,7 +2171,7 @@ let app = new Vue({
               archer.bow = "BBR";
             } else if (info.match(/olympic|recurve|fslr/i)) {
               archer.bow = "FSLR";
-            } else if (info.match(/trad/i)) {
+            } else if (info.match(/traditional/i)) {
               archer.bow = "TRAD";
             } else if (info.match(/compound|freestyle|fs/i)) {
               archer.bow = "FS";
