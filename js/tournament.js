@@ -2171,9 +2171,9 @@ let app = new Vue({
               archer.bow = "BBR";
             } else if (info.match(/olympic|recurve|fslr/i)) {
               archer.bow = "FSLR";
-            } else if (info.match(/traditional/i)) {
+            } else if (info.match(/traditional/i)) {   // "trad" is too likely a substring
               archer.bow = "TRAD";
-            } else if (info.match(/compound|freestyle|fs/i)) {
+            } else if (info.match(/compound|freestyle|fs/i)) {  // "fs" is OK since this is the default
               archer.bow = "FS";
             } else {
               archer.bow = "FS";
